@@ -13,12 +13,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: android-app/package-lock.json
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
+
+      - name: Install Dependencies & Sync Capacitor
+        run: |
+          cd android-app
+          npm install
+          npx cap sync android
 
       - name: Build Android APK (Debug)
         run: |
