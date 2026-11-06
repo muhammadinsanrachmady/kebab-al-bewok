@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Bot WhatsApp Gratis - Kebab AL Bewok</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <span class="logo">🌯</span>
+        <div>
+          <h1>Bot WhatsApp Gratis (Multi-Device)</h1>
+          <p class="subtitle">Ekosistem Kebab AL Bewok • 100% Bebas Biaya Langganan</p>
+        </div>
+      </div>
+      <div class="status-badge" id="statusBadge">
+        <span class="indicator red"></span>
+        <span id="statusText">Memeriksa status...</span>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="grid">
+      <!-- Left Column: Koneksi / Scan QR / Pairing Code -->
+      <div class="card">
+        <div class="card-header">
+          <h2>📱 Tautkan Akun WhatsApp</h2>
+          <span class="badge">Langkah 1</span>
+        </div>
+        <div class="card-body">
+          <div id="connectionPanel">
+            <!-- QR View -->
+            <div id="qrContainer" class="qr-box">
+              <div class="spinner" id="qrSpinner"></div>
+              <img id="qrImage" src="" alt="Scan QR Code" style="display: none;">
+              <p id="qrInstructions" class="instruction">
+                Sedang menghubungkan ke server WhatsApp...
+              </p>
+            </div>
+
+            <!-- Connected View -->
+            <div id="connectedBox" class="connected-box" style="display: none;">
+              <div class="success-icon">✅</div>
+              <h3>WhatsApp Berhasil Terhubung!</h3>
+              <p>Nomor Akun: <strong id="connectedPhone">-</strong></p>
+              <p>Nama Profil: <strong id="connectedName">-</strong></p>
+              <div class="tips">
+                Bot aktif melayani auto-reply menu (<code>!menu</code>), cek status (<code>!status</code>), dan pengiriman OTP otomatis.
+              </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Opsi Pairing Code (Tanpa Scan Kamera) -->
+            <div class="pairing-section">
+              <h3>🔑 Atau Masuk dengan Kode Pairing</h3>
+              <p class="hint">Gunakan nomor HP Anda jika kamera HP bermasalah untuk scan QR.</p>
+              <div class="input-group">
+                <input type="text" id="pairingPhoneInput" placeholder="Contoh: 085285841330">
+                <button class="btn btn-secondary" id="btnGetPairing">Dapatkan Kode</button>
+              </div>
+              <div id="pairingCodeDisplay" class="pairing-result" style="display: none;">
+                Kode Pairing Anda: <span id="pairingCodeText" class="code-highlight">-</span>
+                <p class="instruction" style="font-size: 12px; margin-top: 6px;">
+                  Buka WA di HP > Perangkat Tertaut > Tautkan dengan nomor telepon > Masukkan kode di atas.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Tes Kirim Pesan & OTP -->
+      <div class="card">
+        <div class="card-header">
+          <h2>🚀 Uji Coba Pengiriman Pesan & OTP</h2>
+          <span class="badge">Langkah 2</span>
+        </div>
+        <div class="card-body">
+          <!-- Form Kirim Pesan Bebas -->
+          <form id="sendMessageForm" class="form">
+            <div class="form-group">
+              <label for="targetPhone">Nomor WhatsApp Tujuan:</label>
+              <input type="text" id="targetPhone" placeholder="081234567890" required>
+            </div>
+            <div class="form-group">
+              <label for="messageText">Isi Pesan:</label>
+              <textarea id="messageText" rows="3" placeholder="Halo! Ini pesan tes dari Bot WhatsApp Kebab AL Bewok..." required></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSend">Kirim Pesan WA</button>
+              <button type="button" class="btn btn-warning" id="btnSendTestOtp">Kirim Contoh OTP</button>
+            </div>
+          </form>
+
+          <div id="sendFeedback" class="alert" style="display: none;"></div>
+
+          <hr class="divider">
+
+          <!-- Command Cheat Sheet -->
+          <div class="commands-box">
+            <h3>🤖 Perintah Otomatis yang Dikenali Bot:</h3>
+            <ul class="command-list">
+              <li><code>!menu</code> - Menampilkan menu makanan & harga terbaru</li>
+              <li><code>!cabang</code> - Info cabang & jam buka outlet</li>
+              <li><code>!order</code> - Format pemesanan cepat via WhatsApp</li>
+              <li><code>!status [KODE]</code> - Cek status pesanan (contoh: <code>!status KB-173000</code>)</li>
+              <li><code>!admin</code> - Kontak kasir / CS</li>
+              <li><code>!ping</code> - Tes koneksi bot WhatsApp</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom: Live Activity Log -->
+    <div class="card full-width">
+      <div class="card-header">
+        <h2>📋 Log Aktivitas Real-Time</h2>
+        <button class="btn btn-sm btn-outline" id="btnClearLog">Bersihkan Log</button>
+      </div>
+      <div class="card-body">
+        <div class="log-terminal" id="logTerminal">
+          <div class="log-line info">[Sistem] Menunggu data aktivitas...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let pollInterval = null;
+
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const json = await res.json();
+        if (!json.success) return;
+
+        const data = json.data;
+        updateUI(data);
+      } catch (err) {
+        console.error('Gagal mengambil status:', err);
+      }
+    }
+
+    function updateUI(data) {
+      const badge = document.getElementById('statusBadge');
+      const statusText = document.getElementById('statusText');
+      const indicator = badge.querySelector('.indicator');
+
+      const qrContainer = document.getElementById('qrContainer');
+      const qrImage = document.getElementById('qrImage');
+      const qrSpinner = document.getElementById('qrSpinner');
+      const qrInstructions = document.getElementById('qrInstructions');
+      const connectedBox = document.getElementById('connectedBox');
+
+      indicator.className = 'indicator';
+
+      if (data.status === 'connected') {
+        indicator.classList.add('green');
+        statusText.textContent = 'Terhubung (Online)';
+        qrContainer.style.display = 'none';
+        connectedBox.style.display = 'block';
+
+        document.getElementById('connectedPhone').textContent = data.user ? data.user.phone : '-';
+        document.getElementById('connectedName').textContent = data.user ? data.user.name : 'Bot WhatsApp';
+      } else if (data.status === 'qr_ready') {
+        indicator.classList.add('yellow');
+        statusText.textContent = 'Menunggu Scan QR Code';
+        connectedBox.style.display = 'none';
+        qrContainer.style.display = 'flex';
+        qrSpinner.style.display = 'none';
+
+        if (data.qrDataURL) {
+          qrImage.src = data.qrDataURL;
+          qrImage.style.display = 'block';
+          qrInstructions.innerHTML = 'Silakan scan QR di atas melalui <strong>WhatsApp > Titik Tiga / Pengaturan > Perangkat Tertaut > Tautkan Perangkat</strong>.';
+        }
+      } else {
+        indicator.classList.add('red');
+        statusText.textContent = data.status === 'connecting' ? 'Menghubungkan...' : 'Terputus';
+        connectedBox.style.display = 'none';
+        qrContainer.style.display = 'flex';
+        qrImage.style.display = 'none';
+        qrSpinner.style.display = 'block';
+        qrInstructions.textContent = 'Menyiapkan koneksi WhatsApp... Mohon tunggu sebentar.';
+      }
+
+      // Render Logs
+      if (data.logs && Array.isArray(data.logs)) {
+        const logBox = document.getElementById('logTerminal');
+        if (data.logs.length > 0) {
+          logBox.innerHTML = data.logs.map(log => {
+            return `<div class="log-line ${log.type}">[${log.time}] [${log.type.toUpperCase()}] ${escapeHtml(log.text)}</div>`;
+          }).join('');
+        }
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Handle Kirim Pesan
+    document.getElementById('sendMessageForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('targetPhone').value.trim();
+      const message = document.getElementById('messageText').value.trim();
+      const feedback = document.getElementById('sendFeedback');
+
+      feedback.style.display = 'block';
+      feedback.className = 'alert alert-info';
+      feedback.textContent = 'Sedang mengirim pesan...';
+
+      try {
+        const res = await fetch('/api/send-message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, message })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          feedback.className = 'alert alert-success';
+          feedback.textContent = '✅ ' + result.message;
+          document.getElementById('messageText').value = '';
+        } else {
+          feedback.className = 'alert alert-danger';
+          feedback.textContent = '❌ Gagal: ' + result.message;
+        }
+      } catch (err) {
+        feedback.className = 'alert alert-danger';
+        feedback.textContent = '❌ Terjadi kesalahan jaringan.';
+      }
+    });
+
+    // Handle Kirim Contoh OTP
+    document.getElementById('btnSendTestOtp').addEventListener('click', async () => {
+      const phone = document.getElementById('targetPhone').value.trim();
+      const feedback = document.getElementById('sendFeedback');
+
+      if (!phone) {
+        alert('Silakan masukkan nomor WhatsApp tujuan terlebih dahulu.');
+        return;
+      }
+
+      const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
+
+      feedback.style.display = 'block';
+      feedback.className = 'alert alert-info';
+      feedback.textContent = `Mengirim contoh OTP (${randomOtp})...`;
+
+      try {
+        const res = await fetch('/api/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, otp: randomOtp, name: 'Pelanggan Setia' })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          feedback.className = 'alert alert-success';
+          feedback.textContent = '✅ ' + result.message;
+        } else {
+          feedback.className = 'alert alert-danger';
+          feedback.textContent = '❌ ' + result.message;
+        }
+      } catch (err) {
+        feedback.className = 'alert alert-danger';
+        feedback.textContent = '❌ Terjadi kesalahan jaringan.';
+      }
+    });
+
+    // Handle Pairing Code
+    document.getElementById('btnGetPairing').addEventListener('click', async () => {
+      const phone = document.getElementById('pairingPhoneInput').value.trim();
+      const display = document.getElementById('pairingCodeDisplay');
+      const text = document.getElementById('pairingCodeText');
+
+      if (!phone) {
+        alert('Masukkan nomor HP Anda.');
+        return;
+      }
+
+      display.style.display = 'block';
+      text.textContent = 'Meminta kode...';
+
+      try {
+        const res = await fetch('/api/pairing-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone })
+        });
+        const result = await res.json();
+
+        if (result.success && result.pairingCode) {
+          text.textContent = result.pairingCode;
+        } else {
+          text.textContent = 'Gagal: ' + (result.message || 'Coba lagi');
+        }
+      } catch (err) {
+        text.textContent = 'Error koneksi';
+      }
+    });
+
+    // Clear log button
+    document.getElementById('btnClearLog').addEventListener('click', () => {
+      document.getElementById('logTerminal').innerHTML = '<div class="log-line info">[Sistem] Log dibersihkan.</div>';
+    });
+
+    // Polling status setiap 2 detik
+    checkStatus();
+    pollInterval = setInterval(checkStatus, 2000);
+  </script>
+</body>
+</html>

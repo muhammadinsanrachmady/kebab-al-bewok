@@ -15,6 +15,11 @@ android-app/android/.idea/
 android-app/android/*.iml
 android-app/android/app/*.iml
 
+# WhatsApp Bot Session & Auth
+session_auth/
+**/session_auth/
+whatsapp-bot/session_auth/
+
 # OS and system files
 .DS_Store
 Thumbs.db

@@ -73,7 +73,82 @@ if (!fs.existsSync(WALLETS_FILE)) {
 // 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
 // ==========================================
 
-// Login Cepat & Gratis (Nama + Nomor WhatsApp Valid Tanpa Biaya SMS/OTP)
+// Login / Registrasi Akun Google (100% Gratis Selamanya)
+app.post('/api/auth/google-login', (req, res) => {
+  const { email, full_name, avatar_url, google_id } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email Google diperlukan' });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.customers) wallets.customers = {};
+
+  // Cari atau buat profil baru berdasarkan email Google
+  if (!wallets.customers[email]) {
+    wallets.customers[email] = {
+      id: `cust-${Date.now()}`,
+      email,
+      name: full_name || email.split('@')[0],
+      avatar: avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`,
+      whatsapp: '',
+      delivery_address: '',
+      latitude: null,
+      longitude: null,
+      auth_provider: 'google',
+      registered_at: new Date().toISOString()
+    };
+  } else {
+    // Update data Google terbaru
+    if (full_name) wallets.customers[email].name = full_name;
+    if (avatar_url) wallets.customers[email].avatar = avatar_url;
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: `Login Google Berhasil! Selamat datang, ${wallets.customers[email].name}.`,
+    data: {
+      token: `token-google-${email}-${Date.now()}`,
+      user: wallets.customers[email]
+    }
+  });
+});
+
+// Update Profil Pelanggan (Nomor WhatsApp & Alamat Pengiriman)
+app.post('/api/customer/update-profile', (req, res) => {
+  const { email, whatsapp, delivery_address, latitude, longitude, full_name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email akun diperlukan' });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.customers || !wallets.customers[email]) {
+    return res.status(404).json({ success: false, message: 'Akun pelanggan tidak ditemukan' });
+  }
+
+  const cust = wallets.customers[email];
+  if (full_name) cust.name = full_name.trim();
+  if (whatsapp) cust.whatsapp = whatsapp.trim();
+  if (delivery_address) cust.delivery_address = delivery_address.trim();
+  if (latitude) cust.latitude = latitude;
+  if (longitude) cust.longitude = longitude;
+  cust.updated_at = new Date().toISOString();
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Alamat: ${cust.delivery_address}`);
+
+  res.json({
+    success: true,
+    message: 'Profil & alamat pengiriman berhasil disimpan!',
+    data: cust
+  });
+});
+
+// Login Cepat & Gratis (Fallback)
 app.post('/api/auth/login-free', (req, res) => {
   const { full_name, phone_number } = req.body;
 
@@ -133,6 +208,19 @@ app.post('/api/auth/send-otp', (req, res) => {
   });
 
   console.log(`🔑 [OTP KEBAB AL BEWOK] Kode verifikasi untuk ${cleanPhone} (${full_name}): ${otpCode}`);
+
+  // Kirimkan ke WhatsApp Bot Gratis (port 5001) jika bot aktif
+  fetch('http://127.0.0.1:5001/api/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: cleanPhone, otp: otpCode, name: full_name || 'Pelanggan Kebab' })
+  }).then(r => r.json()).then(data => {
+    if (data.success) {
+      console.log(`📲 [WA BOT SUKSES] OTP asli telah terkirim via WhatsApp ke ${cleanPhone}`);
+    }
+  }).catch(() => {
+    // Bot WA mungkin belum dinyalakan, sistem tetap berjalan aman
+  });
 
   res.json({
     success: true,
