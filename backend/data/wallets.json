@@ -32,6 +32,19 @@
       "name": "rachmady",
       "balance": 0,
       "last_login": "2026-11-06T14:29:41.263Z"
+    },
+    "muhammadinsanrachmady@gmail.com": {
+      "id": "cust-1793975915217",
+      "email": "muhammadinsanrachmady@gmail.com",
+      "name": "Muhammad Insan Rachmady",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=muhammadinsanrachmady@gmail.com",
+      "whatsapp": "6281519696524",
+      "delivery_address": "Jl. Anggrek No. 25, RT 01/03, Pagar Hitam",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "auth_provider": "google",
+      "registered_at": "2026-11-06T14:38:35.218Z",
+      "updated_at": "2026-11-06T14:38:35.254Z"
     }
   },
   "history": [

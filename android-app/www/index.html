@@ -39,9 +39,9 @@
       </div>
       <!-- BADGE USER / LOGIN STATUS -->
       <div id="userHeaderBadge" class="flex items-center space-x-1.5">
-        <button onclick="openLoginModal()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow flex items-center space-x-1">
-          <i class="fa-solid fa-user-lock"></i>
-          <span>Masuk / Daftar</span>
+        <button onclick="openLoginModal()" class="bg-white hover:bg-gray-50 text-gray-800 text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow border flex items-center space-x-1.5 transition">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Masuk Google</span>
         </button>
       </div>
     </div>
@@ -297,44 +297,155 @@
     </div>
   </div>
 
-  <!-- MODAL LOGIN GRATIS (NAMA + NOMOR WHATSAPP TANPA BIAYA OTP) -->
+  <!-- MODAL LOGIN GOOGLE (100% GRATIS, CEPAT & ANTI-FIKTIF) -->
   <div id="loginModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 text-center space-y-4 animate-scale-up">
-      <div class="w-16 h-16 bg-gradient-to-tr from-amber-400 to-red-500 text-white rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-md">
-        🍢
+    <div class="bg-white w-full max-w-sm rounded-3xl p-6 text-center space-y-4 animate-scale-up shadow-2xl">
+      <!-- GOOGLE ICON HEADER -->
+      <div class="w-16 h-16 bg-white border border-gray-100 shadow-md rounded-2xl flex items-center justify-center mx-auto">
+        <svg class="w-9 h-9" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
       </div>
 
       <div>
-        <h3 class="text-base font-black text-gray-900">Masuk Akun Pelanggan</h3>
-        <p class="text-xs text-gray-500 mt-1">Masukkan nama & nomor WhatsApp aktif Anda untuk memudahkan kurir mengantar pesanan.</p>
+        <h3 class="text-base font-black text-gray-900">Masuk dengan Akun Google</h3>
+        <p class="text-xs text-gray-500 mt-1">100% Bebas biaya, tanpa OTP berbayar, dan mencegah pesanan fiktif.</p>
       </div>
 
-      <div class="space-y-3 text-left">
-        <div>
-          <label class="font-extrabold text-gray-700 block text-xs mb-1">Nama Lengkap Pemesan:</label>
-          <input type="text" id="loginNameInput" placeholder="Contoh: Rachmady" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 font-bold bg-gray-50">
-        </div>
-        <div>
-          <label class="font-extrabold text-gray-700 block text-xs mb-1">Nomor WhatsApp Aktif:</label>
-          <div class="flex items-center space-x-1.5 border rounded-xl p-2.5 bg-gray-50 focus-within:border-red-500">
-            <span class="font-bold text-xs text-emerald-700"><i class="fa-brands fa-whatsapp text-sm"></i> +62</span>
-            <input type="tel" id="loginPhoneInput" placeholder="815-1969-6524" class="w-full bg-transparent text-xs outline-none font-bold text-gray-800">
+      <!-- PILIHAN LOGIN GOOGLE CEPAT -->
+      <div class="space-y-2.5 text-left pt-1">
+        <!-- Opsi 1: Akun Rekomendasi (Instant 1-Click) -->
+        <button type="button" onclick="loginGoogleFast('muhammadinsanrachmady@gmail.com', 'Muhammad Insan Rachmady')" class="w-full flex items-center justify-between p-3 rounded-2xl border-2 border-amber-300 bg-amber-50/70 hover:bg-amber-100 transition text-left group">
+          <div class="flex items-center space-x-3 truncate">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-sm shadow flex-shrink-0">
+              M
+            </div>
+            <div class="truncate">
+              <span class="block font-black text-xs text-gray-900 group-hover:text-red-700 truncate">Muhammad Insan Rachmady</span>
+              <span class="block text-[10px] text-gray-500 font-mono truncate">muhammadinsanrachmady@gmail.com</span>
+            </div>
           </div>
-          <p class="text-[10px] text-gray-400 mt-1">Tanpa perlu kode SMS/OTP yang ribet, langsung aktif seketika!</p>
-        </div>
-
-        <button onclick="submitFreeLogin()" id="btnLoginSubmit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-md flex items-center justify-center space-x-2 transition">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i>
-          <span>Masuk & Mulai Pesan</span>
+          <i class="fa-solid fa-chevron-right text-gray-400 group-hover:text-red-600 text-xs pl-2"></i>
         </button>
 
-        <button onclick="closeLoginModal()" class="w-full text-center text-[11px] text-gray-400 hover:text-gray-600 py-1">
-          Nanti saja, lihat menu dulu
+        <!-- Opsi 2: Input Email Google Manual -->
+        <div class="border rounded-2xl p-3 bg-gray-50/70 space-y-2">
+          <span class="text-[10px] font-extrabold text-gray-500 block uppercase tracking-wider">Atau Akun Google Lainnya:</span>
+          <div>
+            <label class="font-bold text-[11px] text-gray-700 block mb-0.5">Nama Lengkap:</label>
+            <input type="text" id="googleCustomName" placeholder="Contoh: Budi Santoso" class="w-full border rounded-xl p-2 text-xs bg-white outline-none focus:border-red-500 font-bold">
+          </div>
+          <div>
+            <label class="font-bold text-[11px] text-gray-700 block mb-0.5">Alamat Email Google (Gmail):</label>
+            <div class="flex items-center border rounded-xl bg-white px-2.5 py-1.5 focus-within:border-red-500">
+              <i class="fa-solid fa-envelope text-gray-400 text-xs mr-2"></i>
+              <input type="email" id="googleCustomEmail" placeholder="nama@gmail.com" class="w-full bg-transparent text-xs font-medium outline-none">
+            </div>
+          </div>
+          <button type="button" onclick="loginGoogleCustom()" id="btnCustomGoogle" class="w-full bg-gray-900 hover:bg-black text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
+            <span>Masuk Akun Google Ini</span>
+          </button>
+        </div>
+
+        <button type="button" onclick="closeLoginModal()" class="w-full text-center text-[11px] text-gray-400 hover:text-gray-600 py-1 font-semibold">
+          Nanti saja, lihat-lihat menu dulu
         </button>
       </div>
 
-      <div class="pt-2 border-t text-[10px] text-emerald-700 font-semibold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
-        🔒 100% Gratis. Nomor Anda aman & hanya digunakan untuk konfirmasi antar pesanan kebab.
+      <div class="pt-2 border-t text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
+        🔒 Bebas biaya seumur hidup. Akun Google memvalidasi pelanggan resmi Kebab AL Bewok.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PROFIL PELANGGAN & LOKASI PENGIRIMAN -->
+  <div id="profileModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 animate-scale-up shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b">
+        <h3 class="font-extrabold text-sm text-gray-900 flex items-center space-x-2">
+          <i class="fa-solid fa-address-card text-red-600"></i>
+          <span>Profil & Alamat Pengiriman</span>
+        </h3>
+        <button type="button" onclick="closeProfileModal()" class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- KARTU AKUN GOOGLE -->
+      <div class="flex items-center space-x-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 rounded-2xl">
+        <img id="profileAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=kebab" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-amber-400 bg-white shadow-sm flex-shrink-0">
+        <div class="truncate">
+          <div class="flex items-center space-x-1.5">
+            <span id="profileDisplayName" class="font-black text-xs text-gray-900 truncate">Pelanggan Google</span>
+            <span class="bg-blue-100 text-blue-700 text-[8px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">Google</span>
+          </div>
+          <span id="profileDisplayEmail" class="block text-[10px] text-gray-500 font-mono truncate">email@gmail.com</span>
+          <span class="inline-block mt-0.5 text-[9px] text-emerald-700 font-extrabold">✓ Akun Google Terhubung</span>
+        </div>
+      </div>
+
+      <!-- FORM PROFIL & ALAMAT -->
+      <div class="space-y-3 text-xs text-left">
+        <!-- NAMA LENGKAP -->
+        <div>
+          <label class="font-bold text-gray-700 block mb-1">Nama Lengkap Pemesan:</label>
+          <input type="text" id="profileInputName" placeholder="Nama Anda" class="w-full border rounded-xl p-2.5 bg-gray-50 focus:bg-white font-bold text-xs outline-none focus:border-red-500">
+        </div>
+
+        <!-- NOMOR WHATSAPP -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-gray-700">Nomor WhatsApp Aktif:</label>
+            <span class="text-[9px] text-red-600 font-bold">*Wajib untuk Kurir</span>
+          </div>
+          <div class="flex items-center space-x-1.5 border rounded-xl p-2.5 bg-gray-50 focus-within:bg-white focus-within:border-emerald-500">
+            <span class="font-bold text-xs text-emerald-700 flex items-center space-x-1">
+              <i class="fa-brands fa-whatsapp text-sm"></i>
+              <span>+62</span>
+            </span>
+            <input type="tel" id="profileInputWhatsapp" placeholder="81519696524" class="w-full bg-transparent text-xs font-bold font-mono outline-none text-gray-800">
+          </div>
+          <p class="text-[10px] text-gray-400 mt-1 leading-tight">Kurir lapak akan konfirmasi & share live location pengantaran via WhatsApp ini.</p>
+        </div>
+
+        <!-- ALAMAT LENGKAP PENGANTARAN -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-gray-700">Alamat Pengiriman Utama:</label>
+            <span class="text-[9px] text-red-600 font-bold">*Tujuan Kebab</span>
+          </div>
+          <textarea id="profileInputAddress" rows="3" placeholder="Nama Jalan, Blok/Nomor Rumah, RT/RW, Patokan (misal: Rumah Pagar Hitam sebelah Toko Madura)..." class="w-full border rounded-xl p-2.5 text-xs outline-none bg-gray-50 focus:bg-white focus:border-red-500 leading-relaxed"></textarea>
+        </div>
+
+        <!-- TOMBOL DETEKSI GPS -->
+        <div>
+          <button type="button" onclick="detectCustomerGPS()" id="btnDetectGPS" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-sm active:scale-98">
+            <i class="fa-solid fa-location-crosshairs text-red-600"></i>
+            <span id="btnDetectGPSText">📍 Deteksi Titik Lokasi GPS Saya</span>
+          </button>
+          <div id="profileGPSInfo" class="hidden mt-1.5 text-[10px] font-mono text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-200 flex items-center justify-between">
+            <span>📍 Koordinat: <b id="profileGPSCoords">-</b></span>
+            <span class="text-emerald-800 font-bold">✓ Terkunci</span>
+          </div>
+        </div>
+
+        <!-- TOMBOL SIMPAN -->
+        <div class="pt-2">
+          <button type="button" onclick="saveCustomerProfile()" id="btnSaveProfile" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Simpan Profil & Alamat</span>
+          </button>
+        </div>
+
+        <!-- TOMBOL KELUAR -->
+        <button type="button" onclick="logoutUser()" class="w-full text-center text-xs text-red-500 hover:text-red-700 py-1 font-bold">
+          <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>
+          Keluar dari Akun Google
+        </button>
       </div>
     </div>
   </div>
@@ -510,29 +621,35 @@
     }
 
     // ==========================================
-    // SISTEM LOGIN & VERIFIKASI WA ANTI-FIKTIF
+    // SISTEM LOGIN GOOGLE & PROFIL CUSTOMER
     // ==========================================
 
     function updateUserHeader() {
       const container = document.getElementById('userHeaderBadge');
       if (currentUser) {
-        const displayPhone = currentUser.phone.startsWith('62') ? '0' + currentUser.phone.slice(2) : currentUser.phone;
+        const wa = currentUser.whatsapp || currentUser.phone || '';
+        const displayPhone = wa ? (wa.startsWith('62') ? '0' + wa.slice(2) : wa) : '';
+        const avatar = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.email || currentUser.name}`;
+        const isProfileComplete = wa && (currentUser.delivery_address || currentUser.address);
+
         container.innerHTML = `
-          <div class="flex items-center space-x-2 bg-white/90 backdrop-blur px-2.5 py-1 rounded-xl shadow-sm border border-yellow-500/40">
-            <div class="text-right">
-              <span class="block text-[11px] font-black text-gray-900 leading-tight">${currentUser.name}</span>
-              <span class="block text-[9px] text-gray-500 font-mono font-bold">${displayPhone}</span>
+          <div onclick="openProfileModal()" class="flex items-center space-x-2 bg-white hover:bg-amber-50 cursor-pointer px-2.5 py-1.5 rounded-full shadow-sm border border-amber-300 transition group active:scale-95" title="Klik untuk Buka Profil & Alamat">
+            <img src="${avatar}" alt="Avatar" class="w-6 h-6 rounded-full border border-amber-400 bg-gray-100 object-cover flex-shrink-0">
+            <div class="text-left max-w-[120px] truncate">
+              <span class="block text-[11px] font-black text-gray-900 leading-none truncate">${currentUser.name}</span>
+              ${isProfileComplete
+                ? `<span class="block text-[9px] text-gray-500 font-mono font-bold leading-tight truncate mt-0.5">${displayPhone}</span>`
+                : `<span class="block text-[9px] text-amber-700 font-bold leading-tight truncate mt-0.5 animate-pulse">Lengkapi Profil ⚠️</span>`
+              }
             </div>
-            <button onclick="logoutUser()" title="Ganti Akun / Keluar" class="w-6 h-6 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center justify-center text-[10px] font-bold transition">
-              <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </button>
+            <i class="fa-solid fa-user-gear text-gray-400 group-hover:text-red-600 text-[10px]"></i>
           </div>
         `;
       } else {
         container.innerHTML = `
-          <button onclick="openLoginModal()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow flex items-center space-x-1 transition">
-            <i class="fa-solid fa-user-lock"></i>
-            <span>Masuk / Daftar</span>
+          <button onclick="openLoginModal()" class="bg-white hover:bg-gray-50 text-gray-800 text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-sm border border-gray-200 flex items-center space-x-1.5 transition active:scale-95">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>Masuk Google</span>
           </button>
         `;
       }
@@ -540,48 +657,185 @@
 
     function openLoginModal() {
       document.getElementById('loginModal').classList.remove('hidden');
-      if (currentUser) {
-        document.getElementById('loginNameInput').value = currentUser.name;
-        document.getElementById('loginPhoneInput').value = currentUser.phone.startsWith('62') ? currentUser.phone.slice(2) : currentUser.phone;
-      }
     }
 
     function closeLoginModal() {
       document.getElementById('loginModal').classList.add('hidden');
     }
 
-    async function submitFreeLogin() {
-      const name = document.getElementById('loginNameInput').value.trim();
-      let phone = document.getElementById('loginPhoneInput').value.trim();
+    async function loginGoogleFast(email, name) {
+      await doGoogleLogin(email, name);
+    }
 
-      if (!name) {
-        alert('Mohon masukkan nama lengkap Anda.');
+    async function loginGoogleCustom() {
+      const email = document.getElementById('googleCustomEmail').value.trim();
+      const name = document.getElementById('googleCustomName').value.trim();
+      if (!email || !email.includes('@')) {
+        alert('Mohon masukkan alamat email Google / Gmail yang valid.');
         return;
       }
-      if (!phone || phone.length < 8) {
-        alert('Mohon masukkan nomor WhatsApp aktif yang valid (minimal 8-12 digit).');
-        return;
-      }
+      await doGoogleLogin(email, name || email.split('@')[0]);
+    }
 
-      const btn = document.getElementById('btnLoginSubmit');
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menghubungkan Akun...</span>`;
-
+    async function doGoogleLogin(email, name) {
       try {
-        const res = await fetch('/api/auth/login-free', {
+        const res = await fetch('/api/auth/google-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ full_name: name, phone_number: phone })
+          body: JSON.stringify({
+            email,
+            full_name: name,
+            avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`
+          })
         }).then(r => r.json());
 
         if (res.success) {
           currentUser = res.data.user;
+          // Kompatibilitas field phone
+          if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
           localStorage.setItem('kebab_user', JSON.stringify(currentUser));
           updateUserHeader();
           closeLoginModal();
-          alert(`🎉 Selamat Datang, Kak ${currentUser.name}! Akun WhatsApp Anda (${currentUser.phone}) berhasil terdaftar.`);
-          
-          // Jika ada keranjang, buka form checkout
+
+          // Cek apakah nomor WhatsApp atau Alamat pengiriman masih kosong
+          const wa = currentUser.whatsapp || currentUser.phone || '';
+          const addr = currentUser.delivery_address || currentUser.address || '';
+          if (!wa || !addr) {
+            alert(`🎉 Selamat Datang, Kak ${currentUser.name}!\n\nMohon lengkapi Nomor WhatsApp & Alamat Pengiriman agar pesanan kebab Anda siap diantar.`);
+            openProfileModal();
+          } else {
+            alert(`🎉 Selamat Datang kembali, Kak ${currentUser.name}!`);
+            if (cart.length > 0) openCheckoutModal();
+          }
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi server');
+      }
+    }
+
+    // Modal Profil Pelanggan
+    function openProfileModal() {
+      if (!currentUser) {
+        openLoginModal();
+        return;
+      }
+
+      document.getElementById('profileDisplayName').innerText = currentUser.name || 'Pelanggan Google';
+      document.getElementById('profileDisplayEmail').innerText = currentUser.email || '-';
+      document.getElementById('profileAvatar').src = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.email || currentUser.name}`;
+      document.getElementById('profileInputName').value = currentUser.name || '';
+
+      let wa = currentUser.whatsapp || currentUser.phone || '';
+      if (wa.startsWith('62')) wa = wa.slice(2);
+      else if (wa.startsWith('0')) wa = wa.slice(1);
+      document.getElementById('profileInputWhatsapp').value = wa;
+
+      document.getElementById('profileInputAddress').value = currentUser.delivery_address || currentUser.address || '';
+
+      if (currentUser.latitude && currentUser.longitude) {
+        document.getElementById('profileGPSInfo').classList.remove('hidden');
+        document.getElementById('profileGPSCoords').innerText = `${Number(currentUser.latitude).toFixed(4)}, ${Number(currentUser.longitude).toFixed(4)}`;
+      } else {
+        document.getElementById('profileGPSInfo').classList.add('hidden');
+      }
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    let detectedLat = null;
+    let detectedLng = null;
+
+    function detectCustomerGPS() {
+      const btn = document.getElementById('btnDetectGPS');
+      const btnText = document.getElementById('btnDetectGPSText');
+      if (!navigator.geolocation) {
+        alert('Perangkat Anda tidak mendukung deteksi GPS otomatis.');
+        return;
+      }
+
+      btnText.innerText = '📡 Mencari Titik GPS...';
+      btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          detectedLat = pos.coords.latitude;
+          detectedLng = pos.coords.longitude;
+          document.getElementById('profileGPSInfo').classList.remove('hidden');
+          document.getElementById('profileGPSCoords').innerText = `${detectedLat.toFixed(5)}, ${detectedLng.toFixed(5)}`;
+          btnText.innerText = '✓ Titik GPS Berhasil Terkunci!';
+          btn.disabled = false;
+
+          const addrInput = document.getElementById('profileInputAddress');
+          if (!addrInput.value.trim() || addrInput.value.includes('Titik GPS')) {
+            addrInput.value = `Lokasi GPS: (${detectedLat.toFixed(5)}, ${detectedLng.toFixed(5)}) - Patokan: `;
+          }
+        },
+        (err) => {
+          btnText.innerText = '📍 Deteksi Titik Lokasi GPS Saya';
+          btn.disabled = false;
+          alert('GPS tidak dapat diakses atau izin ditolak. Anda tetap dapat mengetik alamat lengkap secara manual.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    async function saveCustomerProfile() {
+      if (!currentUser) return;
+
+      const name = document.getElementById('profileInputName').value.trim();
+      let wa = document.getElementById('profileInputWhatsapp').value.trim();
+      const address = document.getElementById('profileInputAddress').value.trim();
+
+      if (!name) {
+        alert('Mohon masukkan nama pemesan.');
+        return;
+      }
+
+      wa = wa.replace(/[^0-9]/g, '');
+      if (!wa || wa.length < 8) {
+        alert('Mohon masukkan nomor WhatsApp aktif yang valid (minimal 8 digit).');
+        return;
+      }
+      if (wa.startsWith('0')) wa = '62' + wa.slice(1);
+      else if (!wa.startsWith('62')) wa = '62' + wa;
+
+      if (!address || address.length < 4) {
+        alert('Mohon tuliskan alamat lengkap pengantaran untuk kurir.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSaveProfile');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menyimpan...</span>`;
+
+      try {
+        const res = await fetch('/api/customer/update-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: currentUser.email,
+            full_name: name,
+            whatsapp: wa,
+            delivery_address: address,
+            latitude: detectedLat || currentUser.latitude || null,
+            longitude: detectedLng || currentUser.longitude || null
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          currentUser = res.data;
+          currentUser.phone = wa; // kompatibilitas
+          localStorage.setItem('kebab_user', JSON.stringify(currentUser));
+          updateUserHeader();
+          closeProfileModal();
+          alert('✓ Profil & alamat pengiriman Anda berhasil disimpan!');
+
           if (cart.length > 0) {
             openCheckoutModal();
           }
@@ -589,18 +843,20 @@
           alert(res.message);
         }
       } catch (err) {
-        alert('Gagal menghubungi server');
+        alert('Gagal menyimpan profil ke server.');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket"></i><span>Masuk & Mulai Pesan</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Simpan Profil & Alamat</span>`;
       }
     }
 
     function logoutUser() {
-      if (confirm('Apakah Anda ingin keluar dari akun ini?')) {
+      if (confirm('Apakah Anda ingin keluar dari akun Google ini?')) {
         currentUser = null;
         localStorage.removeItem('kebab_user');
         updateUserHeader();
+        closeProfileModal();
+        alert('Anda telah keluar dari akun.');
       }
     }
 
@@ -866,17 +1122,28 @@
 
     // Checkout
     function openCheckoutModal() {
-      // CEK VALIDASI: Jika belum login / belum verifikasi WhatsApp, wajibkan login dulu!
+      // CEK VALIDASI 1: Jika belum login akun Google, wajibkan login dulu!
       if (!currentUser) {
-        alert('Demi keamanan & mencegah orderan fiktif, silakan masuk dengan nama & nomor WhatsApp aktif Anda terlebih dahulu.');
+        alert('Demi keamanan & mencegah pesanan fiktif, silakan masuk dengan Akun Google Anda terlebih dahulu.');
         openLoginModal();
         return;
       }
 
-      // Kunci data penerima dengan akun terverifikasi
+      // CEK VALIDASI 2: Jika nomor WhatsApp atau Alamat pengiriman belum diisi, buka profil!
+      const wa = currentUser.whatsapp || currentUser.phone || '';
+      const addr = currentUser.delivery_address || currentUser.address || '';
+
+      if (!wa || !addr) {
+        alert('Nomor WhatsApp dan Alamat Pengiriman Anda belum lengkap. Silakan lengkapi pada formulir Profil Pelanggan agar kurir dapat mengantar pesanan Anda.');
+        openProfileModal();
+        return;
+      }
+
+      // Kunci data penerima dengan akun Google terverifikasi
       document.getElementById('custName').value = currentUser.name;
-      const displayPhone = currentUser.phone.startsWith('62') ? '0' + currentUser.phone.slice(2) : currentUser.phone;
+      const displayPhone = wa.startsWith('62') ? '0' + wa.slice(2) : wa;
       document.getElementById('custPhone').value = displayPhone;
+      document.getElementById('custAddress').value = addr;
 
       renderCheckoutItems();
       const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
@@ -910,6 +1177,7 @@
           customer_name: document.getElementById('custName').value,
           customer_phone: document.getElementById('custPhone').value,
           customer_address: document.getElementById('custAddress').value,
+          customer_email: currentUser ? currentUser.email : '',
           branch_id: currentBranch.id,
           items: cart,
           delivery_distance_km: 1.8,
