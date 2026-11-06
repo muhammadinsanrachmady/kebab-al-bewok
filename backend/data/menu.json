@@ -1,0 +1,105 @@
+{
+  "brand": "Kebab AL Bewok",
+  "tagline": "Rasa Nikmat, Harga Bersahabat!",
+  "hotline": "0852-8584-1330",
+  "categories": [
+    {
+      "id": "cat-original",
+      "name": "Kebab Original",
+      "description": "Daging sapi / ayam, lettuce, nanas & bombay",
+      "badge": "Klasik",
+      "items": [
+        {
+          "id": "orig-beef-klasik",
+          "name": "Kebab Original - Beef Klasik",
+          "meat_type": "Beef Klasik",
+          "prices": { "small": 12000, "reguler": 16000, "jumbo": 18000 }
+        },
+        {
+          "id": "orig-chicken",
+          "name": "Kebab Original - Chicken",
+          "meat_type": "Chicken",
+          "prices": { "small": 13000, "reguler": 17000, "jumbo": 19000 }
+        },
+        {
+          "id": "orig-beef-premium",
+          "name": "Kebab Original - Beef Premium ⭐",
+          "meat_type": "Beef Premium",
+          "is_favorite": true,
+          "prices": { "small": 15000, "reguler": 19000, "jumbo": 22000 }
+        }
+      ]
+    },
+    {
+      "id": "cat-cheesy",
+      "name": "Kebab Cheesy",
+      "description": "Daging sapi / ayam, lettuce, nanas, bombay & saus keju spesial",
+      "badge": "Super Cheesy",
+      "items": [
+        {
+          "id": "cheesy-beef-klasik",
+          "name": "Kebab Cheesy - Beef Klasik",
+          "meat_type": "Beef Klasik",
+          "prices": { "small": 13000, "reguler": 17000, "jumbo": 19000 }
+        },
+        {
+          "id": "cheesy-chicken",
+          "name": "Kebab Cheesy - Chicken",
+          "meat_type": "Chicken",
+          "prices": { "small": 14000, "reguler": 18000, "jumbo": 20000 }
+        },
+        {
+          "id": "cheesy-beef-premium",
+          "name": "Kebab Cheesy - Beef Premium ⭐",
+          "meat_type": "Beef Premium",
+          "is_favorite": true,
+          "prices": { "small": 16000, "reguler": 20000, "jumbo": 23000 }
+        }
+      ]
+    },
+    {
+      "id": "cat-signature",
+      "name": "Kebab Signature",
+      "description": "Daging sapi / ayam, lettuce, nanas, bombay & bumbu spesial AL Bewok",
+      "badge": "Signature",
+      "items": [
+        {
+          "id": "sign-beef-klasik",
+          "name": "Kebab Signature - Beef Klasik",
+          "meat_type": "Beef Klasik",
+          "prices": { "small": 13000, "reguler": 17000, "jumbo": 19000 }
+        },
+        {
+          "id": "sign-chicken",
+          "name": "Kebab Signature - Chicken",
+          "meat_type": "Chicken",
+          "prices": { "small": 14000, "reguler": 18000, "jumbo": 20000 }
+        },
+        {
+          "id": "sign-beef-premium",
+          "name": "Kebab Signature - Beef Premium ⭐",
+          "meat_type": "Beef Premium",
+          "is_favorite": true,
+          "prices": { "small": 16000, "reguler": 20000, "jumbo": 23000 }
+        }
+      ]
+    }
+  ],
+  "extra_toppings": [
+    { "id": "top-egg", "name": "Telur", "price": 5000, "icon": "🍳" },
+    { "id": "top-cheese", "name": "Keju", "price": 3000, "icon": "🧀" },
+    { "id": "top-beef", "name": "Ekstra Beef", "price": 6000, "icon": "🥩" },
+    { "id": "top-chicken", "name": "Ekstra Chicken", "price": 6000, "icon": "🍗" }
+  ],
+  "spice_levels": [
+    { "id": "lvl-0", "name": "Level 0 - Tidak Pedas (Tomat)", "extra_price": 0 },
+    { "id": "lvl-1", "name": "Level 1 - Sedang", "extra_price": 0 },
+    { "id": "lvl-2", "name": "Level 2 - Pedas Mantap", "extra_price": 0 },
+    { "id": "lvl-3", "name": "Level 3 - Super Pedas", "extra_price": 0 }
+  ],
+  "vegetable_options": [
+    { "id": "veg-nanas", "name": "Pakai Nanas", "default": true },
+    { "id": "veg-bombay", "name": "Pakai Bombay", "default": true },
+    { "id": "veg-lettuce", "name": "Pakai Lettuce", "default": true }
+  ]
+}

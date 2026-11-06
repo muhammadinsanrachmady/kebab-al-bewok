@@ -1,0 +1,8 @@
+{
+  "appId": "com.kebab.albewok",
+  "appName": "Kebab AL Bewok",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi 3 Aplikasi Kebab AL Bewok</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .device-frame {
+      border: 12px solid #1e293b;
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 p-4 md:p-6">
+
+  <!-- HEADER UTAMA -->
+  <header class="max-w-7xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+        🍢
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-black text-amber-400 tracking-wide">KEBAB AL BEWOK - LIVE APP SIMULATOR</h1>
+        <p class="text-xs text-slate-400">Pusat Uji Coba Ekosistem 3 Aplikasi (Customer, Admin Lapak, & Driver Kurir)</p>
+      </div>
+    </div>
+
+    <!-- QUICK OPEN BUTTONS -->
+    <div class="flex flex-wrap gap-2 text-xs">
+      <a href="/customer" target="_blank" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-2 rounded-xl flex items-center space-x-1 shadow transition">
+        <i class="fa-solid fa-mobile-screen"></i>
+        <span>Buka App Customer</span>
+      </a>
+      <a href="/admin" target="_blank" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-2 rounded-xl flex items-center space-x-1 shadow transition">
+        <i class="fa-solid fa-shop"></i>
+        <span>Buka App Admin Dapur</span>
+      </a>
+      <a href="/driver" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl flex items-center space-x-1 shadow transition">
+        <i class="fa-solid fa-motorcycle"></i>
+        <span>Buka App Driver</span>
+      </a>
+      <a href="/owner" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl flex items-center space-x-1 shadow transition">
+        <i class="fa-solid fa-crown"></i>
+        <span>Portal Owner (Pusat)</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- PANDUAN CARA MENCOBA & SCAN QR KE HP -->
+  <div class="max-w-7xl mx-auto mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    
+    <!-- KOTAK SCAN QR CODE LANGSUNG KE HP -->
+    <div class="bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 p-4 rounded-3xl shadow-xl flex items-center space-x-4 border-2 border-white/40">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://patvh-2001-448a-2075-142d-c9e0-e4d-ed3e-2c77.run.pinggy-free.link/customer" alt="Scan QR Kebab" class="w-24 h-24 rounded-2xl border-2 border-slate-900 shadow-md shrink-0 bg-white p-1">
+      <div>
+        <span class="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Paling Praktis</span>
+        <h3 class="font-black text-sm text-slate-950 mt-1 leading-tight">SCAN DENGAN KAMERA HP:</h3>
+        <p class="text-[11px] text-slate-800 font-semibold mt-0.5">Arahkan kamera HP Anda ke Barcode ini untuk langsung membuka aplikasi Kebab di HP!</p>
+      </div>
+    </div>
+
+    <!-- PANDUAN SIMULASI -->
+    <div class="md:col-span-2 bg-slate-800/80 border border-slate-700 rounded-3xl p-4 text-xs flex flex-col justify-center">
+      <div class="flex items-center space-x-2 text-amber-400 font-bold mb-2">
+        <i class="fa-solid fa-circle-info text-sm"></i>
+        <span class="text-xs">Alur Uji Coba Simulasi:</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-[11px] text-slate-300">
+        <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+          <span class="font-bold text-red-400 block mb-0.5">1. Customer:</span>
+          Pesan Kebab + Topping $\rightarrow$ Checkout QRIS.
+        </div>
+        <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+          <span class="font-bold text-amber-400 block mb-0.5">2. Dapur:</span>
+          Terima QRIS $\rightarrow$ Masak $\rightarrow$ Panggil Kurir.
+        </div>
+        <div class="bg-slate-900/60 p-2 rounded-xl border border-slate-700/50">
+          <span class="font-bold text-emerald-400 block mb-0.5">3. Driver:</span>
+          Ambil Order $\rightarrow$ Selesai $\rightarrow$ Saldo Masuk.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CONTAINER 3 DEVICE SCREENS -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+    <!-- 1. DEVICE CUSTOMER -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center px-2 text-xs">
+        <span class="font-black text-red-400 flex items-center space-x-1">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>1. APLIKASI CUSTOMER</span>
+        </span>
+        <span class="text-slate-400 text-[11px]">(PWA iPhone & Android)</span>
+      </div>
+      <div class="device-frame bg-white h-[680px]">
+        <iframe src="/customer" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+
+    <!-- 2. DEVICE ADMIN LAPAK -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center px-2 text-xs">
+        <span class="font-black text-amber-400 flex items-center space-x-1">
+          <i class="fa-solid fa-shop"></i>
+          <span>2. DAPUR & KASIR LAPAK</span>
+        </span>
+        <span class="text-slate-400 text-[11px]">(Tablet / PC Kasir)</span>
+      </div>
+      <div class="device-frame bg-white h-[680px]">
+        <iframe src="/admin" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+
+    <!-- 3. DEVICE DRIVER -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center px-2 text-xs">
+        <span class="font-black text-emerald-400 flex items-center space-x-1">
+          <i class="fa-solid fa-motorcycle"></i>
+          <span>3. DRIVER FREELANCE</span>
+        </span>
+        <span class="text-slate-400 text-[11px]">(Aplikasi Kurir)</span>
+      </div>
+      <div class="device-frame bg-white h-[680px]">
+        <iframe src="/driver" class="w-full h-full border-0"></iframe>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

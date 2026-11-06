@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Kebab AL Bewok</string>
+    <string name="title_activity_main">Kebab AL Bewok</string>
+    <string name="package_name">com.kebab.albewok</string>
+    <string name="custom_url_scheme">com.kebab.albewok</string>
+</resources>

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kebab AL Bewok - Pesan Online</title>
+
+  <!-- PWA & MOBILE APP TAGS -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#DC2626">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- KHUSUS APPLE IPHONE (iOS) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Kebab Bewok">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800 pb-28">
+
+  <!-- TOP HEADER -->
+  <header class="bg-[#FBBF24] p-4 sticky top-0 z-20 shadow-sm border-b border-yellow-500">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🍢</span>
+        <div>
+          <h1 class="font-extrabold text-red-700 text-lg leading-tight tracking-wide">KEBAB AL BEWOK</h1>
+          <p class="text-[11px] font-semibold text-gray-800">Rasa Nikmat, Harga Bersahabat!</p>
+        </div>
+      </div>
+      <div class="bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
+        📱 Customer
+      </div>
+    </div>
+
+    <!-- OUTLET SELECTOR -->
+    <div class="mt-3 bg-white/90 backdrop-blur rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm">
+      <div class="flex items-center space-x-2 overflow-hidden">
+        <i class="fa-solid fa-location-dot text-red-600"></i>
+        <div class="truncate">
+          <span class="text-gray-500 text-[10px] block">Lapak Terdekat:</span>
+          <select id="branchSelect" onchange="changeBranch()" class="font-bold text-gray-800 bg-transparent outline-none cursor-pointer">
+            <option value="cabang-01">Cabang Pasar Baru (1.2 km)</option>
+            <option value="cabang-02">Cabang Alun-Alun (2.5 km)</option>
+          </select>
+        </div>
+      </div>
+      <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">BUKA</span>
+    </div>
+
+    <!-- BANNER PERMANEN PASANG APLIKASI DI LAYAR HP -->
+    <div class="mt-3 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-600 text-white rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-md border border-yellow-300/50">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center text-red-900 text-base shadow-sm shrink-0">
+          📲
+        </div>
+        <div>
+          <span class="font-extrabold block text-[12px] leading-tight text-white">Pasang Aplikasi di Layar HP</span>
+          <span class="text-[10px] text-yellow-100">Pesan Kebab lebih cepat seperti Gojek/Grab</span>
+        </div>
+      </div>
+      <button onclick="handleInstallClick()" class="bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black px-3.5 py-2 rounded-xl text-[11px] shadow-md transition shrink-0">
+        Pasang
+      </button>
+    </div>
+  </header>
+
+  <!-- BANNER PROMO -->
+  <div class="p-4">
+    <div class="bg-gradient-to-r from-red-600 to-amber-500 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+      <div class="relative z-10">
+        <span class="bg-yellow-400 text-red-900 font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase">Hemat Tanpa Komisi</span>
+        <h2 class="text-lg font-black mt-1">Beli Kebab Langsung di Lapak</h2>
+        <p class="text-xs text-yellow-100 mt-0.5">Ongkir murah, daging melimpah dengan nanas & bombay segar!</p>
+      </div>
+      <div class="absolute -right-3 -bottom-4 text-6xl opacity-30">🍢</div>
+    </div>
+  </div>
+
+  <!-- KATEGORI MENU TABS -->
+  <div class="px-4 flex space-x-2 overflow-x-auto hide-scrollbar pb-2">
+    <button onclick="filterCategory('all')" class="cat-btn active px-4 py-1.5 rounded-full text-xs font-bold bg-red-600 text-white shadow-sm shrink-0">Semua</button>
+    <button onclick="filterCategory('cat-original')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Original</button>
+    <button onclick="filterCategory('cat-cheesy')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Cheesy 🧀</button>
+    <button onclick="filterCategory('cat-signature')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Signature ⭐</button>
+  </div>
+
+  <!-- DAFTAR MENU CONTAINER -->
+  <main class="p-4 space-y-4" id="menuContainer">
+    <div class="text-center py-8 text-gray-400 text-xs">
+      <i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-yellow-500"></i>
+      <p>Memuat menu Kebab AL Bewok...</p>
+    </div>
+  </main>
+
+  <!-- BOTTOM FLOATING CART BAR -->
+  <div id="floatingCart" class="fixed bottom-0 left-0 right-0 p-3 bg-white border-t shadow-2xl z-30 hidden">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div>
+        <span id="cartCount" class="text-xs text-gray-500">0 Item</span>
+        <div id="cartTotal" class="text-base font-extrabold text-red-600">Rp 0</div>
+      </div>
+      <button onclick="openCheckoutModal()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-lg">
+        <span>Lanjut Pembayaran</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL KUSTOMISASI KEBAB -->
+  <div id="customizeModal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div class="p-4 border-b flex justify-between items-center bg-yellow-50">
+        <div>
+          <h3 id="modalMenuName" class="font-extrabold text-gray-900 text-base">Nama Kebab</h3>
+          <p id="modalMenuDesc" class="text-xs text-gray-500">Deskripsi singkat</p>
+        </div>
+        <button onclick="closeCustomizeModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-4 text-xs">
+        <!-- 1. UKURAN -->
+        <div>
+          <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">1. Pilih Ukuran (Wajib):</label>
+          <div class="grid grid-cols-3 gap-2" id="sizeOptions">
+            <!-- Render via JS -->
+          </div>
+        </div>
+
+        <!-- 2. TOPPING TAMBAHAN -->
+        <div>
+          <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">2. Topping Tambahan (Opsional):</label>
+          <div class="grid grid-cols-2 gap-2" id="toppingOptions">
+            <!-- Render via JS -->
+          </div>
+        </div>
+
+        <!-- 3. LEVEL PEDAS -->
+        <div>
+          <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">3. Tingkat Kepedasan:</label>
+          <select id="spiceSelect" class="w-full border rounded-xl p-2.5 bg-gray-50 text-xs font-semibold outline-none">
+            <option value="Level 0 - Tidak Pedas (Tomat)">Level 0 - Tidak Pedas (Tomat)</option>
+            <option value="Level 1 - Sedang" selected>Level 1 - Sedang (Rekomendasi)</option>
+            <option value="Level 2 - Pedas Mantap">Level 2 - Pedas Mantap</option>
+            <option value="Level 3 - Super Pedas">Level 3 - Super Pedas</option>
+          </select>
+        </div>
+
+        <!-- 4. SAYURAN SESUAI SELERA -->
+        <div>
+          <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">4. Sayuran & Selera:</label>
+          <div class="flex flex-wrap gap-2">
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+              <input type="checkbox" id="noPineapple" class="rounded text-red-600">
+              <span>Tanpa Nanas</span>
+            </label>
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+              <input type="checkbox" id="noOnion" class="rounded text-red-600">
+              <span>Tanpa Bombay</span>
+            </label>
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+              <input type="checkbox" id="noLettuce" class="rounded text-red-600">
+              <span>Tanpa Sayur</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. ATUR JUMLAH PORSI -->
+        <div class="bg-yellow-50/60 p-3 rounded-2xl border border-yellow-200 flex items-center justify-between">
+          <div>
+            <span class="font-extrabold text-gray-900 block text-xs">Jumlah Porsi Kebab:</span>
+            <span class="text-[10px] text-gray-500">Beli banyak varian sama langsung di sini</span>
+          </div>
+          <div class="flex items-center space-x-3 bg-white rounded-xl p-1 shadow-sm border border-yellow-300">
+            <button type="button" onclick="changeModalQty(-1)" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 font-black text-sm flex items-center justify-center transition">
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <span id="modalQtyDisplay" class="font-black text-sm w-7 text-center text-red-600">1</span>
+            <button type="button" onclick="changeModalQty(1)" class="w-8 h-8 rounded-lg bg-red-600 hover:bg-red-700 text-white font-black text-sm flex items-center justify-center transition shadow">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t bg-gray-50 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] text-gray-500">Harga Item:</span>
+          <div id="modalItemPrice" class="text-base font-extrabold text-red-600">Rp 0</div>
+        </div>
+        <button onclick="confirmAddToCart()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md">
+          + Tambah ke Keranjang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CHECKOUT & QRIS PEMBAYARAN -->
+  <div id="checkoutModal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="p-4 border-b flex justify-between items-center bg-yellow-50">
+        <h3 class="font-extrabold text-gray-900 text-sm">Rincian Pembayaran & QRIS</h3>
+        <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-4 text-xs">
+        <!-- DAFTAR ITEM DI KERANJANG -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="font-bold text-gray-700">Pesanan Anda:</span>
+            <span id="checkoutItemCount" class="text-[10px] text-gray-400"></span>
+          </div>
+          <div id="checkoutItemsList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            <!-- Render via JS -->
+          </div>
+        </div>
+
+        <!-- DETAIL PENERIMA -->
+        <div class="space-y-2 border-t pt-3">
+          <label class="font-bold text-gray-700">Data Penerima:</label>
+          <input type="text" id="custName" placeholder="Nama Anda" value="Ahmad Dani" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">
+          <input type="tel" id="custPhone" placeholder="Nomor WhatsApp" value="085285841330" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">
+          <textarea id="custAddress" rows="2" placeholder="Alamat Pengantaran Lengkap" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">Jl. Mawar No. 14, RT 02/04 (Pagar Coklat)</textarea>
+        </div>
+
+        <!-- RINGKASAN HARGA -->
+        <div class="bg-gray-50 p-3 rounded-xl space-y-1.5 border">
+          <div class="flex justify-between">
+            <span class="text-gray-500">Subtotal Makanan:</span>
+            <span id="summaryFood" class="font-bold">Rp 0</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500">Ongkir Kurir (Hemat):</span>
+            <span id="summaryDelivery" class="font-bold text-green-700">Rp 6.000</span>
+          </div>
+          <div class="border-t pt-1.5 flex justify-between text-sm font-extrabold text-red-600">
+            <span>Total Bayar:</span>
+            <span id="summaryTotal">Rp 0</span>
+          </div>
+        </div>
+
+        <!-- TAMPILAN QRIS STATIS CABANG -->
+        <div class="bg-yellow-50/70 border border-yellow-300 p-3.5 rounded-2xl text-center space-y-2">
+          <span class="bg-yellow-200 text-yellow-900 font-bold px-2 py-0.5 rounded text-[10px]">QRIS STATIS LAPAK</span>
+          <p class="text-[11px] text-gray-600">Scan QRIS di bawah ini dengan BCA / GoPay / DANA / ShopeePay:</p>
+          <div class="flex justify-center py-1">
+            <img id="qrisImage" src="" alt="QRIS Lapak" class="w-44 h-44 border-2 border-white rounded-xl shadow-md">
+          </div>
+          <p id="bankInfo" class="font-mono text-[11px] font-bold text-gray-700"></p>
+        </div>
+
+        <!-- UPLOAD BUKTI STRUK -->
+        <div class="space-y-1">
+          <label class="font-bold text-gray-700">Upload Bukti Transfer:</label>
+          <div class="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center bg-gray-50 hover:bg-yellow-50 cursor-pointer">
+            <i class="fa-solid fa-cloud-arrow-up text-xl text-yellow-600 mb-1"></i>
+            <p class="text-[11px] text-gray-500">Klik untuk upload foto struk pembayaran</p>
+            <input type="file" id="proofInput" class="hidden" accept="image/*" onchange="previewProof(event)">
+            <button type="button" onclick="document.getElementById('proofInput').click()" class="mt-1 bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-lg text-[10px] font-bold">
+              Pilih Foto
+            </button>
+            <div id="proofFileName" class="text-[10px] text-green-700 font-bold mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t bg-gray-50">
+        <button id="btnSubmitOrder" onclick="submitOrder()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-check-circle"></i>
+          <span>Konfirmasi & Kirim Pesanan</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL STATUS ORDER LIVE TRACKING -->
+  <div id="trackingModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 text-center space-y-4">
+      <div id="statusIcon" class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto text-2xl animate-bounce">
+        <i class="fa-solid fa-receipt"></i>
+      </div>
+      <div>
+        <span id="trackOrderCode" class="text-xs font-mono font-bold bg-gray-100 px-2 py-0.5 rounded text-gray-600">KB-000000</span>
+        <h3 id="trackStatusTitle" class="text-base font-extrabold text-gray-900 mt-2">Menunggu Verifikasi Pembayaran</h3>
+        <p id="trackStatusDesc" class="text-xs text-gray-500 mt-1">Lapak sedang memeriksa mutasi pembayaran Anda.</p>
+      </div>
+
+      <div class="bg-gray-50 p-3 rounded-2xl text-left text-xs space-y-1.5 border">
+        <div class="flex justify-between">
+          <span class="text-gray-500">Outlet:</span>
+          <span id="trackBranch" class="font-bold text-gray-800">-</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-500">Kurir Pengantar:</span>
+          <span id="trackDriver" class="font-bold text-red-600">Menunggu Dapur Siap</span>
+        </div>
+      </div>
+
+      <button onclick="closeTrackingModal()" class="w-full bg-gray-200 text-gray-800 font-bold py-2.5 rounded-xl text-xs">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL PANDUAN CARA PASANG KE LAYAR HP -->
+  <div id="installGuideModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 text-center space-y-4 animate-scale-up">
+      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+        📱
+      </div>
+      
+      <div>
+        <h3 class="text-base font-black text-gray-900">Cara Pasang di Layar HP Anda</h3>
+        <p class="text-xs text-gray-500 mt-1">Hanya 2 langkah mudah tanpa download dari PlayStore/AppStore!</p>
+      </div>
+
+      <!-- PETUNJUK ANDROID & IPHONE -->
+      <div class="text-left space-y-3 text-xs">
+        <!-- OPSI A: CHROME / ANDROID -->
+        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 space-y-1.5">
+          <div class="flex items-center space-x-1.5 font-extrabold text-amber-900 text-[11px]">
+            <i class="fa-brands fa-android text-base text-green-600"></i>
+            <span>Jika Anda Pakai Android (Chrome):</span>
+          </div>
+          <ol class="list-decimal list-inside text-[11px] text-gray-700 space-y-1 pl-1">
+            <li>Ketuk menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser.</li>
+            <li>Pilih menu <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar utama"</strong> ➕.</li>
+          </ol>
+        </div>
+
+        <!-- OPSI B: SAFARI / IPHONE -->
+        <div class="bg-blue-50 p-3 rounded-2xl border border-blue-200 space-y-1.5">
+          <div class="flex items-center space-x-1.5 font-extrabold text-blue-900 text-[11px]">
+            <i class="fa-brands fa-apple text-base text-gray-900"></i>
+            <span>Jika Anda Pakai iPhone (Safari):</span>
+          </div>
+          <ol class="list-decimal list-inside text-[11px] text-gray-700 space-y-1 pl-1">
+            <li>Ketuk tombol <strong>Share (Bagikan)</strong> <i class="fa-solid fa-arrow-up-from-bracket"></i> di bagian bawah Safari.</li>
+            <li>Geser ke bawah, lalu pilih <strong>"Tambahkan ke Layar Utama" (Add to Home Screen)</strong> ➕.</li>
+          </ol>
+        </div>
+      </div>
+
+      <button onclick="document.getElementById('installGuideModal').classList.add('hidden')" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-md">
+        Saya Mengerti, Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    let globalMenu = null;
+    let globalBranches = [];
+    let currentBranch = null;
+    let cart = [];
+    let currentCustomizingItem = null;
+    let selectedSize = 'reguler';
+    let selectedToppings = [];
+    let modalQty = 1;
+    let activeOrderId = null;
+    let trackingInterval = null;
+    let deferredPrompt = null;
+
+    // Registrasi Service Worker & Deteksi PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('🍢 Service Worker Kebab aktif:', reg.scope))
+          .catch(err => console.log('Gagal SW:', err));
+      });
+    }
+
+    // Deteksi Android Install Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.remove('hidden');
+    });
+
+    function triggerPWAInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('pwaInstallBanner').classList.add('hidden');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function handleInstallClick() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          deferredPrompt = null;
+        });
+      } else {
+        document.getElementById('installGuideModal').classList.remove('hidden');
+      }
+    }
+
+    // Deteksi jika dibuka dari iPhone Safari (bukan standalone)
+    function checkIOSPrompt() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      if (isIOS && !isStandalone) {
+        const iosBanner = document.getElementById('iosInstallGuide');
+        if (iosBanner) iosBanner.classList.remove('hidden');
+      }
+    }
+
+    // Load Initial Data
+    async function init() {
+      try {
+        const [menuRes, branchRes] = await Promise.all([
+          fetch('/api/menu').then(r => r.json()),
+          fetch('/api/branches').then(r => r.json())
+        ]);
+
+        if (menuRes.success) globalMenu = menuRes.data;
+        if (branchRes.success) {
+          globalBranches = branchRes.data;
+          currentBranch = globalBranches[0];
+          document.getElementById('qrisImage').src = currentBranch.qris_image;
+          document.getElementById('bankInfo').innerText = currentBranch.bank_info;
+        }
+
+        renderMenu('all');
+        checkIOSPrompt();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function changeBranch() {
+      const selectedId = document.getElementById('branchSelect').value;
+      currentBranch = globalBranches.find(b => b.id === selectedId) || globalBranches[0];
+      document.getElementById('qrisImage').src = currentBranch.qris_image;
+      document.getElementById('bankInfo').innerText = currentBranch.bank_info;
+    }
+
+    function renderMenu(catFilter) {
+      const container = document.getElementById('menuContainer');
+      if (!globalMenu) return;
+
+      container.innerHTML = '';
+
+      globalMenu.categories.forEach(cat => {
+        if (catFilter !== 'all' && cat.id !== catFilter) return;
+
+        const catBlock = document.createElement('div');
+        catBlock.className = 'space-y-3';
+        catBlock.innerHTML = `
+          <div class="flex items-center justify-between border-b pb-1.5">
+            <div>
+              <h3 class="font-extrabold text-sm text-gray-900">${cat.name}</h3>
+              <p class="text-[11px] text-gray-500">${cat.description}</p>
+            </div>
+            <span class="bg-amber-100 text-amber-800 font-bold text-[10px] px-2 py-0.5 rounded-full">${cat.badge}</span>
+          </div>
+          <div class="grid grid-cols-1 gap-2.5">
+            ${cat.items.map(item => `
+              <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-yellow-400 transition">
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="font-bold text-xs text-gray-900">${item.name}</span>
+                    ${item.is_favorite ? '<span class="text-[10px] bg-red-100 text-red-600 font-extrabold px-1.5 rounded">FAVORIT</span>' : ''}
+                  </div>
+                  <p class="text-[11px] text-gray-500 mt-0.5">Daging: ${item.meat_type}</p>
+                  <div class="mt-1 flex items-baseline space-x-1">
+                    <span class="text-xs font-extrabold text-red-600">Rp ${item.prices.reguler.toLocaleString('id-ID')}</span>
+                    <span class="text-[10px] text-gray-400">(Reguler)</span>
+                  </div>
+                </div>
+                <button onclick="openCustomizeModal('${item.id}', '${cat.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center space-x-1">
+                  <span>+ PESAN</span>
+                </button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(catBlock);
+      });
+    }
+
+    function filterCategory(catId) {
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('bg-red-600', 'text-white');
+        b.classList.add('bg-white', 'text-gray-700');
+      });
+      event.target.classList.remove('bg-white', 'text-gray-700');
+      event.target.classList.add('bg-red-600', 'text-white');
+      renderMenu(catId);
+    }
+
+    // Modal Customization
+    function openCustomizeModal(itemId, catId) {
+      const cat = globalMenu.categories.find(c => c.id === catId);
+      const item = cat.items.find(i => i.id === itemId);
+      currentCustomizingItem = { ...item, catName: cat.name };
+
+      document.getElementById('modalMenuName').innerText = item.name;
+      document.getElementById('modalMenuDesc').innerText = cat.description;
+
+      selectedSize = 'reguler';
+      selectedToppings = [];
+      modalQty = 1;
+      document.getElementById('modalQtyDisplay').innerText = 1;
+      document.getElementById('noPineapple').checked = false;
+      document.getElementById('noOnion').checked = false;
+      document.getElementById('noLettuce').checked = false;
+      document.getElementById('spiceSelect').value = 'Level 1 - Sedang';
+
+      // Render sizes
+      const sizeContainer = document.getElementById('sizeOptions');
+      sizeContainer.innerHTML = Object.entries(item.prices).map(([sizeKey, price]) => `
+        <button type="button" onclick="selectSize('${sizeKey}')" id="size-btn-${sizeKey}" class="size-btn border rounded-xl p-2 text-center transition ${sizeKey === 'reguler' ? 'border-red-600 bg-red-50 text-red-700 font-bold' : 'border-gray-200'}">
+          <div class="uppercase text-[10px]">${sizeKey}</div>
+          <div class="text-[11px] font-extrabold">Rp ${price.toLocaleString('id-ID')}</div>
+        </button>
+      `).join('');
+
+      // Render toppings
+      const toppingContainer = document.getElementById('toppingOptions');
+      toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => `
+        <label class="flex items-center justify-between border rounded-xl p-2 bg-gray-50 cursor-pointer">
+          <div class="flex items-center space-x-1.5">
+            <input type="checkbox" onchange="toggleTopping('${t.id}')" class="rounded text-red-600">
+            <span>${t.icon} ${t.name}</span>
+          </div>
+          <span class="font-bold text-gray-700 text-[10px]">+${(t.price / 1000)}k</span>
+        </label>
+      `).join('');
+
+      updateModalPrice();
+      document.getElementById('customizeModal').classList.remove('hidden');
+    }
+
+    function selectSize(size) {
+      selectedSize = size;
+      document.querySelectorAll('.size-btn').forEach(b => {
+        b.className = 'size-btn border rounded-xl p-2 text-center transition border-gray-200';
+      });
+      document.getElementById(`size-btn-${size}`).className = 'size-btn border rounded-xl p-2 text-center transition border-red-600 bg-red-50 text-red-700 font-bold';
+      updateModalPrice();
+    }
+
+    function toggleTopping(toppingId) {
+      const top = globalMenu.extra_toppings.find(t => t.id === toppingId);
+      const idx = selectedToppings.findIndex(t => t.id === toppingId);
+      if (idx > -1) {
+        selectedToppings.splice(idx, 1);
+      } else {
+        selectedToppings.push(top);
+      }
+      updateModalPrice();
+    }
+
+    function changeModalQty(delta) {
+      modalQty += delta;
+      if (modalQty < 1) modalQty = 1;
+      document.getElementById('modalQtyDisplay').innerText = modalQty;
+      updateModalPrice();
+    }
+
+    function updateModalPrice() {
+      if (!currentCustomizingItem) return;
+      let unit = currentCustomizingItem.prices[selectedSize];
+      selectedToppings.forEach(t => unit += t.price);
+      let total = unit * modalQty;
+      document.getElementById('modalItemPrice').innerText = `Rp ${total.toLocaleString('id-ID')} (${modalQty} Porsi)`;
+    }
+
+    function closeCustomizeModal() {
+      document.getElementById('customizeModal').classList.add('hidden');
+    }
+
+    function confirmAddToCart() {
+      let unitPrice = currentCustomizingItem.prices[selectedSize];
+      selectedToppings.forEach(t => unitPrice += t.price);
+
+      const notes = [];
+      if (document.getElementById('noPineapple').checked) notes.push('Tanpa Nanas');
+      if (document.getElementById('noOnion').checked) notes.push('Tanpa Bombay');
+      if (document.getElementById('noLettuce').checked) notes.push('Tanpa Sayur');
+
+      const spice = document.getElementById('spiceSelect').value;
+      const notesStr = notes.join(', ');
+      const toppingsIds = selectedToppings.map(t => t.id).sort().join(',');
+
+      // Cek apakah item yang sama persis sudah ada di keranjang
+      const existingIdx = cart.findIndex(c => 
+        c.id === currentCustomizingItem.id &&
+        c.size === selectedSize &&
+        c.spice === spice &&
+        c.notes === notesStr &&
+        c.toppings.map(t => t.id).sort().join(',') === toppingsIds
+      );
+
+      if (existingIdx > -1) {
+        // Jika sudah ada, tinggal tambahkan porsinya!
+        cart[existingIdx].quantity += modalQty;
+      } else {
+        // Jika baru, masukkan ke keranjang
+        cart.push({
+          id: currentCustomizingItem.id,
+          name: `${currentCustomizingItem.name} (${selectedSize.toUpperCase()})`,
+          price: unitPrice,
+          quantity: modalQty,
+          size: selectedSize,
+          toppings: [...selectedToppings],
+          spice: spice,
+          notes: notesStr
+        });
+      }
+
+      closeCustomizeModal();
+      updateCartBar();
+    }
+
+    function updateCartItemQty(index, delta) {
+      cart[index].quantity += delta;
+      if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+      }
+      updateCartBar();
+      if (cart.length === 0) {
+        closeCheckoutModal();
+      } else {
+        openCheckoutModal();
+      }
+    }
+
+    function renderCheckoutItems() {
+      const container = document.getElementById('checkoutItemsList');
+      document.getElementById('checkoutItemCount').innerText = `${cart.reduce((a, b) => a + b.quantity, 0)} Porsi Kebab`;
+
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="bg-gray-50 border p-2.5 rounded-xl flex items-center justify-between">
+          <div class="max-w-[65%]">
+            <span class="font-bold text-gray-900 block text-[11px] truncate">${item.name}</span>
+            <span class="text-[10px] text-gray-500 block">• ${item.spice}</span>
+            ${item.toppings.length ? `<span class="text-[10px] text-emerald-700 block">• +${item.toppings.map(t => t.name).join(', ')}</span>` : ''}
+            ${item.notes ? `<span class="text-[10px] text-red-600 font-semibold block">• ${item.notes}</span>` : ''}
+            <span class="text-[11px] font-black text-red-600 block mt-0.5">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-white px-2 py-1 rounded-lg border shadow-sm">
+            <button type="button" onclick="updateCartItemQty(${idx}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs flex items-center justify-center">-</button>
+            <span class="font-extrabold text-xs w-4 text-center text-gray-900">${item.quantity}</span>
+            <button type="button" onclick="updateCartItemQty(${idx}, 1)" class="w-6 h-6 rounded bg-red-600 hover:bg-red-700 text-white font-black text-xs flex items-center justify-center">+</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateCartBar() {
+      const cartBar = document.getElementById('floatingCart');
+      if (cart.length === 0) {
+        cartBar.classList.add('hidden');
+        return;
+      }
+      cartBar.classList.remove('hidden');
+
+      const count = cart.reduce((acc, c) => acc + c.quantity, 0);
+      const total = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+
+      document.getElementById('cartCount').innerText = `${count} Kebab`;
+      document.getElementById('cartTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    // Checkout
+    function openCheckoutModal() {
+      renderCheckoutItems();
+      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const deliveryFee = 6000;
+      const total = subtotal + deliveryFee;
+
+      document.getElementById('summaryFood').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+      document.getElementById('summaryDelivery').innerText = `Rp ${deliveryFee.toLocaleString('id-ID')}`;
+      document.getElementById('summaryTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+
+      document.getElementById('checkoutModal').classList.remove('hidden');
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById('checkoutModal').classList.add('hidden');
+    }
+
+    function previewProof(event) {
+      if (event.target.files && event.target.files[0]) {
+        document.getElementById('proofFileName').innerText = `✓ File siap: ${event.target.files[0].name}`;
+      }
+    }
+
+    async function submitOrder() {
+      const btn = document.getElementById('btnSubmitOrder');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Pesanan...</span>`;
+
+      try {
+        const payload = {
+          customer_name: document.getElementById('custName').value,
+          customer_phone: document.getElementById('custPhone').value,
+          customer_address: document.getElementById('custAddress').value,
+          branch_id: currentBranch.id,
+          items: cart,
+          delivery_distance_km: 1.8,
+          payment_method: 'qris_statis'
+        };
+
+        const res = await fetch('/api/orders/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          activeOrderId = res.data.order.id;
+
+          // Kirim bukti transfer dummy otomatis agar langsung siap diverifikasi
+          await fetch(`/api/orders/${activeOrderId}/payment-proof`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ proof_image: 'https://placehold.co/400x600/png?text=Bukti+QRIS+Lunas' })
+          });
+
+          cart = [];
+          updateCartBar();
+          closeCheckoutModal();
+          openTrackingModal(res.data.order.order_code);
+        }
+      } catch (err) {
+        alert('Gagal mengirim pesanan');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Konfirmasi & Kirim Pesanan</span>`;
+      }
+    }
+
+    function openTrackingModal(orderCode) {
+      document.getElementById('trackOrderCode').innerText = `#${orderCode}`;
+      document.getElementById('trackBranch').innerText = currentBranch.name;
+      document.getElementById('trackingModal').classList.remove('hidden');
+
+      if (trackingInterval) clearInterval(trackingInterval);
+      trackingInterval = setInterval(checkOrderStatus, 2000);
+      checkOrderStatus();
+    }
+
+    async function checkOrderStatus() {
+      if (!activeOrderId) return;
+      try {
+        const res = await fetch(`/api/orders/${activeOrderId}`).then(r => r.json());
+        if (res.success) {
+          const order = res.data;
+          const title = document.getElementById('trackStatusTitle');
+          const desc = document.getElementById('trackStatusDesc');
+          const driver = document.getElementById('trackDriver');
+
+          if (order.status === 'pending_payment' || order.status === 'pending_verification') {
+            title.innerText = 'Menunggu Verifikasi Pembayaran';
+            desc.innerText = 'Lapak sedang mencocokkan mutasi QRIS Anda.';
+          } else if (order.status === 'cooking') {
+            title.innerText = 'Sedang Dimasak di Dapur 🍳';
+            desc.innerText = 'Kebab sedang diracik segar dengan nanas & bombay!';
+          } else if (order.status === 'ready_for_pickup') {
+            title.innerText = 'Makanan Matang & Siap Antar 🍢';
+            desc.innerText = 'Menunggu kurir freelance mengambil pesanan.';
+          } else if (order.status === 'on_delivery') {
+            title.innerText = 'Kurir Sedang Menuju Rumahmu 🛵';
+            desc.innerText = `Pesanan dibawa oleh ${order.driver_name || 'Kurir'}.`;
+            driver.innerText = order.driver_name || 'Kurir Freelance';
+          } else if (order.status === 'completed') {
+            title.innerText = 'Pesanan Tiba & Selesai! 🎉';
+            desc.innerText = 'Selamat menikmati Kebab AL Bewok! Terima kasih.';
+            clearInterval(trackingInterval);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function closeTrackingModal() {
+      document.getElementById('trackingModal').classList.add('hidden');
+      if (trackingInterval) clearInterval(trackingInterval);
+    }
+
+    init();
+  </script>
+</body>
+</html>

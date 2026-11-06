@@ -1,0 +1,45 @@
+[
+  {
+    "id": "ord-1793948431996",
+    "order_code": "KB-431996",
+    "branch_id": "cabang-01",
+    "branch_name": "Kebab AL Bewok - Cabang Pasar Baru",
+    "customer_name": "Ahmad Dani",
+    "customer_phone": "085285841330",
+    "customer_address": "Jl. Mawar No. 14, RT 02/04 (Pagar Coklat)",
+    "delivery_distance_km": 1.8,
+    "items": [
+      {
+        "id": "cheesy-beef-premium",
+        "name": "Kebab Cheesy - Beef Premium ⭐ (JUMBO)",
+        "price": 26000,
+        "quantity": 1,
+        "size": "jumbo",
+        "toppings": [
+          {
+            "id": "top-cheese",
+            "name": "Keju",
+            "price": 3000,
+            "icon": "🧀"
+          }
+        ],
+        "spice": "Level 3 - Super Pedas",
+        "notes": "Tanpa Nanas, Tanpa Bombay, Tanpa Sayur"
+      }
+    ],
+    "food_subtotal": 26000,
+    "delivery_fee": 6000,
+    "total_payment": 32000,
+    "payment_method": "qris_statis",
+    "payment_proof": "https://placehold.co/400x600/png?text=Bukti+QRIS+Lunas",
+    "status": "completed",
+    "created_at": "2026-11-06T07:00:31.996Z",
+    "driver_id": "driver-01",
+    "driver_name": "Budi Santoso",
+    "delivery_proof": "https://placehold.co/400x300/png?text=Foto+Kebab+Sampai",
+    "payment_verified_at": "2026-11-06T07:00:51.359Z",
+    "ready_at": "2026-11-06T07:01:07.631Z",
+    "driver_accepted_at": "2026-11-06T07:01:19.772Z",
+    "completed_at": "2026-11-06T07:01:31.178Z"
+  }
+]

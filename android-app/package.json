@@ -1,0 +1,16 @@
+{
+  "name": "kebab-al-bewok-android",
+  "version": "1.0.0",
+  "description": "Android Native App Wrapper untuk Kebab AL Bewok",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Ready for Android Build'"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/android": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}

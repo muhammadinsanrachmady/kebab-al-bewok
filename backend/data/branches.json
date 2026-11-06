@@ -1,0 +1,26 @@
+[
+  {
+    "id": "cabang-01",
+    "name": "Kebab AL Bewok - Cabang Pasar Baru",
+    "address": "Jl. Pasar Baru No. 12, Pintu Timur",
+    "phone": "0852-8584-1330",
+    "latitude": -6.2088,
+    "longitude": 106.8456,
+    "qris_image": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_STATIS_AL_BEWOK_CABANG_01",
+    "bank_info": "BCA 8830192831 a/n Kebab AL Bewok Pasar Baru",
+    "is_open": true,
+    "open_hours": "15:00 - 23:00"
+  },
+  {
+    "id": "cabang-02",
+    "name": "Kebab AL Bewok - Cabang Alun-Alun",
+    "address": "Jl. Veteran No. 45, Samping Masjid Agung",
+    "phone": "0852-8584-1331",
+    "latitude": -6.2200,
+    "longitude": 106.8550,
+    "qris_image": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_STATIS_AL_BEWOK_CABANG_02",
+    "bank_info": "BRI 0192019283712 a/n Kebab AL Bewok Alun-Alun",
+    "is_open": true,
+    "open_hours": "16:00 - 23:30"
+  }
+]

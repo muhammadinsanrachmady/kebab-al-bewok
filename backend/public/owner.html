@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Owner - Kebab AL Bewok</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- HEADER OWNER -->
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+          👑
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black text-amber-400">PORTAL PEMILIK (OWNER)</h1>
+          <p class="text-xs text-slate-400">Monitoring Omzet Multi-Cabang & Rekonsiliasi Kurir Kebab AL Bewok</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs">
+        <a href="/" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl border border-slate-700">
+          <i class="fa-solid fa-arrow-left"></i> Kembali ke Simulator
+        </a>
+        <button onclick="fetchSummary()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl flex items-center space-x-1 shadow">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Segarkan Data</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- METRIK UTAMA FINANSIAL -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab (Semua Cabang)</span>
+        <div id="statTotalFood" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">Rp 0</div>
+        <p class="text-[11px] text-slate-500 mt-1">Hak bersih masing-masing lapak</p>
+        <div class="absolute -right-3 -bottom-4 text-6xl text-slate-700/30">🍢</div>
+      </div>
+
+      <div class="bg-slate-800 border border-red-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Total Titipan Ongkir Kurir di Cabang</span>
+        <div id="statTotalDelivery" class="text-2xl md:text-3xl font-black text-red-400 mt-2">Rp 0</div>
+        <p class="text-[11px] text-red-300/60 mt-1">Uang yang harus disetor cabang ke Pusat untuk kurir</p>
+        <div class="absolute -right-3 -bottom-4 text-6xl text-red-900/20">🛵</div>
+      </div>
+
+      <div class="bg-slate-800 border border-emerald-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Total Transaksi Selesai</span>
+        <div id="statTotalOrders" class="text-2xl md:text-3xl font-black text-emerald-400 mt-2">0 Pesanan</div>
+        <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi seluruh lapak</p>
+        <div class="absolute -right-3 -bottom-4 text-6xl text-emerald-900/20">✅</div>
+      </div>
+    </div>
+
+    <!-- TABEL 1: REKAPITULASI & TAGIHAN PER CABANG (SETTLEMENT INVOICE) -->
+    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-extrabold text-base text-slate-100">Rekapitulasi Cabang & Titipan Ongkir</h2>
+          <p class="text-xs text-slate-400">Pencatatan otomatis pembagian hak lapak vs hak kurir freelance</p>
+        </div>
+        <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">Multi-Cabang</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="p-3 rounded-l-xl">Nama Lapak Cabang</th>
+              <th class="p-3">Total Order</th>
+              <th class="p-3">Omzet Makanan (Hak Lapak)</th>
+              <th class="p-3 text-red-400">Titipan Ongkir (Wajib Disetor)</th>
+              <th class="p-3 rounded-r-xl text-right">Aksi Tagihan</th>
+            </tr>
+          </thead>
+          <tbody id="branchTableBody" class="divide-y divide-slate-700 text-slate-200">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TABEL 2: PERMINTAAN TARIK SALDO (WITHDRAWAL) KURIR FREELANCE -->
+    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-extrabold text-base text-slate-100">Antrean Pencairan Saldo Driver</h2>
+          <p class="text-xs text-slate-400">Driver freelance meminta penarikan dana ke rekening atau e-wallet mereka</p>
+        </div>
+        <span class="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">Kurir Freelance</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="p-3 rounded-l-xl">Nama Driver</th>
+              <th class="p-3">Nominal Tarik</th>
+              <th class="p-3">Rekening / E-Wallet</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 rounded-r-xl text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawalTableBody" class="divide-y divide-slate-700 text-slate-200">
+            <!-- Render via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    async function fetchSummary() {
+      try {
+        const res = await fetch('/api/super-admin/summary').then(r => r.json());
+        if (res.success) {
+          const d = res.data;
+          document.getElementById('statTotalFood').innerText = `Rp ${d.total_food_revenue.toLocaleString('id-ID')}`;
+          document.getElementById('statTotalDelivery').innerText = `Rp ${d.total_delivery_fees.toLocaleString('id-ID')}`;
+          document.getElementById('statTotalOrders').innerText = `${d.total_orders} Pesanan`;
+
+          // Render Cabang
+          const bBody = document.getElementById('branchTableBody');
+          bBody.innerHTML = d.branches.map(b => `
+            <tr class="hover:bg-slate-750 transition">
+              <td class="p-3">
+                <span class="font-bold text-slate-100 block text-[13px]">${b.branch_name}</span>
+                <span class="text-slate-400 text-[10px]">${b.address}</span>
+              </td>
+              <td class="p-3 font-semibold">${b.order_count} Transaksi</td>
+              <td class="p-3 font-black text-amber-400">Rp ${b.food_revenue.toLocaleString('id-ID')}</td>
+              <td class="p-3 font-black text-red-400">Rp ${b.delivery_fee_held.toLocaleString('id-ID')}</td>
+              <td class="p-3 text-right">
+                <button onclick="sendInvoiceWA('${b.branch_name}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
+                  <i class="fa-brands fa-whatsapp"></i> Tagih ke Kasir
+                </button>
+              </td>
+            </tr>
+          `).join('');
+
+          // Render Withdrawals
+          const wBody = document.getElementById('withdrawalTableBody');
+          if (d.withdrawals.length === 0) {
+            wBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Belum ada pengajuan tarik dana</td></tr>`;
+          } else {
+            wBody.innerHTML = d.withdrawals.map(w => `
+              <tr class="hover:bg-slate-750 transition">
+                <td class="p-3 font-bold text-slate-100">${w.driver_name}</td>
+                <td class="p-3 font-black text-emerald-400">Rp ${w.amount.toLocaleString('id-ID')}</td>
+                <td class="p-3 font-mono text-[11px]">${w.payout_channel} - ${w.account_number} (${w.account_name})</td>
+                <td class="p-3">
+                  <span class="${w.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'} font-bold px-2 py-0.5 rounded text-[10px]">
+                    ${w.status === 'approved' ? 'Sudah Ditransfer' : 'Menunggu Transfer'}
+                  </span>
+                </td>
+                <td class="p-3 text-right">
+                  ${w.status === 'pending' ? `
+                    <button onclick="approveWithdrawal('${w.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
+                      Tandai Sudah Transfer
+                    </button>
+                  ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function sendInvoiceWA(branchName, amount) {
+      const msg = `Halo Kasir ${branchName}, rekap sistem aplikasi Kebab AL Bewok mencatat ada titipan ongkir kurir sebesar Rp ${amount.toLocaleString('id-ID')} dari transaksi QRIS cabang Anda. Mohon segera disetorkan ke rekening Pusat untuk pencairan gaji kurir ya. Terima kasih!`;
+      alert(`Pesan WhatsApp yang dikirim ke kasir:\n\n"${msg}"`);
+    }
+
+    async function approveWithdrawal(id) {
+      if (!confirm('Apakah Anda sudah mentransfer dana ini ke rekening kurir?')) return;
+      try {
+        const res = await fetch(`/api/super-admin/withdrawals/${id}/approve`, { method: 'POST' }).then(r => r.json());
+        if (res.success) {
+          alert('Berhasil! Status pencairan dana kurir diperbarui.');
+          fetchSummary();
+        }
+      } catch (err) {
+        alert('Gagal memproses approval');
+      }
+    }
+
+    fetchSummary();
+  </script>
+</body>
+</html>
