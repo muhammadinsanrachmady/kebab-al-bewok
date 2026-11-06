@@ -20,6 +20,12 @@
       "id": "cust-01",
       "name": "Pelanggan Setia",
       "balance": 50000
+    },
+    "6281519696524": {
+      "phone": "6281519696524",
+      "name": "Rachmady",
+      "balance": 0,
+      "registered_at": "2026-11-06T14:18:20.321Z"
     }
   },
   "history": [

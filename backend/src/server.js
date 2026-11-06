@@ -73,7 +73,47 @@ if (!fs.existsSync(WALLETS_FILE)) {
 // 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
 // ==========================================
 
-// Kirim Kode OTP WhatsApp
+// Login Cepat & Gratis (Nama + Nomor WhatsApp Valid Tanpa Biaya SMS/OTP)
+app.post('/api/auth/login-free', (req, res) => {
+  const { full_name, phone_number } = req.body;
+
+  if (!full_name || full_name.trim().length < 2) {
+    return res.status(400).json({ success: false, message: 'Mohon masukkan nama lengkap yang jelas.' });
+  }
+
+  let cleanPhone = (phone_number || '').replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+
+  if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+    return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid (minimal 10 digit).' });
+  }
+
+  // Simpan data pelanggan ke database
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.customers) wallets.customers = {};
+
+  const name = full_name.trim();
+  wallets.customers[cleanPhone] = {
+    phone: cleanPhone,
+    name,
+    balance: (wallets.customers[cleanPhone] ? wallets.customers[cleanPhone].balance : 0),
+    last_login: new Date().toISOString()
+  };
+  writeJSON(WALLETS_FILE, wallets);
+
+  console.log(`✅ [LOGIN GRATIS] Pelanggan terdaftar: ${name} (${cleanPhone})`);
+
+  res.json({
+    success: true,
+    message: `Selamat datang, Kak ${name}! Nomor WhatsApp Anda berhasil terhubung.`,
+    data: {
+      token: `token-${cleanPhone}-${Date.now()}`,
+      user: wallets.customers[cleanPhone]
+    }
+  });
+});
+
+// Kirim Kode OTP WhatsApp (Opsional jika nanti ada bot)
 app.post('/api/auth/send-otp', (req, res) => {
   const { phone_number, full_name } = req.body;
   if (!phone_number || phone_number.length < 9) {
@@ -113,28 +153,26 @@ app.post('/api/auth/verify-otp', (req, res) => {
 
   const session = otpStore.get(cleanPhone);
 
-  // Validasi OTP (atau default master demo OTP 1234)
-  if (!session || (session.otp !== otp_code && otp_code !== '1234')) {
-    return res.status(400).json({ success: false, message: 'Kode OTP salah atau sudah kadaluwarsa' });
+  // Validasi: Kode benar ATAU menggunakan Master PIN Demo '1234'
+  const isMasterCode = (otp_code === '1234');
+  const isValidSession = session && (session.otp === otp_code);
+
+  if (!isMasterCode && !isValidSession) {
+    return res.status(400).json({ success: false, message: 'Kode OTP salah. Silakan masukkan 1234 untuk demo.' });
   }
 
   // Simpan/update profil pelanggan di wallets/database
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.customers) wallets.customers = {};
 
-  const name = full_name || session.full_name || 'Pelanggan Setia';
-  if (!wallets.customers[cleanPhone]) {
-    wallets.customers[cleanPhone] = {
-      phone: cleanPhone,
-      name,
-      balance: 0,
-      registered_at: new Date().toISOString()
-    };
-    writeJSON(WALLETS_FILE, wallets);
-  } else if (full_name) {
-    wallets.customers[cleanPhone].name = full_name;
-    writeJSON(WALLETS_FILE, wallets);
-  }
+  const name = full_name || (session ? session.full_name : 'Pelanggan Kebab');
+  wallets.customers[cleanPhone] = {
+    phone: cleanPhone,
+    name,
+    balance: (wallets.customers[cleanPhone] ? wallets.customers[cleanPhone].balance : 0),
+    registered_at: new Date().toISOString()
+  };
+  writeJSON(WALLETS_FILE, wallets);
 
   // Hapus OTP setelah dipakai
   otpStore.delete(cleanPhone);
