@@ -529,6 +529,9 @@
     let globalMenu = null;
     let globalBranches = [];
     let currentBranch = null;
+    let currentDeliveryDistanceKm = 1.5;
+    let userCurrentLat = null;
+    let userCurrentLng = null;
     let cart = [];
     let currentCustomizingItem = null;
     let selectedSize = 'reguler';
@@ -772,9 +775,12 @@
           btn.disabled = false;
 
           const addrInput = document.getElementById('profileInputAddress');
-          if (!addrInput.value.trim() || addrInput.value.includes('Titik GPS')) {
+          if (!addrInput.value.trim() || addrInput.value.includes('Titik GPS') || addrInput.value.includes('Lokasi GPS')) {
             addrInput.value = `Lokasi GPS: (${detectedLat.toFixed(5)}, ${detectedLng.toFixed(5)}) - Patokan: `;
           }
+
+          // Otomatis sesuaikan cabang terdekat & hitung jarak asli
+          updateNearestBranch(detectedLat, detectedLng);
         },
         (err) => {
           btnText.innerText = '📍 Deteksi Titik Lokasi GPS Saya';
@@ -860,6 +866,67 @@
       }
     }
 
+    // Hitung jarak 2 koordinat bumi (Rumus Haversine dalam Km)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Radius bumi (km)
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round((R * c) * 10) / 10;
+    }
+
+    // Deteksi & update cabang terdekat otomatis berdasarkan koordinat GPS
+    function updateNearestBranch(userLat, userLng) {
+      if (!globalBranches || globalBranches.length === 0) return;
+      userCurrentLat = userLat;
+      userCurrentLng = userLng;
+
+      let branchesWithDist = globalBranches.map(b => {
+        let dist = 1.5;
+        if (userLat && userLng && b.latitude && b.longitude) {
+          dist = calculateDistance(userLat, userLng, b.latitude, b.longitude);
+        }
+        return { ...b, distance: dist };
+      });
+
+      // Jika GPS aktif, urutkan dari yang terdekat
+      if (userLat && userLng) {
+        branchesWithDist.sort((a, b) => a.distance - b.distance);
+      }
+
+      const select = document.getElementById('branchSelect');
+      if (select) {
+        select.innerHTML = branchesWithDist.map((b, idx) => `
+          <option value="${b.id}" ${idx === 0 ? 'selected' : ''}>
+            ${b.name.replace('Kebab AL Bewok - ', '')} (${b.distance} km)${idx === 0 && userLat ? ' 📍 Terdekat' : ''}
+          </option>
+        `).join('');
+      }
+
+      currentBranch = branchesWithDist[0];
+      currentDeliveryDistanceKm = currentBranch.distance || 1.5;
+
+      document.getElementById('qrisImage').src = currentBranch.qris_image;
+      document.getElementById('bankInfo').innerText = currentBranch.bank_info;
+    }
+
+    function setupBranchesWithLocation() {
+      if (currentUser && currentUser.latitude && currentUser.longitude) {
+        updateNearestBranch(currentUser.latitude, currentUser.longitude);
+      } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => updateNearestBranch(pos.coords.latitude, pos.coords.longitude),
+          () => updateNearestBranch(null, null),
+          { timeout: 5000, maximumAge: 60000 }
+        );
+      } else {
+        updateNearestBranch(null, null);
+      }
+    }
+
     // Load Initial Data
     async function init() {
       updateUserHeader();
@@ -872,9 +939,7 @@
         if (menuRes.success) globalMenu = menuRes.data;
         if (branchRes.success) {
           globalBranches = branchRes.data;
-          currentBranch = globalBranches[0];
-          document.getElementById('qrisImage').src = currentBranch.qris_image;
-          document.getElementById('bankInfo').innerText = currentBranch.bank_info;
+          setupBranchesWithLocation();
         }
 
         renderMenu('all');
@@ -887,6 +952,13 @@
     function changeBranch() {
       const selectedId = document.getElementById('branchSelect').value;
       currentBranch = globalBranches.find(b => b.id === selectedId) || globalBranches[0];
+
+      if (userCurrentLat && userCurrentLng && currentBranch.latitude && currentBranch.longitude) {
+        currentDeliveryDistanceKm = calculateDistance(userCurrentLat, userCurrentLng, currentBranch.latitude, currentBranch.longitude);
+      } else {
+        currentDeliveryDistanceKm = 1.5;
+      }
+
       document.getElementById('qrisImage').src = currentBranch.qris_image;
       document.getElementById('bankInfo').innerText = currentBranch.bank_info;
     }
@@ -1147,11 +1219,14 @@
 
       renderCheckoutItems();
       const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
-      const deliveryFee = 6000;
+      let deliveryFee = 6000;
+      if (currentDeliveryDistanceKm > 2) {
+        deliveryFee += Math.ceil(currentDeliveryDistanceKm - 2) * 2000;
+      }
       const total = subtotal + deliveryFee;
 
       document.getElementById('summaryFood').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-      document.getElementById('summaryDelivery').innerText = `Rp ${deliveryFee.toLocaleString('id-ID')}`;
+      document.getElementById('summaryDelivery').innerText = `Rp ${deliveryFee.toLocaleString('id-ID')} (${currentDeliveryDistanceKm} km)`;
       document.getElementById('summaryTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
 
       document.getElementById('checkoutModal').classList.remove('hidden');
@@ -1180,7 +1255,7 @@
           customer_email: currentUser ? currentUser.email : '',
           branch_id: currentBranch.id,
           items: cart,
-          delivery_distance_km: 1.8,
+          delivery_distance_km: currentDeliveryDistanceKm,
           payment_method: 'qris_statis'
         };
 
