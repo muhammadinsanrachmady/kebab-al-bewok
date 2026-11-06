@@ -92,6 +92,12 @@ app.post('/api/auth/google-login', (req, res) => {
       name: full_name || email.split('@')[0],
       avatar: avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`,
       whatsapp: '',
+      home_address: '',
+      home_latitude: null,
+      home_longitude: null,
+      office_address: '',
+      office_latitude: null,
+      office_longitude: null,
       delivery_address: '',
       latitude: null,
       longitude: null,
@@ -99,9 +105,14 @@ app.post('/api/auth/google-login', (req, res) => {
       registered_at: new Date().toISOString()
     };
   } else {
-    // Update data Google terbaru
+    // Update data Google terbaru & pastikan field rumah/kantor ada
     if (full_name) wallets.customers[email].name = full_name;
     if (avatar_url) wallets.customers[email].avatar = avatar_url;
+    if (!wallets.customers[email].home_address && wallets.customers[email].delivery_address) {
+      wallets.customers[email].home_address = wallets.customers[email].delivery_address;
+      wallets.customers[email].home_latitude = wallets.customers[email].latitude;
+      wallets.customers[email].home_longitude = wallets.customers[email].longitude;
+    }
   }
 
   writeJSON(WALLETS_FILE, wallets);
@@ -116,9 +127,22 @@ app.post('/api/auth/google-login', (req, res) => {
   });
 });
 
-// Update Profil Pelanggan (Nomor WhatsApp & Alamat Pengiriman)
+// Update Profil Pelanggan (Nomor WhatsApp & Alamat Pengiriman Rumah & Kantor)
 app.post('/api/customer/update-profile', (req, res) => {
-  const { email, whatsapp, delivery_address, latitude, longitude, full_name } = req.body;
+  const {
+    email,
+    whatsapp,
+    full_name,
+    home_address,
+    home_latitude,
+    home_longitude,
+    office_address,
+    office_latitude,
+    office_longitude,
+    delivery_address,
+    latitude,
+    longitude
+  } = req.body;
 
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email akun diperlukan' });
@@ -132,18 +156,31 @@ app.post('/api/customer/update-profile', (req, res) => {
   const cust = wallets.customers[email];
   if (full_name) cust.name = full_name.trim();
   if (whatsapp) cust.whatsapp = whatsapp.trim();
-  if (delivery_address) cust.delivery_address = delivery_address.trim();
-  if (latitude) cust.latitude = latitude;
-  if (longitude) cust.longitude = longitude;
+
+  // Alamat Rumah (Utama)
+  if (home_address !== undefined) cust.home_address = home_address.trim();
+  if (home_latitude !== undefined) cust.home_latitude = home_latitude;
+  if (home_longitude !== undefined) cust.home_longitude = home_longitude;
+
+  // Alamat Kantor / Lainnya
+  if (office_address !== undefined) cust.office_address = office_address.trim();
+  if (office_latitude !== undefined) cust.office_latitude = office_latitude;
+  if (office_longitude !== undefined) cust.office_longitude = office_longitude;
+
+  // Fallback kompatibilitas
+  cust.delivery_address = cust.home_address || (delivery_address ? delivery_address.trim() : '');
+  cust.latitude = cust.home_latitude || latitude || null;
+  cust.longitude = cust.home_longitude || longitude || null;
+
   cust.updated_at = new Date().toISOString();
 
   writeJSON(WALLETS_FILE, wallets);
 
-  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Alamat: ${cust.delivery_address}`);
+  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Rumah: ${cust.home_address} | Kantor: ${cust.office_address}`);
 
   res.json({
     success: true,
-    message: 'Profil & alamat pengiriman berhasil disimpan!',
+    message: 'Profil & alamat tujuan pengantaran berhasil disimpan!',
     data: cust
   });
 });
@@ -294,6 +331,7 @@ app.post('/api/orders/checkout', (req, res) => {
     customer_phone,
     customer_address,
     customer_email,
+    destination_type = 'home',
     branch_id,
     items,
     delivery_distance_km = 2.0,
@@ -329,6 +367,7 @@ app.post('/api/orders/checkout', (req, res) => {
     customer_email: customer_email || null,
     customer_phone: customer_phone || '081234567890',
     customer_address: customer_address || 'Jl. Mawar No. 10',
+    destination_type,
     delivery_distance_km,
     items,
     food_subtotal,

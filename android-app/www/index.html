@@ -46,8 +46,29 @@
       </div>
     </div>
 
+    <!-- SELECTOR TUJUAN PENGANTARAN (SISTEM GOJEK / GRAB) -->
+    <div onclick="openAddressPickerModal()" class="mt-2.5 bg-gradient-to-r from-red-50 to-amber-50 border border-amber-300 rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-sm cursor-pointer hover:bg-amber-100/70 transition active:scale-98">
+      <div class="flex items-center space-x-2.5 overflow-hidden">
+        <div id="targetDestIconContainer" class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0">
+          <i id="targetDestIcon" class="fa-solid fa-location-crosshairs"></i>
+        </div>
+        <div class="truncate text-left">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-gray-500 text-[10px] font-bold">Antar ke:</span>
+            <span id="targetDestLabel" class="font-black text-gray-900 text-xs truncate">Posisi Saya Saat Ini</span>
+            <span id="targetDestBadge" class="bg-blue-200 text-blue-900 text-[9px] font-extrabold px-1.5 py-0.2 rounded-md">GPS</span>
+          </div>
+          <p id="targetDestAddressText" class="text-[11px] text-gray-600 font-medium truncate mt-0.5">Mendeteksi lokasi satelit HP Anda...</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-1 text-red-600 font-extrabold text-[11px] flex-shrink-0 pl-2">
+        <span>Ganti</span>
+        <i class="fa-solid fa-chevron-down text-[10px]"></i>
+      </div>
+    </div>
+
     <!-- OUTLET SELECTOR -->
-    <div class="mt-3 bg-white/90 backdrop-blur rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm">
+    <div class="mt-2.5 bg-white/90 backdrop-blur rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm">
       <div class="flex items-center space-x-2 overflow-hidden">
         <i class="fa-solid fa-location-dot text-red-600"></i>
         <div class="truncate">
@@ -233,15 +254,28 @@
           </div>
         </div>
 
-        <!-- DETAIL PENERIMA -->
+        <!-- DETAIL PENERIMA (SISTEM GOJEK / GRAB) -->
         <div class="space-y-2 border-t pt-3">
           <div class="flex justify-between items-center">
-            <label class="font-bold text-gray-700">Data Penerima (Terverifikasi):</label>
+            <label class="font-bold text-gray-700">Tujuan Pengantaran:</label>
             <span class="bg-green-100 text-green-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center space-x-1">
               <i class="fa-solid fa-shield-halved"></i>
               <span>Anti-Fiktif</span>
             </span>
           </div>
+
+          <!-- PILIHAN TUJUAN CEPAT ALA GOJEK / GRAB -->
+          <div class="grid grid-cols-2 gap-1.5 p-1 bg-gray-100 rounded-xl">
+            <button type="button" onclick="selectDeliveryDestination('current')" id="checkoutBtnCurrent" class="py-1.5 px-2 rounded-lg text-[10px] font-black transition flex items-center justify-center space-x-1.5 bg-blue-600 text-white shadow-sm">
+              <i class="fa-solid fa-location-crosshairs text-xs"></i>
+              <span>Posisi Saat Ini</span>
+            </button>
+            <button type="button" onclick="selectDeliveryDestination('home')" id="checkoutBtnHome" class="py-1.5 px-2 rounded-lg text-[10px] font-bold text-gray-700 bg-white border flex items-center justify-center space-x-1.5 hover:bg-gray-50">
+              <i class="fa-solid fa-house text-red-600 text-xs"></i>
+              <span>Rumah (Utama)</span>
+            </button>
+          </div>
+
           <input type="text" id="custName" placeholder="Nama Anda" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 font-bold bg-gray-50">
           <input type="tel" id="custPhone" placeholder="Nomor WhatsApp" readonly class="w-full border rounded-xl p-2.5 text-xs outline-none bg-gray-100 text-gray-600 font-mono font-bold cursor-not-allowed">
           <textarea id="custAddress" rows="2" placeholder="Alamat Pengantaran Lengkap (Contoh: Jl. Mawar No. 14, Pagar Coklat)" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 bg-yellow-50/40">Jl. Mawar No. 14, RT 02/04 (Pagar Coklat)</textarea>
@@ -412,24 +446,47 @@
           <p class="text-[10px] text-gray-400 mt-1 leading-tight">Kurir lapak akan konfirmasi & share live location pengantaran via WhatsApp ini.</p>
         </div>
 
-        <!-- ALAMAT LENGKAP PENGANTARAN -->
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="font-bold text-gray-700">Alamat Pengiriman Utama:</label>
-            <span class="text-[9px] text-red-600 font-bold">*Tujuan Kebab</span>
+        <!-- ALAMAT 1: RUMAH (ALAMAT UTAMA) -->
+        <div class="border rounded-2xl p-3 bg-red-50/40 border-red-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-xs text-gray-800 flex items-center space-x-1.5">
+              <i class="fa-solid fa-house text-red-600"></i>
+              <span>🏠 Rumah (Alamat Utama)</span>
+            </span>
+            <span class="text-[9px] bg-red-100 text-red-700 font-extrabold px-1.5 py-0.2 rounded">Utama</span>
           </div>
-          <textarea id="profileInputAddress" rows="3" placeholder="Nama Jalan, Blok/Nomor Rumah, RT/RW, Patokan (misal: Rumah Pagar Hitam sebelah Toko Madura)..." class="w-full border rounded-xl p-2.5 text-xs outline-none bg-gray-50 focus:bg-white focus:border-red-500 leading-relaxed"></textarea>
+          <textarea id="profileInputHomeAddress" rows="2" placeholder="Alamat rumah lengkap: Jalan, Nomor Rumah, RT/RW, Patokan warna pagar..." class="w-full border rounded-xl p-2 text-xs outline-none bg-white focus:border-red-500 leading-relaxed"></textarea>
+          <div>
+            <button type="button" onclick="detectGPSFor('home')" id="btnDetectGPSHome" class="w-full bg-white hover:bg-red-50 text-red-700 border border-red-300 font-bold py-1.5 px-2 rounded-xl text-[11px] flex items-center justify-center space-x-1.5 transition shadow-xs active:scale-98">
+              <i class="fa-solid fa-location-crosshairs text-red-600"></i>
+              <span id="btnDetectGPSHomeText">📍 Kunci Titik GPS Rumah</span>
+            </button>
+            <div id="profileHomeGPSInfo" class="hidden mt-1 text-[9px] font-mono text-emerald-700 bg-white p-1.5 rounded-lg border border-emerald-200 flex items-center justify-between">
+              <span>GPS Rumah: <b id="profileHomeGPSCoords">-</b></span>
+              <span class="text-emerald-800 font-bold">✓ Terkunci</span>
+            </div>
+          </div>
         </div>
 
-        <!-- TOMBOL DETEKSI GPS -->
-        <div>
-          <button type="button" onclick="detectCustomerGPS()" id="btnDetectGPS" class="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow-sm active:scale-98">
-            <i class="fa-solid fa-location-crosshairs text-red-600"></i>
-            <span id="btnDetectGPSText">📍 Deteksi Titik Lokasi GPS Saya</span>
-          </button>
-          <div id="profileGPSInfo" class="hidden mt-1.5 text-[10px] font-mono text-emerald-700 bg-emerald-50 p-2 rounded-xl border border-emerald-200 flex items-center justify-between">
-            <span>📍 Koordinat: <b id="profileGPSCoords">-</b></span>
-            <span class="text-emerald-800 font-bold">✓ Terkunci</span>
+        <!-- ALAMAT 2: KANTOR / TEMPAT LAIN (OPSIONAL) -->
+        <div class="border rounded-2xl p-3 bg-gray-50 border-gray-200 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-xs text-gray-800 flex items-center space-x-1.5">
+              <i class="fa-solid fa-briefcase text-emerald-600"></i>
+              <span>🏢 Kantor / Alamat Lain (Opsional)</span>
+            </span>
+            <span class="text-[9px] bg-gray-200 text-gray-600 font-extrabold px-1.5 py-0.2 rounded">Opsional</span>
+          </div>
+          <textarea id="profileInputOfficeAddress" rows="2" placeholder="Nama Gedung / Kantor, Lantai, Patokan Lobi/Pos Satpam..." class="w-full border rounded-xl p-2 text-xs outline-none bg-white focus:border-emerald-500 leading-relaxed"></textarea>
+          <div>
+            <button type="button" onclick="detectGPSFor('office')" id="btnDetectGPSOffice" class="w-full bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold py-1.5 px-2 rounded-xl text-[11px] flex items-center justify-center space-x-1.5 transition shadow-xs active:scale-98">
+              <i class="fa-solid fa-location-crosshairs text-emerald-600"></i>
+              <span id="btnDetectGPSOfficeText">📍 Kunci Titik GPS Kantor</span>
+            </button>
+            <div id="profileOfficeGPSInfo" class="hidden mt-1 text-[9px] font-mono text-emerald-700 bg-white p-1.5 rounded-lg border border-emerald-200 flex items-center justify-between">
+              <span>GPS Kantor: <b id="profileOfficeGPSCoords">-</b></span>
+              <span class="text-emerald-800 font-bold">✓ Terkunci</span>
+            </div>
           </div>
         </div>
 
@@ -437,7 +494,7 @@
         <div class="pt-2">
           <button type="button" onclick="saveCustomerProfile()" id="btnSaveProfile" class="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98">
             <i class="fa-solid fa-floppy-disk"></i>
-            <span>Simpan Profil & Alamat</span>
+            <span>Simpan Alamat & Profil</span>
           </button>
         </div>
 
@@ -445,6 +502,98 @@
         <button type="button" onclick="logoutUser()" class="w-full text-center text-xs text-red-500 hover:text-red-700 py-1 font-bold">
           <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i>
           Keluar dari Akun Google
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PEMILIH ALAMAT PENGANTARAN (SISTEM GOJEK / GRAB) -->
+  <div id="addressPickerModal" class="fixed inset-0 bg-black/75 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-5 space-y-4 animate-slide-up sm:animate-scale-up shadow-2xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-2 border-b">
+        <div>
+          <h3 class="font-extrabold text-sm text-gray-900 flex items-center space-x-2">
+            <i class="fa-solid fa-map-location-dot text-red-600"></i>
+            <span>Mau Dikirim ke Mana?</span>
+          </h3>
+          <p class="text-[10px] text-gray-500">Pilih tujuan pengantaran pesanan kebab Anda</p>
+        </div>
+        <button type="button" onclick="closeAddressPickerModal()" class="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- OPSI 1: POSISI SAYA SAAT INI (LOKASI TERKINI SAAT BUKA WEBAPP) -->
+      <div onclick="selectDeliveryDestination('current')" id="cardDestCurrent" class="border-2 rounded-2xl p-3 cursor-pointer transition hover:border-blue-400 bg-white">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-sm shrink-0 mt-0.5">
+              <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="font-black text-xs text-gray-900">Posisi Saya Saat Ini</span>
+                <span class="bg-blue-100 text-blue-700 text-[9px] font-black px-1.5 py-0.2 rounded-md">GPS Langsung</span>
+              </div>
+              <p id="cardCurrentGPSDesc" class="text-[11px] text-gray-500 mt-0.5 leading-snug">Mendeteksi koordinat satelit HP/laptop Anda...</p>
+              <div id="cardCurrentNoteBox" class="mt-2" onclick="event.stopPropagation()">
+                <input type="text" id="currentLocationPatokan" oninput="updateCurrentPatokan(this.value)" placeholder="Tambahkan patokan (misal: Lobi Depan / Pos Satpam)" class="w-full text-[11px] border border-blue-200 rounded-lg p-1.5 bg-blue-50/40 outline-none focus:border-blue-500">
+              </div>
+            </div>
+          </div>
+          <div id="checkDestCurrent" class="text-blue-600 text-base shrink-0 hidden">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPSI 2: RUMAH (ALAMAT UTAMA TERSIMPAN) -->
+      <div onclick="selectDeliveryDestination('home')" id="cardDestHome" class="border-2 rounded-2xl p-3 cursor-pointer transition hover:border-red-400 bg-white">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-sm shrink-0 mt-0.5">
+              <i class="fa-solid fa-house"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="font-black text-xs text-gray-900">Rumah (Alamat Utama)</span>
+                <span class="bg-amber-100 text-amber-800 text-[9px] font-black px-1.5 py-0.2 rounded-md">Tersimpan</span>
+              </div>
+              <p id="cardHomeAddressDesc" class="text-[11px] text-gray-600 mt-0.5 leading-snug">Belum diatur. Lengkapi di menu kelola alamat.</p>
+            </div>
+          </div>
+          <div id="checkDestHome" class="text-red-600 text-base shrink-0 hidden">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPSI 3: KANTOR / ALAMAT LAIN -->
+      <div onclick="selectDeliveryDestination('office')" id="cardDestOffice" class="border-2 rounded-2xl p-3 cursor-pointer transition hover:border-emerald-400 bg-white">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm shrink-0 mt-0.5">
+              <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="font-black text-xs text-gray-900">Kantor / Alamat Lain</span>
+                <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.2 rounded-md">Opsional</span>
+              </div>
+              <p id="cardOfficeAddressDesc" class="text-[11px] text-gray-600 mt-0.5 leading-snug">Belum diatur (opsional).</p>
+            </div>
+          </div>
+          <div id="checkDestOffice" class="text-emerald-600 text-base shrink-0 hidden">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOMBOL KELOLA ALAMAT -->
+      <div class="pt-2 border-t">
+        <button type="button" onclick="closeAddressPickerModal(); openProfileModal();" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
+          <i class="fa-solid fa-pen-to-square text-red-600"></i>
+          <span>Kelola / Edit Alamat Rumah & Kantor</span>
         </button>
       </div>
     </div>
@@ -532,6 +681,15 @@
     let currentDeliveryDistanceKm = 1.5;
     let userCurrentLat = null;
     let userCurrentLng = null;
+    let activeDestinationType = 'current'; // 'current' | 'home' | 'office'
+    let liveLocation = {
+      latitude: null,
+      longitude: null,
+      addressText: 'Posisi Saya Saat Ini',
+      patokan: ''
+    };
+    let homeGPS = { latitude: null, longitude: null };
+    let officeGPS = { latitude: null, longitude: null };
     let cart = [];
     let currentCustomizingItem = null;
     let selectedSize = 'reguler';
@@ -718,6 +876,256 @@
       }
     }
 
+    // ====================================================
+    // SISTEM PENGANTARAN GOJEK / GRAB: POSISI SAAT INI VS RUMAH
+    // ====================================================
+
+    function openAddressPickerModal() {
+      const homeAddr = currentUser ? (currentUser.home_address || currentUser.delivery_address || '') : '';
+      const officeAddr = currentUser ? (currentUser.office_address || '') : '';
+
+      const cardHomeDesc = document.getElementById('cardHomeAddressDesc');
+      if (cardHomeDesc) {
+        cardHomeDesc.innerText = homeAddr ? homeAddr : 'Belum diatur. Klik kelola alamat untuk mengatur.';
+      }
+
+      const cardOfficeDesc = document.getElementById('cardOfficeAddressDesc');
+      if (cardOfficeDesc) {
+        cardOfficeDesc.innerText = officeAddr ? officeAddr : 'Belum diatur (opsional).';
+      }
+
+      if (liveLocation.latitude && liveLocation.longitude) {
+        const cardCurrentDesc = document.getElementById('cardCurrentGPSDesc');
+        if (cardCurrentDesc) {
+          cardCurrentDesc.innerText = `Titik GPS: ${liveLocation.latitude.toFixed(5)}, ${liveLocation.longitude.toFixed(5)}`;
+        }
+      }
+
+      document.getElementById('addressPickerModal').classList.remove('hidden');
+    }
+
+    function closeAddressPickerModal() {
+      document.getElementById('addressPickerModal').classList.add('hidden');
+    }
+
+    function selectDeliveryDestination(type) {
+      activeDestinationType = type;
+      syncDestinationToApp();
+      closeAddressPickerModal();
+    }
+
+    function updateCurrentPatokan(val) {
+      liveLocation.patokan = val.trim();
+      if (activeDestinationType === 'current') {
+        syncDestinationToApp();
+      }
+    }
+
+    // Tangkap titik lokasi satelit GPS saat pertama kali webapp dibuka
+    function captureLiveLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            liveLocation.latitude = pos.coords.latitude;
+            liveLocation.longitude = pos.coords.longitude;
+            liveLocation.addressText = `Titik GPS (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+
+            const cardCurrentDesc = document.getElementById('cardCurrentGPSDesc');
+            if (cardCurrentDesc) {
+              cardCurrentDesc.innerText = `Titik GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+            }
+
+            // Jika sedang aktif di 'current', sinkronkan langsung
+            if (activeDestinationType === 'current') {
+              syncDestinationToApp();
+            }
+          },
+          (err) => {
+            console.warn('GPS tidak diizinkan atau timeout:', err);
+            const cardCurrentDesc = document.getElementById('cardCurrentGPSDesc');
+            if (cardCurrentDesc) cardCurrentDesc.innerText = 'GPS belum aktif. Ketik patokan atau pilih Rumah.';
+          },
+          { timeout: 7000, enableHighAccuracy: true, maximumAge: 30000 }
+        );
+      }
+    }
+
+    // Deteksi GPS khusus untuk Rumah atau Kantor di form Profil
+    function detectGPSFor(target) {
+      if (!navigator.geolocation) {
+        alert('Perangkat Anda tidak mendukung deteksi GPS.');
+        return;
+      }
+
+      const btn = document.getElementById(target === 'home' ? 'btnDetectGPSHome' : 'btnDetectGPSOffice');
+      const btnText = document.getElementById(target === 'home' ? 'btnDetectGPSHomeText' : 'btnDetectGPSOfficeText');
+      btnText.innerText = '📡 Mencari GPS...';
+      btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+
+          if (target === 'home') {
+            homeGPS.latitude = lat;
+            homeGPS.longitude = lng;
+            document.getElementById('profileHomeGPSInfo').classList.remove('hidden');
+            document.getElementById('profileHomeGPSCoords').innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            btnText.innerText = '✓ GPS Rumah Terkunci';
+
+            const addrInput = document.getElementById('profileInputHomeAddress');
+            if (!addrInput.value.trim() || addrInput.value.includes('GPS')) {
+              addrInput.value = `Titik GPS Rumah (${lat.toFixed(5)}, ${lng.toFixed(5)}) - Patokan: `;
+            }
+          } else {
+            officeGPS.latitude = lat;
+            officeGPS.longitude = lng;
+            document.getElementById('profileOfficeGPSInfo').classList.remove('hidden');
+            document.getElementById('profileOfficeGPSCoords').innerText = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            btnText.innerText = '✓ GPS Kantor Terkunci';
+
+            const addrInput = document.getElementById('profileInputOfficeAddress');
+            if (!addrInput.value.trim() || addrInput.value.includes('GPS')) {
+              addrInput.value = `Titik GPS Kantor (${lat.toFixed(5)}, ${lng.toFixed(5)}) - Patokan: `;
+            }
+          }
+
+          btn.disabled = false;
+        },
+        (err) => {
+          btnText.innerText = target === 'home' ? '📍 Kunci Titik GPS Rumah' : '📍 Kunci Titik GPS Kantor';
+          btn.disabled = false;
+          alert('GPS tidak dapat diakses atau izin ditolak. Silakan ketik alamat secara manual.');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    // Sinkronisasi seluruh aplikasi sesuai tujuan pengantaran yang dipilih
+    function syncDestinationToApp() {
+      let targetLat = null;
+      let targetLng = null;
+      let targetLabel = '';
+      let targetAddress = '';
+      let targetIcon = 'fa-location-crosshairs';
+      let targetBadge = 'GPS';
+      let targetBg = 'bg-blue-600';
+
+      const homeAddr = currentUser ? (currentUser.home_address || currentUser.delivery_address || '') : '';
+      const homeLat = currentUser ? (currentUser.home_latitude || currentUser.latitude || null) : null;
+      const homeLng = currentUser ? (currentUser.home_longitude || currentUser.longitude || null) : null;
+
+      const officeAddr = currentUser ? (currentUser.office_address || '') : '';
+      const officeLat = currentUser ? (currentUser.office_latitude || null) : null;
+      const officeLng = currentUser ? (currentUser.office_longitude || null) : null;
+
+      if (activeDestinationType === 'home') {
+        targetLabel = 'Rumah (Alamat Utama)';
+        targetAddress = homeAddr || 'Alamat rumah belum diatur. Klik untuk melengkapi.';
+        targetLat = homeLat;
+        targetLng = homeLng;
+        targetIcon = 'fa-house';
+        targetBadge = 'Utama';
+        targetBg = 'bg-red-600';
+      } else if (activeDestinationType === 'office') {
+        targetLabel = 'Kantor / Lainnya';
+        targetAddress = officeAddr || 'Alamat kantor belum diatur. Klik untuk melengkapi.';
+        targetLat = officeLat;
+        targetLng = officeLng;
+        targetIcon = 'fa-briefcase';
+        targetBadge = 'Kantor';
+        targetBg = 'bg-emerald-600';
+      } else {
+        // 'current' - Posisi Saya Saat Ini
+        targetLabel = 'Posisi Saya Saat Ini';
+        let gpsText = (liveLocation.latitude && liveLocation.longitude)
+          ? `Titik GPS (${liveLocation.latitude.toFixed(4)}, ${liveLocation.longitude.toFixed(4)})`
+          : 'Lokasi Terkini HP';
+        if (liveLocation.patokan) gpsText += ` - ${liveLocation.patokan}`;
+        targetAddress = gpsText;
+        targetLat = liveLocation.latitude;
+        targetLng = liveLocation.longitude;
+        targetIcon = 'fa-location-crosshairs';
+        targetBadge = 'GPS';
+        targetBg = 'bg-blue-600';
+      }
+
+      // Update Header Bar
+      const elLabel = document.getElementById('targetDestLabel');
+      const elAddr = document.getElementById('targetDestAddressText');
+      const elBadge = document.getElementById('targetDestBadge');
+      const elIcon = document.getElementById('targetDestIcon');
+      const elIconContainer = document.getElementById('targetDestIconContainer');
+
+      if (elLabel) elLabel.innerText = targetLabel;
+      if (elAddr) elAddr.innerText = targetAddress;
+      if (elBadge) elBadge.innerText = targetBadge;
+      if (elIcon) elIcon.className = `fa-solid ${targetIcon}`;
+      if (elIconContainer) elIconContainer.className = `w-8 h-8 rounded-xl ${targetBg} text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0`;
+
+      // Update checkmarks & styling inside Modal Picker
+      const checkCurrent = document.getElementById('checkDestCurrent');
+      const checkHome = document.getElementById('checkDestHome');
+      const checkOffice = document.getElementById('checkDestOffice');
+      const cardCurrent = document.getElementById('cardDestCurrent');
+      const cardHome = document.getElementById('cardDestHome');
+      const cardOffice = document.getElementById('cardDestOffice');
+
+      if (checkCurrent) checkCurrent.classList.toggle('hidden', activeDestinationType !== 'current');
+      if (checkHome) checkHome.classList.toggle('hidden', activeDestinationType !== 'home');
+      if (checkOffice) checkOffice.classList.toggle('hidden', activeDestinationType !== 'office');
+
+      if (cardCurrent) cardCurrent.className = activeDestinationType === 'current'
+        ? 'border-2 border-blue-500 rounded-2xl p-3 cursor-pointer bg-blue-50/40 shadow-sm'
+        : 'border-2 border-gray-200 rounded-2xl p-3 cursor-pointer bg-white hover:border-blue-300';
+
+      if (cardHome) cardHome.className = activeDestinationType === 'home'
+        ? 'border-2 border-red-500 rounded-2xl p-3 cursor-pointer bg-red-50/40 shadow-sm'
+        : 'border-2 border-gray-200 rounded-2xl p-3 cursor-pointer bg-white hover:border-red-300';
+
+      if (cardOffice) cardOffice.className = activeDestinationType === 'office'
+        ? 'border-2 border-emerald-500 rounded-2xl p-3 cursor-pointer bg-emerald-50/40 shadow-sm'
+        : 'border-2 border-gray-200 rounded-2xl p-3 cursor-pointer bg-white hover:border-emerald-300';
+
+      // Update Checkout pills
+      const btnCur = document.getElementById('checkoutBtnCurrent');
+      const btnHom = document.getElementById('checkoutBtnHome');
+      if (btnCur && btnHom) {
+        if (activeDestinationType === 'current') {
+          btnCur.className = 'py-1.5 px-2 rounded-lg text-[10px] font-black bg-blue-600 text-white shadow-sm flex items-center justify-center space-x-1.5';
+          btnHom.className = 'py-1.5 px-2 rounded-lg text-[10px] font-bold text-gray-700 bg-white border flex items-center justify-center space-x-1.5 hover:bg-gray-50';
+        } else {
+          btnCur.className = 'py-1.5 px-2 rounded-lg text-[10px] font-bold text-gray-700 bg-white border flex items-center justify-center space-x-1.5 hover:bg-gray-50';
+          btnHom.className = 'py-1.5 px-2 rounded-lg text-[10px] font-black bg-red-600 text-white shadow-sm flex items-center justify-center space-x-1.5';
+        }
+      }
+
+      // Update Checkout Address textarea
+      const custAddressInput = document.getElementById('custAddress');
+      if (custAddressInput) custAddressInput.value = targetAddress;
+
+      // RECALCULATE NEAREST BRANCH & DELIVERY FEE TO THIS DESTINATION!
+      updateNearestBranch(targetLat, targetLng);
+
+      // Recalculate summary totals in checkout modal if open
+      if (cart.length > 0) {
+        const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+        let deliveryFee = 6000;
+        if (currentDeliveryDistanceKm > 2) {
+          deliveryFee += Math.ceil(currentDeliveryDistanceKm - 2) * 2000;
+        }
+        const total = subtotal + deliveryFee;
+
+        const elSub = document.getElementById('summaryFood');
+        const elDel = document.getElementById('summaryDelivery');
+        const elTot = document.getElementById('summaryTotal');
+        if (elSub) elSub.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+        if (elDel) elDel.innerText = `Rp ${deliveryFee.toLocaleString('id-ID')} (${currentDeliveryDistanceKm} km)`;
+        if (elTot) elTot.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+      }
+    }
+
     // Modal Profil Pelanggan
     function openProfileModal() {
       if (!currentUser) {
@@ -735,13 +1143,28 @@
       else if (wa.startsWith('0')) wa = wa.slice(1);
       document.getElementById('profileInputWhatsapp').value = wa;
 
-      document.getElementById('profileInputAddress').value = currentUser.delivery_address || currentUser.address || '';
-
-      if (currentUser.latitude && currentUser.longitude) {
-        document.getElementById('profileGPSInfo').classList.remove('hidden');
-        document.getElementById('profileGPSCoords').innerText = `${Number(currentUser.latitude).toFixed(4)}, ${Number(currentUser.longitude).toFixed(4)}`;
+      // Alamat Rumah (Utama)
+      const homeAddr = currentUser.home_address || currentUser.delivery_address || '';
+      document.getElementById('profileInputHomeAddress').value = homeAddr;
+      if (currentUser.home_latitude && currentUser.home_longitude) {
+        homeGPS.latitude = currentUser.home_latitude;
+        homeGPS.longitude = currentUser.home_longitude;
+        document.getElementById('profileHomeGPSInfo').classList.remove('hidden');
+        document.getElementById('profileHomeGPSCoords').innerText = `${Number(currentUser.home_latitude).toFixed(4)}, ${Number(currentUser.home_longitude).toFixed(4)}`;
       } else {
-        document.getElementById('profileGPSInfo').classList.add('hidden');
+        document.getElementById('profileHomeGPSInfo').classList.add('hidden');
+      }
+
+      // Alamat Kantor / Lainnya
+      const officeAddr = currentUser.office_address || '';
+      document.getElementById('profileInputOfficeAddress').value = officeAddr;
+      if (currentUser.office_latitude && currentUser.office_longitude) {
+        officeGPS.latitude = currentUser.office_latitude;
+        officeGPS.longitude = currentUser.office_longitude;
+        document.getElementById('profileOfficeGPSInfo').classList.remove('hidden');
+        document.getElementById('profileOfficeGPSCoords').innerText = `${Number(currentUser.office_latitude).toFixed(4)}, ${Number(currentUser.office_longitude).toFixed(4)}`;
+      } else {
+        document.getElementById('profileOfficeGPSInfo').classList.add('hidden');
       }
 
       document.getElementById('profileModal').classList.remove('hidden');
@@ -751,52 +1174,13 @@
       document.getElementById('profileModal').classList.add('hidden');
     }
 
-    let detectedLat = null;
-    let detectedLng = null;
-
-    function detectCustomerGPS() {
-      const btn = document.getElementById('btnDetectGPS');
-      const btnText = document.getElementById('btnDetectGPSText');
-      if (!navigator.geolocation) {
-        alert('Perangkat Anda tidak mendukung deteksi GPS otomatis.');
-        return;
-      }
-
-      btnText.innerText = '📡 Mencari Titik GPS...';
-      btn.disabled = true;
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          detectedLat = pos.coords.latitude;
-          detectedLng = pos.coords.longitude;
-          document.getElementById('profileGPSInfo').classList.remove('hidden');
-          document.getElementById('profileGPSCoords').innerText = `${detectedLat.toFixed(5)}, ${detectedLng.toFixed(5)}`;
-          btnText.innerText = '✓ Titik GPS Berhasil Terkunci!';
-          btn.disabled = false;
-
-          const addrInput = document.getElementById('profileInputAddress');
-          if (!addrInput.value.trim() || addrInput.value.includes('Titik GPS') || addrInput.value.includes('Lokasi GPS')) {
-            addrInput.value = `Lokasi GPS: (${detectedLat.toFixed(5)}, ${detectedLng.toFixed(5)}) - Patokan: `;
-          }
-
-          // Otomatis sesuaikan cabang terdekat & hitung jarak asli
-          updateNearestBranch(detectedLat, detectedLng);
-        },
-        (err) => {
-          btnText.innerText = '📍 Deteksi Titik Lokasi GPS Saya';
-          btn.disabled = false;
-          alert('GPS tidak dapat diakses atau izin ditolak. Anda tetap dapat mengetik alamat lengkap secara manual.');
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    }
-
     async function saveCustomerProfile() {
       if (!currentUser) return;
 
       const name = document.getElementById('profileInputName').value.trim();
       let wa = document.getElementById('profileInputWhatsapp').value.trim();
-      const address = document.getElementById('profileInputAddress').value.trim();
+      const homeAddr = document.getElementById('profileInputHomeAddress').value.trim();
+      const officeAddr = document.getElementById('profileInputOfficeAddress').value.trim();
 
       if (!name) {
         alert('Mohon masukkan nama pemesan.');
@@ -811,8 +1195,8 @@
       if (wa.startsWith('0')) wa = '62' + wa.slice(1);
       else if (!wa.startsWith('62')) wa = '62' + wa;
 
-      if (!address || address.length < 4) {
-        alert('Mohon tuliskan alamat lengkap pengantaran untuk kurir.');
+      if (!homeAddr || homeAddr.length < 4) {
+        alert('Mohon tuliskan alamat Rumah (Alamat Utama) Anda.');
         return;
       }
 
@@ -828,9 +1212,12 @@
             email: currentUser.email,
             full_name: name,
             whatsapp: wa,
-            delivery_address: address,
-            latitude: detectedLat || currentUser.latitude || null,
-            longitude: detectedLng || currentUser.longitude || null
+            home_address: homeAddr,
+            home_latitude: homeGPS.latitude || currentUser.home_latitude || null,
+            home_longitude: homeGPS.longitude || currentUser.home_longitude || null,
+            office_address: officeAddr,
+            office_latitude: officeGPS.latitude || currentUser.office_latitude || null,
+            office_longitude: officeGPS.longitude || currentUser.office_longitude || null
           })
         }).then(r => r.json());
 
@@ -840,7 +1227,10 @@
           localStorage.setItem('kebab_user', JSON.stringify(currentUser));
           updateUserHeader();
           closeProfileModal();
-          alert('✓ Profil & alamat pengiriman Anda berhasil disimpan!');
+          alert('✓ Profil & alamat tersimpan berhasil diperbarui!');
+
+          // Segera sinkronkan tampilan
+          syncDestinationToApp();
 
           if (cart.length > 0) {
             openCheckoutModal();
@@ -852,7 +1242,7 @@
         alert('Gagal menyimpan profil ke server.');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Simpan Profil & Alamat</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Simpan Alamat & Profil</span>`;
       }
     }
 
@@ -878,7 +1268,7 @@
       return Math.round((R * c) * 10) / 10;
     }
 
-    // Deteksi & update cabang terdekat otomatis berdasarkan koordinat GPS
+    // Deteksi & update cabang terdekat otomatis berdasarkan koordinat GPS target pengantaran
     function updateNearestBranch(userLat, userLng) {
       if (!globalBranches || globalBranches.length === 0) return;
       userCurrentLat = userLat;
@@ -892,7 +1282,7 @@
         return { ...b, distance: dist };
       });
 
-      // Jika GPS aktif, urutkan dari yang terdekat
+      // Jika GPS target ada, urutkan dari yang terdekat ke titik pengantaran
       if (userLat && userLng) {
         branchesWithDist.sort((a, b) => a.distance - b.distance);
       }
@@ -913,23 +1303,11 @@
       document.getElementById('bankInfo').innerText = currentBranch.bank_info;
     }
 
-    function setupBranchesWithLocation() {
-      if (currentUser && currentUser.latitude && currentUser.longitude) {
-        updateNearestBranch(currentUser.latitude, currentUser.longitude);
-      } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => updateNearestBranch(pos.coords.latitude, pos.coords.longitude),
-          () => updateNearestBranch(null, null),
-          { timeout: 5000, maximumAge: 60000 }
-        );
-      } else {
-        updateNearestBranch(null, null);
-      }
-    }
-
     // Load Initial Data
     async function init() {
       updateUserHeader();
+      captureLiveLocation(); // Tangkap lokasi GPS fisik saat webapp dibuka (Gojek / Grab style)
+
       try {
         const [menuRes, branchRes] = await Promise.all([
           fetch('/api/menu').then(r => r.json()),
@@ -939,7 +1317,8 @@
         if (menuRes.success) globalMenu = menuRes.data;
         if (branchRes.success) {
           globalBranches = branchRes.data;
-          setupBranchesWithLocation();
+          // Sinkronkan tujuan awal & cabang terdekat
+          syncDestinationToApp();
         }
 
         renderMenu('all');
@@ -1201,12 +1580,10 @@
         return;
       }
 
-      // CEK VALIDASI 2: Jika nomor WhatsApp atau Alamat pengiriman belum diisi, buka profil!
+      // CEK VALIDASI 2: Jika nomor WhatsApp belum diisi, buka profil!
       const wa = currentUser.whatsapp || currentUser.phone || '';
-      const addr = currentUser.delivery_address || currentUser.address || '';
-
-      if (!wa || !addr) {
-        alert('Nomor WhatsApp dan Alamat Pengiriman Anda belum lengkap. Silakan lengkapi pada formulir Profil Pelanggan agar kurir dapat mengantar pesanan Anda.');
+      if (!wa) {
+        alert('Nomor WhatsApp Anda belum diisi. Silakan lengkapi pada profil agar kurir dapat mengantar pesanan Anda.');
         openProfileModal();
         return;
       }
@@ -1215,20 +1592,11 @@
       document.getElementById('custName').value = currentUser.name;
       const displayPhone = wa.startsWith('62') ? '0' + wa.slice(2) : wa;
       document.getElementById('custPhone').value = displayPhone;
-      document.getElementById('custAddress').value = addr;
+
+      // Sinkronkan alamat tujuan pengantaran terpilih (Posisi Saat Ini vs Rumah)
+      syncDestinationToApp();
 
       renderCheckoutItems();
-      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
-      let deliveryFee = 6000;
-      if (currentDeliveryDistanceKm > 2) {
-        deliveryFee += Math.ceil(currentDeliveryDistanceKm - 2) * 2000;
-      }
-      const total = subtotal + deliveryFee;
-
-      document.getElementById('summaryFood').innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-      document.getElementById('summaryDelivery').innerText = `Rp ${deliveryFee.toLocaleString('id-ID')} (${currentDeliveryDistanceKm} km)`;
-      document.getElementById('summaryTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-
       document.getElementById('checkoutModal').classList.remove('hidden');
     }
 
@@ -1253,6 +1621,7 @@
           customer_phone: document.getElementById('custPhone').value,
           customer_address: document.getElementById('custAddress').value,
           customer_email: currentUser ? currentUser.email : '',
+          destination_type: activeDestinationType,
           branch_id: currentBranch.id,
           items: cart,
           delivery_distance_km: currentDeliveryDistanceKm,

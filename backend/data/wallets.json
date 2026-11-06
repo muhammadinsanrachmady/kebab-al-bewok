@@ -44,7 +44,13 @@
       "longitude": 106.8456,
       "auth_provider": "google",
       "registered_at": "2026-11-06T14:38:35.218Z",
-      "updated_at": "2026-11-06T14:38:35.254Z"
+      "updated_at": "2026-11-06T15:08:32.497Z",
+      "home_address": "Jl. Anggrek No. 25, RT 01/03, Pagar Hitam",
+      "home_latitude": -6.2088,
+      "home_longitude": 106.8456,
+      "office_address": "Gedung Cyber 2 Lantai 5, Rasuna Said",
+      "office_latitude": -6.225,
+      "office_longitude": 106.831
     }
   },
   "history": [
