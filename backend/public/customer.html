@@ -57,20 +57,21 @@
       <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">BUKA</span>
     </div>
 
-    <!-- BANNER PERMANEN PASANG APLIKASI DI LAYAR HP -->
-    <div class="mt-3 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-600 text-white rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-md border border-yellow-300/50">
+    <!-- BANNER PINTAR: DOWNLOAD APK ANDROID ATAU PASANG DI IPHONE -->
+    <div id="smartInstallBanner" class="mt-3 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-600 text-white rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-md border border-yellow-300/50">
       <div class="flex items-center space-x-2.5">
         <div class="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center text-red-900 text-base shadow-sm shrink-0">
-          📲
+          <span id="bannerIcon">🤖</span>
         </div>
         <div>
-          <span class="font-extrabold block text-[12px] leading-tight text-white">Pasang Aplikasi di Layar HP</span>
-          <span class="text-[10px] text-yellow-100">Pesan Kebab lebih cepat seperti Gojek/Grab</span>
+          <span id="bannerTitle" class="font-extrabold block text-[12px] leading-tight text-white">Aplikasi Resmi Android</span>
+          <span id="bannerSubtitle" class="text-[10px] text-yellow-100">Unduh file .APK (Hanya 3.7 MB)</span>
         </div>
       </div>
-      <button onclick="handleInstallClick()" class="bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black px-3.5 py-2 rounded-xl text-[11px] shadow-md transition shrink-0">
-        Pasang
-      </button>
+      <a id="btnInstallAction" href="https://github.com/muhammadinsanrachmady/kebab-al-bewok/releases/download/v1.0.0/Kebab_AL_Bewok.apk" download class="bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black px-3.5 py-2 rounded-xl text-[11px] shadow-md transition shrink-0 flex items-center space-x-1.5 cursor-pointer">
+        <i id="btnIcon" class="fa-solid fa-download text-xs"></i>
+        <span id="bannerBtnText">Unduh APK</span>
+      </a>
     </div>
   </header>
 
@@ -414,13 +415,43 @@
       }
     }
 
-    // Deteksi jika dibuka dari iPhone Safari (bukan standalone)
-    function checkIOSPrompt() {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-      if (isIOS && !isStandalone) {
-        const iosBanner = document.getElementById('iosInstallGuide');
-        if (iosBanner) iosBanner.classList.remove('hidden');
+    // Smart Banner Detector (Android = Unduh APK, iPhone = Pasang Safari)
+    function setupSmartBanner() {
+      const isStandalone = window.navigator.standalone === true || 
+                           window.matchMedia('(display-mode: standalone)').matches || 
+                           window.Capacitor;
+      const banner = document.getElementById('smartInstallBanner');
+
+      // Jika aplikasi sudah dibuka dari dalam APK yang terinstall, sembunyikan banner agar bersih
+      if (isStandalone) {
+        if (banner) banner.classList.add('hidden');
+        return;
+      }
+
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+      const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+      if (isIOS) {
+        // Tampilan khusus jika dibuka dari iPhone
+        document.getElementById('bannerIcon').innerText = '🍎';
+        document.getElementById('bannerTitle').innerText = 'Pasang di Layar iPhone';
+        document.getElementById('bannerSubtitle').innerText = 'Akses 1-klik tanpa lewat AppStore';
+        const btn = document.getElementById('btnInstallAction');
+        btn.removeAttribute('href');
+        btn.removeAttribute('download');
+        btn.onclick = () => document.getElementById('installGuideModal').classList.remove('hidden');
+        document.getElementById('btnIcon').className = 'fa-solid fa-plus text-xs';
+        document.getElementById('bannerBtnText').innerText = 'Petunjuk';
+      } else {
+        // Tampilan khusus jika dibuka dari Android
+        document.getElementById('bannerIcon').innerText = '🤖';
+        document.getElementById('bannerTitle').innerText = 'Aplikasi Resmi Android';
+        document.getElementById('bannerSubtitle').innerText = 'Unduh file .APK (Hanya 3.7 MB)';
+        const btn = document.getElementById('btnInstallAction');
+        btn.href = 'https://github.com/muhammadinsanrachmady/kebab-al-bewok/releases/download/v1.0.0/Kebab_AL_Bewok.apk';
+        btn.setAttribute('download', 'Kebab_AL_Bewok.apk');
+        document.getElementById('btnIcon').className = 'fa-solid fa-download text-xs';
+        document.getElementById('bannerBtnText').innerText = 'Unduh APK';
       }
     }
 
@@ -441,7 +472,7 @@
         }
 
         renderMenu('all');
-        checkIOSPrompt();
+        setupSmartBanner();
       } catch (err) {
         console.error(err);
       }
