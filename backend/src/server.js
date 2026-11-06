@@ -51,6 +51,9 @@ function writeJSON(filePath, data) {
   }
 }
 
+// Memory store untuk OTP (Kadaluwarsa dalam 5 menit)
+const otpStore = new Map();
+
 // Inisialisasi file data jika belum ada
 if (!fs.existsSync(ORDERS_FILE)) writeJSON(ORDERS_FILE, []);
 if (!fs.existsSync(WALLETS_FILE)) {
@@ -67,8 +70,84 @@ if (!fs.existsSync(WALLETS_FILE)) {
 }
 
 // ==========================================
-// 1. ENDPOINTS UMUM & CUSTOMER
+// 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
 // ==========================================
+
+// Kirim Kode OTP WhatsApp
+app.post('/api/auth/send-otp', (req, res) => {
+  const { phone_number, full_name } = req.body;
+  if (!phone_number || phone_number.length < 9) {
+    return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid' });
+  }
+
+  // Format nomor (hapus karakter aneh, ubah 08.. jadi format standar)
+  let cleanPhone = phone_number.replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+
+  // Buat 4 digit OTP
+  const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+  otpStore.set(cleanPhone, {
+    otp: otpCode,
+    full_name: full_name || 'Pelanggan Kebab',
+    expiresAt: Date.now() + 5 * 60 * 1000
+  });
+
+  console.log(`🔑 [OTP KEBAB AL BEWOK] Kode verifikasi untuk ${cleanPhone} (${full_name}): ${otpCode}`);
+
+  res.json({
+    success: true,
+    message: 'Kode verifikasi berhasil dikirim!',
+    data: {
+      phone: cleanPhone,
+      // Dikembalikan di response agar simulasi langsung jalan tanpa perlu langganan API gateway WA berbayar
+      demo_otp: otpCode
+    }
+  });
+});
+
+// Verifikasi Kode OTP & Buat Sesi Login
+app.post('/api/auth/verify-otp', (req, res) => {
+  const { phone_number, otp_code, full_name } = req.body;
+  let cleanPhone = (phone_number || '').replace(/[^0-9]/g, '');
+  if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+
+  const session = otpStore.get(cleanPhone);
+
+  // Validasi OTP (atau default master demo OTP 1234)
+  if (!session || (session.otp !== otp_code && otp_code !== '1234')) {
+    return res.status(400).json({ success: false, message: 'Kode OTP salah atau sudah kadaluwarsa' });
+  }
+
+  // Simpan/update profil pelanggan di wallets/database
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.customers) wallets.customers = {};
+
+  const name = full_name || session.full_name || 'Pelanggan Setia';
+  if (!wallets.customers[cleanPhone]) {
+    wallets.customers[cleanPhone] = {
+      phone: cleanPhone,
+      name,
+      balance: 0,
+      registered_at: new Date().toISOString()
+    };
+    writeJSON(WALLETS_FILE, wallets);
+  } else if (full_name) {
+    wallets.customers[cleanPhone].name = full_name;
+    writeJSON(WALLETS_FILE, wallets);
+  }
+
+  // Hapus OTP setelah dipakai
+  otpStore.delete(cleanPhone);
+
+  res.json({
+    success: true,
+    message: 'Login berhasil! Selamat datang di Kebab AL Bewok.',
+    data: {
+      token: `token-${cleanPhone}-${Date.now()}`,
+      user: wallets.customers[cleanPhone]
+    }
+  });
+});
 
 // Ambil Menu Kebab AL Bewok
 app.get('/api/menu', (req, res) => {

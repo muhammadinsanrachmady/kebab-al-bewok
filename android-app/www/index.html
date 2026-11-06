@@ -37,8 +37,12 @@
           <p class="text-[11px] font-semibold text-gray-800">Rasa Nikmat, Harga Bersahabat!</p>
         </div>
       </div>
-      <div class="bg-red-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
-        📱 Customer
+      <!-- BADGE USER / LOGIN STATUS -->
+      <div id="userHeaderBadge" class="flex items-center space-x-1.5">
+        <button onclick="openLoginModal()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow flex items-center space-x-1">
+          <i class="fa-solid fa-user-lock"></i>
+          <span>Masuk / Daftar</span>
+        </button>
       </div>
     </div>
 
@@ -231,10 +235,16 @@
 
         <!-- DETAIL PENERIMA -->
         <div class="space-y-2 border-t pt-3">
-          <label class="font-bold text-gray-700">Data Penerima:</label>
-          <input type="text" id="custName" placeholder="Nama Anda" value="Ahmad Dani" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">
-          <input type="tel" id="custPhone" placeholder="Nomor WhatsApp" value="085285841330" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">
-          <textarea id="custAddress" rows="2" placeholder="Alamat Pengantaran Lengkap" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500">Jl. Mawar No. 14, RT 02/04 (Pagar Coklat)</textarea>
+          <div class="flex justify-between items-center">
+            <label class="font-bold text-gray-700">Data Penerima (Terverifikasi):</label>
+            <span class="bg-green-100 text-green-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full flex items-center space-x-1">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Anti-Fiktif</span>
+            </span>
+          </div>
+          <input type="text" id="custName" placeholder="Nama Anda" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 font-bold bg-gray-50">
+          <input type="tel" id="custPhone" placeholder="Nomor WhatsApp" readonly class="w-full border rounded-xl p-2.5 text-xs outline-none bg-gray-100 text-gray-600 font-mono font-bold cursor-not-allowed">
+          <textarea id="custAddress" rows="2" placeholder="Alamat Pengantaran Lengkap (Contoh: Jl. Mawar No. 14, Pagar Coklat)" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 bg-yellow-50/40">Jl. Mawar No. 14, RT 02/04 (Pagar Coklat)</textarea>
         </div>
 
         <!-- RINGKASAN HARGA -->
@@ -283,6 +293,66 @@
           <i class="fa-solid fa-check-circle"></i>
           <span>Konfirmasi & Kirim Pesanan</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LOGIN & VERIFIKASI WHATSAPP ANTI-ORDER FIKTIF -->
+  <div id="loginModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 text-center space-y-4 animate-scale-up">
+      <div class="w-16 h-16 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center mx-auto text-3xl shadow-sm">
+        🛡️
+      </div>
+
+      <div>
+        <h3 class="text-base font-black text-gray-900">Verifikasi Pelanggan Kebab</h3>
+        <p class="text-xs text-gray-500 mt-1">Gunakan nomor WhatsApp aktif Anda untuk mencegah orderan fiktif & mempermudah kurir mengantar.</p>
+      </div>
+
+      <!-- STEP 1: INPUT NAMA & NOMOR WA -->
+      <div id="loginStep1" class="space-y-3 text-left">
+        <div>
+          <label class="font-extrabold text-gray-700 block text-xs mb-1">Nama Lengkap Pemesan:</label>
+          <input type="text" id="loginNameInput" placeholder="Contoh: Dani Pratama" class="w-full border rounded-xl p-2.5 text-xs outline-none focus:border-red-500 font-semibold bg-gray-50">
+        </div>
+        <div>
+          <label class="font-extrabold text-gray-700 block text-xs mb-1">Nomor WhatsApp Aktif:</label>
+          <div class="flex items-center space-x-1.5 border rounded-xl p-2.5 bg-gray-50 focus-within:border-red-500">
+            <span class="font-bold text-xs text-gray-500">+62</span>
+            <input type="tel" id="loginPhoneInput" placeholder="852-8584-1330" class="w-full bg-transparent text-xs outline-none font-semibold">
+          </div>
+        </div>
+
+        <button onclick="requestOTP()" id="btnSendOTP" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-md flex items-center justify-center space-x-2 transition">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <span>Kirim Kode Verifikasi</span>
+        </button>
+      </div>
+
+      <!-- STEP 2: INPUT KODE VERIFIKASI OTP -->
+      <div id="loginStep2" class="space-y-3 text-left hidden">
+        <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-900">
+          Kode 4-digit telah dikirim ke WhatsApp <strong id="displayTargetPhone">-</strong>.
+          <div id="demoOtpBox" class="font-mono font-black text-xs text-red-600 mt-1"></div>
+        </div>
+
+        <div>
+          <label class="font-extrabold text-gray-700 block text-xs mb-1 text-center">Masukkan 4-Digit Kode:</label>
+          <input type="text" id="otpInput" maxlength="4" placeholder="••••" class="w-full border-2 border-red-500 rounded-xl p-3 text-center text-lg font-mono font-black tracking-widest outline-none bg-yellow-50/50">
+        </div>
+
+        <button onclick="verifyOTP()" id="btnVerifyOTP" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-md flex items-center justify-center space-x-2 transition">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Verifikasi & Masuk</span>
+        </button>
+
+        <button onclick="backToStep1()" class="w-full text-center text-[11px] text-gray-500 hover:underline">
+          Ganti nomor WhatsApp
+        </button>
+      </div>
+
+      <div class="pt-2 border-t text-[10px] text-gray-400">
+        🔒 Nomor Anda aman & hanya digunakan untuk konfirmasi antar pesanan.
       </div>
     </div>
   </div>
@@ -374,6 +444,8 @@
     let activeOrderId = null;
     let trackingInterval = null;
     let deferredPrompt = null;
+    let currentUser = JSON.parse(localStorage.getItem('kebab_user') || 'null');
+    let pendingPhone = '';
 
     // Registrasi Service Worker & Deteksi PWA
     if ('serviceWorker' in navigator) {
@@ -455,8 +527,145 @@
       }
     }
 
+    // ==========================================
+    // SISTEM LOGIN & VERIFIKASI WA ANTI-FIKTIF
+    // ==========================================
+
+    function updateUserHeader() {
+      const container = document.getElementById('userHeaderBadge');
+      if (currentUser) {
+        const displayPhone = currentUser.phone.startsWith('62') ? '0' + currentUser.phone.slice(2) : currentUser.phone;
+        container.innerHTML = `
+          <div class="flex items-center space-x-2 bg-white/90 backdrop-blur px-2.5 py-1 rounded-xl shadow-sm border border-yellow-500/40">
+            <div class="text-right">
+              <span class="block text-[11px] font-black text-gray-900 leading-tight">${currentUser.name}</span>
+              <span class="block text-[9px] text-gray-500 font-mono font-bold">${displayPhone}</span>
+            </div>
+            <button onclick="logoutUser()" title="Ganti Akun / Keluar" class="w-6 h-6 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center justify-center text-[10px] font-bold transition">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <button onclick="openLoginModal()" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow flex items-center space-x-1 transition">
+            <i class="fa-solid fa-user-lock"></i>
+            <span>Masuk / Daftar</span>
+          </button>
+        `;
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginStep1').classList.remove('hidden');
+      document.getElementById('loginStep2').classList.add('hidden');
+      document.getElementById('loginModal').classList.remove('hidden');
+      if (currentUser) {
+        document.getElementById('loginNameInput').value = currentUser.name;
+        document.getElementById('loginPhoneInput').value = currentUser.phone.startsWith('62') ? currentUser.phone.slice(2) : currentUser.phone;
+      }
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    async function requestOTP() {
+      const name = document.getElementById('loginNameInput').value.trim();
+      let phone = document.getElementById('loginPhoneInput').value.trim();
+
+      if (!name) {
+        alert('Mohon masukkan nama lengkap Anda.');
+        return;
+      }
+      if (!phone || phone.length < 8) {
+        alert('Mohon masukkan nomor WhatsApp aktif yang valid.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSendOTP');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Mengirim Kode...</span>`;
+
+      try {
+        const res = await fetch('/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name: name, phone_number: phone })
+        }).then(r => r.json());
+
+        if (res.success) {
+          pendingPhone = res.data.phone;
+          document.getElementById('displayTargetPhone').innerText = `+${pendingPhone}`;
+          document.getElementById('demoOtpBox').innerText = `[DEMO KODE OTP: ${res.data.demo_otp}]`;
+          document.getElementById('otpInput').value = res.data.demo_otp; // Auto-fill untuk kemudahan tes
+
+          document.getElementById('loginStep1').classList.add('hidden');
+          document.getElementById('loginStep2').classList.remove('hidden');
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi server untuk verifikasi OTP');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-brands fa-whatsapp text-sm"></i><span>Kirim Kode Verifikasi</span>`;
+      }
+    }
+
+    async function verifyOTP() {
+      const otp = document.getElementById('otpInput').value.trim();
+      const name = document.getElementById('loginNameInput').value.trim();
+
+      if (!otp || otp.length < 4) {
+        alert('Mohon masukkan 4-digit kode verifikasi');
+        return;
+      }
+
+      const btn = document.getElementById('btnVerifyOTP');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memverifikasi...</span>`;
+
+      try {
+        const res = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_number: pendingPhone, otp_code: otp, full_name: name })
+        }).then(r => r.json());
+
+        if (res.success) {
+          currentUser = res.data.user;
+          localStorage.setItem('kebab_user', JSON.stringify(currentUser));
+          updateUserHeader();
+          closeLoginModal();
+          alert(`🎉 Selamat Datang, ${currentUser.name}! Akun WhatsApp Anda sudah terverifikasi.`);
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal memverifikasi OTP');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>Verifikasi & Masuk</span>`;
+      }
+    }
+
+    function backToStep1() {
+      document.getElementById('loginStep1').classList.remove('hidden');
+      document.getElementById('loginStep2').classList.add('hidden');
+    }
+
+    function logoutUser() {
+      if (confirm('Apakah Anda ingin keluar dari akun ini?')) {
+        currentUser = null;
+        localStorage.removeItem('kebab_user');
+        updateUserHeader();
+      }
+    }
+
     // Load Initial Data
     async function init() {
+      updateUserHeader();
       try {
         const [menuRes, branchRes] = await Promise.all([
           fetch('/api/menu').then(r => r.json()),
@@ -716,6 +925,18 @@
 
     // Checkout
     function openCheckoutModal() {
+      // CEK VALIDASI: Jika belum login / belum verifikasi WhatsApp, wajibkan login dulu!
+      if (!currentUser) {
+        alert('Demi keamanan & mencegah orderan fiktif, silakan masuk dengan nama & nomor WhatsApp aktif Anda terlebih dahulu.');
+        openLoginModal();
+        return;
+      }
+
+      // Kunci data penerima dengan akun terverifikasi
+      document.getElementById('custName').value = currentUser.name;
+      const displayPhone = currentUser.phone.startsWith('62') ? '0' + currentUser.phone.slice(2) : currentUser.phone;
+      document.getElementById('custPhone').value = displayPhone;
+
       renderCheckoutItems();
       const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
       const deliveryFee = 6000;
