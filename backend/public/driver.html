@@ -208,10 +208,11 @@
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
+          const phase = activeDelivery ? activeDelivery.driver_phase : 'to_branch';
           fetch(`/api/driver/orders/${orderId}/location`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ latitude: lat, longitude: lng })
+            body: JSON.stringify({ latitude: lat, longitude: lng, phase })
           }).catch(() => {});
         },
         (err) => console.warn('GPS kurir error:', err),
@@ -226,12 +227,29 @@
       }
     }
 
-    async function acceptOrder(orderId) {
+    function acceptOrder(orderId) {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => doAcceptOrder(orderId, pos.coords.latitude, pos.coords.longitude),
+          () => doAcceptOrder(orderId, null, null),
+          { timeout: 4000, enableHighAccuracy: true }
+        );
+      } else {
+        doAcceptOrder(orderId, null, null);
+      }
+    }
+
+    async function doAcceptOrder(orderId, lat, lng) {
       try {
         const res = await fetch(`/api/driver/orders/${orderId}/accept`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ driver_id: DRIVER_ID, driver_name: 'Budi Santoso' })
+          body: JSON.stringify({
+            driver_id: DRIVER_ID,
+            driver_name: 'Budi Santoso',
+            driver_latitude: lat,
+            driver_longitude: lng
+          })
         }).then(r => r.json());
 
         if (res.success) {
@@ -243,7 +261,28 @@
           alert(res.message);
         }
       } catch (err) {
-        alert('Gagal mengambil order');
+        alert('Gagal mengambil order: ' + err.message);
+      }
+    }
+
+    async function pickupOrder(orderId) {
+      if (!confirm('Apakah Anda sudah tiba di lapak dan pesanan kebab sudah siap dibawa?')) return;
+
+      try {
+        const res = await fetch(`/api/driver/orders/${orderId}/pickup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(r => r.json());
+
+        if (res.success) {
+          activeDelivery = res.data;
+          renderActiveDelivery();
+          alert('Bagus! Sekarang silakan antar pesanan kebab ke alamat pelanggan.');
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal konfirmasi pickup: ' + err.message);
       }
     }
 
@@ -256,50 +295,106 @@
         return;
       }
 
-      const destLat = activeDelivery.customer_latitude || -6.2150;
-      const destLng = activeDelivery.customer_longitude || 106.8520;
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
-
       sec.classList.remove('hidden');
-      card.innerHTML = `
-        <div class="flex justify-between items-start">
-          <div>
-            <div class="flex items-center space-x-1.5">
-              <span class="text-[10px] text-slate-400">Sedang Mengantar Order:</span>
-              <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.2 rounded-full animate-pulse">📡 LIVE GPS</span>
+
+      const isHeadingToBranch = (activeDelivery.driver_phase === 'to_branch' || activeDelivery.status === 'driver_heading_to_branch');
+
+      if (isHeadingToBranch) {
+        // ==========================================
+        // FASE 1: KURIR MENUJU LAPAK (PICKUP)
+        // ==========================================
+        const branchLat = activeDelivery.branch_latitude || -6.2088;
+        const branchLng = activeDelivery.branch_longitude || 106.8456;
+        const mapsBranchUrl = `https://www.google.com/maps/dir/?api=1&destination=${branchLat},${branchLng}`;
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start border-b pb-3">
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="bg-amber-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse">
+                  🛵 FASE 1: MENUJU LAPAK
+                </span>
+                <span class="text-xs font-mono font-bold text-slate-500">#${activeDelivery.order_code}</span>
+              </div>
+              <h3 class="font-black text-slate-900 text-sm mt-1">Ambil Kebab di Dapur Lapak</h3>
             </div>
-            <h3 class="font-black text-slate-900 text-sm">#${activeDelivery.order_code}</h3>
+            <span class="font-extrabold text-emerald-600 text-sm">Rp ${activeDelivery.delivery_fee.toLocaleString('id-ID')}</span>
           </div>
-          <span class="font-extrabold text-emerald-600 text-sm">Rp ${activeDelivery.delivery_fee.toLocaleString('id-ID')}</span>
-        </div>
 
-        <div class="bg-amber-50 p-2.5 rounded-xl text-xs space-y-1.5 border border-amber-200">
-          <div>
-            <span class="text-[10px] text-slate-500 block">Nama Penerima:</span>
-            <span class="font-bold text-slate-800">${activeDelivery.customer_name} (${activeDelivery.customer_phone})</span>
+          <!-- LOKASI LAPAK / OUTLET -->
+          <div class="bg-amber-50 p-3 rounded-2xl text-xs space-y-1.5 border border-amber-300">
+            <div class="flex items-center space-x-1.5 text-amber-900 font-extrabold">
+              <i class="fa-solid fa-store text-red-600"></i>
+              <span>Alamat Lapak Cabang:</span>
+            </div>
+            <p class="font-black text-slate-900 text-[13px]">${activeDelivery.branch_name || 'Kebab AL Bewok Cabang Utama'}</p>
+            <p class="text-slate-600 text-[11px]">Silakan tunjukkan nomor pesanan ke koki dapur.</p>
           </div>
-          <div>
-            <span class="text-[10px] text-slate-500 block">Alamat Tujuan:</span>
-            <span class="font-bold text-slate-800">${activeDelivery.customer_address}</span>
+
+          <!-- TOMBOL NAVIGASI KE LAPAK & KONFIRMASI TIBA -->
+          <div class="grid grid-cols-1 gap-2 pt-1">
+            <a href="${mapsBranchUrl}" target="_blank" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl text-xs text-center flex items-center justify-center space-x-2 shadow-sm transition">
+              <i class="fa-solid fa-location-arrow text-amber-400"></i>
+              <span>Buka Navigasi Maps ke Lapak Dapur</span>
+            </a>
+
+            <button onclick="pickupOrder('${activeDelivery.id}')" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98">
+              <i class="fa-solid fa-box-check text-base"></i>
+              <span>✓ SAYA SUDAH TIBA DI LAPAK & AMBIL KEBAB</span>
+            </button>
           </div>
-        </div>
+        `;
+      } else {
+        // ==========================================
+        // FASE 2: KURIR MENUJU ALAMAT PELANGGAN
+        // ==========================================
+        const destLat = activeDelivery.customer_latitude || -6.2150;
+        const destLng = activeDelivery.customer_longitude || 106.8520;
+        const mapsCustUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
 
-        <div class="grid grid-cols-2 gap-2 text-xs">
-          <a href="${mapsUrl}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
-            <i class="fa-solid fa-map-location-dot text-blue-600"></i>
-            <span>Buka Navigasi Maps</span>
-          </a>
-          <a href="https://wa.me/${activeDelivery.customer_phone.replace(/[^0-9]/g, '')}?text=Halo%20Kak%20${encodeURIComponent(activeDelivery.customer_name)},%20saya%20kurir%20Kebab%20AL%20Bewok%20sedang%20menuju%20lokasi." target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 border border-emerald-200 transition">
-            <i class="fa-brands fa-whatsapp text-emerald-600"></i>
-            <span>Chat WA Pemesan</span>
-          </a>
-        </div>
+        card.innerHTML = `
+          <div class="flex justify-between items-start border-b pb-3">
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span class="bg-emerald-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse">
+                  🛵 FASE 2: MENGANTAR KE PEMESAN
+                </span>
+                <span class="text-xs font-mono font-bold text-slate-500">#${activeDelivery.order_code}</span>
+              </div>
+              <h3 class="font-black text-slate-900 text-sm mt-1">Menuju Rumah Pelanggan</h3>
+            </div>
+            <span class="font-extrabold text-emerald-600 text-sm">Rp ${activeDelivery.delivery_fee.toLocaleString('id-ID')}</span>
+          </div>
 
-        <button onclick="completeDelivery('${activeDelivery.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98">
-          <i class="fa-solid fa-circle-check text-base"></i>
-          <span>SELESAIKAN PENGANTARAN (KLAIM SALDO)</span>
-        </button>
-      `;
+          <!-- DETAIL PENERIMA & ALAMAT TUJUAN -->
+          <div class="bg-emerald-50 p-3 rounded-2xl text-xs space-y-2 border border-emerald-200">
+            <div>
+              <span class="text-[10px] text-emerald-800 font-bold block">Penerima Kebab:</span>
+              <span class="font-black text-slate-900 text-xs">${activeDelivery.customer_name} (${activeDelivery.customer_phone})</span>
+            </div>
+            <div class="border-t border-emerald-200/60 pt-1.5">
+              <span class="text-[10px] text-emerald-800 font-bold block">Alamat Pengantaran:</span>
+              <span class="font-bold text-slate-800 text-[11px] leading-tight block">${activeDelivery.customer_address}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <a href="${mapsCustUrl}" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
+              <i class="fa-solid fa-map-location-dot text-amber-400"></i>
+              <span>Navigasi Maps</span>
+            </a>
+            <a href="https://wa.me/${activeDelivery.customer_phone.replace(/[^0-9]/g, '')}?text=Halo%20Kak%20${encodeURIComponent(activeDelivery.customer_name)},%20saya%20kurir%20Kebab%20AL%20Bewok%20sedang%20menuju%20ke%20lokasi%20Anda." target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
+              <i class="fa-brands fa-whatsapp text-lg"></i>
+              <span>Chat WhatsApp</span>
+            </a>
+          </div>
+
+          <button onclick="completeDelivery('${activeDelivery.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98 mt-1">
+            <i class="fa-solid fa-circle-check text-base"></i>
+            <span>SELESAIKAN PENGANTARAN (KLAIM SALDO)</span>
+          </button>
+        `;
+      }
     }
 
     async function completeDelivery(orderId) {

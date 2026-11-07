@@ -2713,31 +2713,61 @@
         trackDriverMarker.setLatLng([driverLat, driverLng]);
       }
 
-      // Route line
-      const routeCoords = [[driverLat, driverLng], [custLat, custLng]];
+      // Cek fase perjalanan kurir:
+      // Fase 1: Kurir menuju Lapak (ambil makanan)
+      // Fase 2: Kurir menuju Rumah Pelanggan (antar makanan)
+      const isHeadingToBranch = (order.driver_phase === 'to_branch' || order.status === 'driver_heading_to_branch');
+      const isOnDelivery = (order.status === 'on_delivery' || order.driver_phase === 'to_customer');
+
+      let targetLat = custLat;
+      let targetLng = custLng;
+      let routeColor = '#10b981'; // Hijau jika menuju pelanggan
+
+      if (isHeadingToBranch) {
+        targetLat = branchLat;
+        targetLng = branchLng;
+        routeColor = '#f59e0b'; // Oranye jika menuju lapak
+      }
+
+      // Route polyline dinamis
+      const routeCoords = [[driverLat, driverLng], [targetLat, targetLng]];
       if (!trackRouteLine) {
         trackRouteLine = L.polyline(routeCoords, {
-          color: '#f59e0b',
+          color: routeColor,
           weight: 4,
           dashArray: '6, 8',
           opacity: 0.9
         }).addTo(trackMap);
       } else {
         trackRouteLine.setLatLngs(routeCoords);
+        trackRouteLine.setStyle({ color: routeColor });
       }
 
-      // Hitung Jarak sisa dan ETA
-      const distRemaining = calculateDistance(driverLat, driverLng, custLat, custLng);
-      const etaMinutes = Math.max(2, Math.round((distRemaining / 20) * 60));
+      // Hitung Jarak sisa dan ETA sesuai fase aktif
+      const distRemaining = calculateDistance(driverLat, driverLng, targetLat, targetLng);
+      const etaMinutes = Math.max(1, Math.round((distRemaining / 20) * 60));
 
       const etaElem = document.getElementById('trackEtaText');
       const distElem = document.getElementById('trackDriverDistance');
-      if (etaElem) etaElem.innerText = `~${etaMinutes} Menit (${distRemaining.toFixed(1)} km)`;
-      if (distElem) distElem.innerText = `Jarak kurir ke kamu: ~${distRemaining.toFixed(1)} km`;
 
-      // Auto fit bounds jika pertama kali
-      if (!trackMap._initialFitted) {
-        trackMap.fitBounds([[branchLat, branchLng], [custLat, custLng]], { padding: [50, 50] });
+      if (isHeadingToBranch) {
+        if (etaElem) etaElem.innerText = `~${etaMinutes} Menit ke Lapak (${distRemaining.toFixed(1)} km)`;
+        if (distElem) distElem.innerText = `Jarak kurir ke lapak dapur: ~${distRemaining.toFixed(1)} km`;
+      } else if (isOnDelivery) {
+        if (etaElem) etaElem.innerText = `~${etaMinutes} Menit ke Rumahmu (${distRemaining.toFixed(1)} km)`;
+        if (distElem) distElem.innerText = `Jarak kurir ke alamatmu: ~${distRemaining.toFixed(1)} km`;
+      } else {
+        if (etaElem) etaElem.innerText = `Menunggu Dapur Siap`;
+        if (distElem) distElem.innerText = `Estimasi pengantaran: ~15 Menit`;
+      }
+
+      // Auto fit bounds
+      if (!trackMap._initialFitted || isHeadingToBranch) {
+        if (isHeadingToBranch) {
+          trackMap.fitBounds([[driverLat, driverLng], [branchLat, branchLng]], { padding: [50, 50] });
+        } else {
+          trackMap.fitBounds([[branchLat, branchLng], [custLat, custLng]], { padding: [50, 50] });
+        }
         trackMap._initialFitted = true;
       }
     }
@@ -2751,7 +2781,12 @@
       const dLat = parseFloat(currentTrackingOrder.driver_latitude) || bLat;
       const dLng = parseFloat(currentTrackingOrder.driver_longitude) || bLng;
 
-      trackMap.fitBounds([[dLat, dLng], [cLat, cLng]], { padding: [60, 60] });
+      const isHeadingToBranch = (currentTrackingOrder.driver_phase === 'to_branch' || currentTrackingOrder.status === 'driver_heading_to_branch');
+      if (isHeadingToBranch) {
+        trackMap.fitBounds([[dLat, dLng], [bLat, bLng]], { padding: [60, 60] });
+      } else {
+        trackMap.fitBounds([[dLat, dLng], [cLat, cLng]], { padding: [60, 60] });
+      }
     }
 
     async function checkOrderStatus() {
@@ -2815,15 +2850,38 @@
             dot2.className = activeClass;
             dot3.className = currentClass;
             liveStatusText.innerText = "Menunggu kurir mengambil pesanan";
-          } else if (order.status === 'on_delivery') {
-            title.innerText = 'Kurir OTW Menuju Alamatmu 🛵';
-            desc.innerText = `Pesanan dibawa oleh ${order.driver_name || 'Kurir Kebab'}.`;
+          } else if (order.status === 'driver_heading_to_branch' || order.driver_phase === 'to_branch') {
+            // FASE 1: KURIR MENUJU LAPAK
+            title.innerText = 'Kurir Menuju Lapak Kebab 🛵';
+            desc.innerText = `${order.driver_name || 'Kurir'} sedang melaju ke lapak untuk mengambil pesananmu.`;
+            statusIcon.className = "w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-sm shadow-sm animate-bounce";
+            statusIcon.innerHTML = `<i class="fa-solid fa-store"></i>`;
+            dot1.className = activeClass;
+            dot2.className = activeClass;
+            dot3.className = currentClass;
+            liveStatusText.innerText = "Kurir sedang melaju ke lapak (Ambil Pesanan)";
+
+            if (driverCard) {
+              driverCard.classList.remove('hidden');
+              document.getElementById('trackDriverName').innerText = order.driver_name || 'Kurir Kebab';
+              document.getElementById('trackDriverVehicle').innerText = order.driver_vehicle || 'Honda Beat • B 3918 KEB';
+              if (order.driver_photo) {
+                document.getElementById('trackDriverPhoto').src = order.driver_photo;
+              }
+              const dPhone = (order.driver_phone || '085285841330').replace(/[^0-9]/g, '');
+              const waLink = `https://wa.me/${dPhone.startsWith('0') ? '62' + dPhone.slice(1) : dPhone}?text=Halo%20Kurir%20Kebab,%20saya%20pemesan%20pesanan%20${order.order_code}`;
+              document.getElementById('trackDriverWaBtn').href = waLink;
+            }
+          } else if (order.status === 'on_delivery' || order.driver_phase === 'to_customer') {
+            // FASE 2: KURIR MENUJU RUMAH PELANGGAN
+            title.innerText = 'Kebab OTW Menuju Alamatmu 🛵';
+            desc.innerText = `Kebab sudah diambil dari dapur & dibawa oleh ${order.driver_name || 'Kurir Kebab'}.`;
             statusIcon.className = "w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 text-sm shadow-sm animate-bounce";
             statusIcon.innerHTML = `<i class="fa-solid fa-motorcycle"></i>`;
             dot1.className = activeClass;
             dot2.className = activeClass;
             dot3.className = currentClass;
-            liveStatusText.innerText = "GPS Kurir Bergerak Realtime!";
+            liveStatusText.innerText = "GPS Kurir Bergerak Menuju Alamatmu!";
 
             // Update info kurir
             if (driverCard) {
