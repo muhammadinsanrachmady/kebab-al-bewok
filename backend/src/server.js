@@ -535,6 +535,86 @@ app.post('/api/admin/orders/:id/ready', (req, res) => {
 // 3. ENDPOINTS DRIVER FREELANCE & SALDO OTOMATIS
 // ==========================================
 
+// Login / Registrasi Akun Google Kurir
+app.post('/api/driver/auth/google-login', (req, res) => {
+  const { email, full_name, avatar_url, phone } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email Google kurir diperlukan' });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers) wallets.drivers = {};
+
+  const driverKey = email.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  let driver = Object.values(wallets.drivers).find(d => d.email === email || d.id === driverKey);
+
+  if (!driver) {
+    driver = {
+      id: driverKey,
+      email,
+      name: full_name || 'Kurir Freelance',
+      avatar: avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`,
+      phone: phone || '085285841330',
+      vehicle: 'Honda Beat',
+      vehicle_plate: 'B 3918 KEB',
+      balance: 37000,
+      trips: 5,
+      is_online: true,
+      is_verified: true,
+      registered_at: new Date().toISOString()
+    };
+    wallets.drivers[driver.id] = driver;
+  } else {
+    if (full_name) driver.name = full_name;
+    if (avatar_url) driver.avatar = avatar_url;
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: `Login Google Berhasil! Selamat bertugas, Kak ${driver.name}.`,
+    data: {
+      token: `token-driver-${driver.id}-${Date.now()}`,
+      driver
+    }
+  });
+});
+
+// Update Profil Kurir
+app.post('/api/driver/update-profile', (req, res) => {
+  const { driver_id, email, name, phone, vehicle, vehicle_plate, avatar } = req.body;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers) wallets.drivers = {};
+
+  let driver = null;
+  if (driver_id && wallets.drivers[driver_id]) {
+    driver = wallets.drivers[driver_id];
+  } else if (email) {
+    driver = Object.values(wallets.drivers).find(d => d.email === email);
+  }
+
+  if (!driver) {
+    return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
+  }
+
+  if (name) driver.name = name;
+  if (phone) driver.phone = phone;
+  if (vehicle) driver.vehicle = vehicle;
+  if (vehicle_plate) driver.vehicle_plate = vehicle_plate;
+  if (avatar) driver.avatar = avatar;
+  driver.updated_at = new Date().toISOString();
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: 'Profil kurir berhasil diperbarui!',
+    data: driver
+  });
+});
+
 // Radar Orderan Siap Antar (Siapa Cepat Dia Dapat)
 app.get('/api/driver/orders/available', (req, res) => {
   const orders = readJSON(ORDERS_FILE);
@@ -549,6 +629,9 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   const {
     driver_id = 'driver-01',
     driver_name = 'Budi Santoso',
+    driver_phone,
+    driver_vehicle,
+    driver_photo,
     driver_latitude,
     driver_longitude
   } = req.body;
@@ -567,15 +650,18 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   const branches = readJSON(BRANCHES_FILE);
   const branch = branches.find(b => b.id === orders[orderIndex].branch_id) || branches[0];
 
+  const wallets = readJSON(WALLETS_FILE);
+  const savedDriver = (wallets.drivers && wallets.drivers[driver_id]) ? wallets.drivers[driver_id] : null;
+
   // Lokasi awal kurir saat terima order (dari GPS HP kurir atau offset realistis ~600 meter di jalan)
   const initialDriverLat = driver_latitude ? parseFloat(driver_latitude) : ((branch.latitude || -6.2088) + 0.0065);
   const initialDriverLng = driver_longitude ? parseFloat(driver_longitude) : ((branch.longitude || 106.8456) - 0.0055);
 
   orders[orderIndex].driver_id = driver_id;
-  orders[orderIndex].driver_name = driver_name || 'Budi Santoso';
-  orders[orderIndex].driver_phone = '0852-8584-1330';
-  orders[orderIndex].driver_vehicle = 'Honda Beat (B 3918 KEB)';
-  orders[orderIndex].driver_photo = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face';
+  orders[orderIndex].driver_name = driver_name || (savedDriver ? savedDriver.name : 'Budi Santoso');
+  orders[orderIndex].driver_phone = driver_phone || (savedDriver ? savedDriver.phone : '0852-8584-1330');
+  orders[orderIndex].driver_vehicle = driver_vehicle || (savedDriver ? `${savedDriver.vehicle} (${savedDriver.vehicle_plate})` : 'Honda Beat (B 3918 KEB)');
+  orders[orderIndex].driver_photo = driver_photo || (savedDriver ? savedDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face');
   
   // Status Fase 1: Kurir menuju lapak untuk ambil pesanan
   orders[orderIndex].status = 'driver_heading_to_branch';
@@ -730,6 +816,19 @@ app.post('/api/driver/wallet/withdraw', (req, res) => {
   // Kurangi saldo sementara
   wallets.drivers[driver_id].balance -= Number(amount);
   wallets.withdrawals.unshift(newWithdrawal);
+
+  if (!wallets.history) wallets.history = [];
+  wallets.history.push({
+    id: `tx-${Date.now()}`,
+    user_id: driver_id,
+    type: 'withdrawal',
+    amount: Number(amount),
+    current_balance: wallets.drivers[driver_id].balance,
+    description: `Penarikan Dana ke ${payout_channel || 'DANA'} (${account_number || '-'})`,
+    status: 'pending',
+    created_at: new Date().toISOString()
+  });
+
   writeJSON(WALLETS_FILE, wallets);
 
   res.json({ success: true, message: 'Permintaan penarikan dana berhasil diajukan! Menunggu transfer dari Owner.', data: newWithdrawal });

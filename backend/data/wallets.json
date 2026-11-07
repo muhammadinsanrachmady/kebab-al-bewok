@@ -2,17 +2,42 @@
   "drivers": {
     "driver-01": {
       "id": "driver-01",
+      "email": "budi.santoso@gmail.com",
       "name": "Budi Santoso",
+      "phone": "0852-8584-1330",
+      "vehicle": "Honda Beat",
+      "vehicle_plate": "B 3918 KEB",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face",
       "balance": 37000,
       "trips": 5,
       "is_online": true
     },
     "driver-02": {
       "id": "driver-02",
+      "email": "ahmad.dani@gmail.com",
       "name": "Ahmad Dani",
+      "phone": "0813-8899-7711",
+      "vehicle": "Honda Vario 160",
+      "vehicle_plate": "B 4821 KEB",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
       "balance": 15000,
       "trips": 2,
       "is_online": true
+    },
+    "insan_driver_gmail_com": {
+      "id": "insan_driver_gmail_com",
+      "email": "insan.driver@gmail.com",
+      "name": "Insan Driver Pro",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=insan",
+      "phone": "081299998888",
+      "vehicle": "Yamaha Aerox 155",
+      "vehicle_plate": "B 9999 PRO",
+      "balance": 27000,
+      "trips": 5,
+      "is_online": true,
+      "is_verified": true,
+      "registered_at": "2026-11-07T08:07:29.101Z",
+      "updated_at": "2026-11-07T08:07:32.871Z"
     }
   },
   "customers": {
@@ -75,6 +100,29 @@
       "current_balance": 37000,
       "description": "Ongkos kirim order #KB-471677",
       "created_at": "2026-11-07T07:02:34.147Z"
+    },
+    {
+      "id": "tx-1794038857487",
+      "user_id": "insan_driver_gmail_com",
+      "type": "withdrawal",
+      "amount": 10000,
+      "current_balance": 27000,
+      "description": "Penarikan Dana ke DANA (081299998888)",
+      "status": "pending",
+      "created_at": "2026-11-07T08:07:37.487Z"
+    }
+  ],
+  "withdrawals": [
+    {
+      "id": "wd-1794038857487",
+      "driver_id": "insan_driver_gmail_com",
+      "driver_name": "Insan Driver Pro",
+      "amount": 10000,
+      "payout_channel": "DANA",
+      "account_number": "081299998888",
+      "account_name": "Insan Driver Pro",
+      "status": "pending",
+      "created_at": "2026-11-07T08:07:37.487Z"
     }
   ]
 }
