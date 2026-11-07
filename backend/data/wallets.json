@@ -3,8 +3,8 @@
     "driver-01": {
       "id": "driver-01",
       "name": "Budi Santoso",
-      "balance": 31000,
-      "trips": 4,
+      "balance": 37000,
+      "trips": 5,
       "is_online": true
     },
     "driver-02": {
@@ -64,6 +64,17 @@
       "current_balance": 31000,
       "description": "Ongkos kirim order #KB-431996",
       "created_at": "2026-11-06T07:01:31.181Z"
+    },
+    {
+      "id": "tx-1794034954147",
+      "user_id": "driver-01",
+      "order_id": "ord-1794034471678",
+      "order_code": "KB-471677",
+      "type": "delivery_earning",
+      "amount": 6000,
+      "current_balance": 37000,
+      "description": "Ongkos kirim order #KB-471677",
+      "created_at": "2026-11-07T07:02:34.147Z"
     }
   ]
 }

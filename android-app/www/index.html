@@ -52,12 +52,21 @@
           <p class="text-[11px] font-semibold text-gray-800">Rasa Nikmat, Harga Bersahabat!</p>
         </div>
       </div>
-      <!-- BADGE USER / LOGIN STATUS -->
-      <div id="userHeaderBadge" class="flex items-center space-x-1.5">
-        <button onclick="openLoginModal()" class="bg-white hover:bg-gray-50 text-gray-800 text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow border flex items-center space-x-1.5 transition">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          <span>Masuk Google</span>
+      <!-- BAGIAN KANAN HEADER: KERANJANG & USER BADGE -->
+      <div class="flex items-center space-x-2">
+        <!-- TOMBOL KERANJANG DI TOP HEADER -->
+        <button onclick="openCartModal()" id="btnHeaderCart" class="relative bg-white hover:bg-amber-50 text-slate-800 w-9 h-9 rounded-full shadow-sm border border-amber-300 flex items-center justify-center transition active:scale-95" title="Keranjang Belanja">
+          <i class="fa-solid fa-cart-shopping text-red-600 text-sm"></i>
+          <span id="headerCartBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow hidden">0</span>
         </button>
+
+        <!-- BADGE USER / LOGIN STATUS -->
+        <div id="userHeaderBadge" class="flex items-center space-x-1.5">
+          <button onclick="openLoginModal()" class="bg-white hover:bg-gray-50 text-gray-800 text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow border flex items-center space-x-1.5 transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span>Masuk Google</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -143,26 +152,108 @@
     </div>
   </main>
 
-  <!-- BOTTOM FLOATING CART BAR -->
-  <div id="floatingCart" class="fixed bottom-0 left-0 right-0 p-3 bg-white border-t shadow-2xl z-30 hidden">
-    <div class="max-w-md mx-auto flex items-center justify-between">
-      <div>
-        <span id="cartCount" class="text-xs text-gray-500">0 Item</span>
-        <div id="cartTotal" class="text-base font-extrabold text-red-600">Rp 0</div>
+  <!-- BOTTOM FLOATING CART BAR (CLICKABLE TO OPEN CART MODAL) -->
+  <div id="floatingCart" class="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-2xl z-30 hidden">
+    <div class="max-w-md mx-auto flex items-center justify-between gap-2">
+      <!-- BAGIAN KIRI: BUKA KERANJANG BELANJA -->
+      <div onclick="openCartModal()" class="flex-1 flex items-center space-x-3 cursor-pointer group py-0.5 select-none">
+        <div class="relative w-11 h-11 bg-red-100 group-hover:bg-red-200 text-red-600 rounded-2xl flex items-center justify-center text-xl shadow-sm transition">
+          🛒
+          <span id="cartCountBadge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">1</span>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center space-x-1 text-slate-500 text-[10px] font-bold">
+            <span id="cartCount">1 Kebab</span>
+            <span class="text-amber-600 font-extrabold">• Ketuk untuk edit ✏️</span>
+          </div>
+          <div id="cartTotal" class="text-base font-black text-red-600 leading-tight">Rp 0</div>
+        </div>
       </div>
-      <button onclick="openCheckoutModal()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center space-x-2 shadow-lg">
-        <span>Lanjut Pembayaran</span>
-        <i class="fa-solid fa-arrow-right"></i>
-      </button>
+
+      <!-- BAGIAN KANAN: TOMBOL EDIT & CHECKOUT -->
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <button onclick="openCartModal()" class="bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold px-3 py-2.5 rounded-xl text-xs flex items-center space-x-1 transition active:scale-95 shadow-sm">
+          <i class="fa-solid fa-pen-to-square text-amber-700 text-xs"></i>
+          <span>Edit</span>
+        </button>
+        <button onclick="openCheckoutModal()" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 shadow-md shadow-red-200 transition active:scale-95">
+          <span>Checkout</span>
+          <i class="fa-solid fa-arrow-right text-[11px]"></i>
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL KUSTOMISASI KEBAB -->
-  <div id="customizeModal" class="fixed inset-0 bg-black/60 z-50 flex items-end justify-center hidden">
-    <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+  <!-- MODAL KERANJANG BELANJA (CART DRAWER / EDIT BELANJAAN) -->
+  <div id="cartModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-end justify-center hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up shadow-2xl">
+      
+      <!-- HEADER KERANJANG -->
+      <div class="p-4 border-b flex items-center justify-between bg-gradient-to-r from-red-600 via-amber-500 to-amber-600 text-white shadow-sm">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-lg shadow-inner">
+            🛒
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-black text-sm tracking-wide">KERANJANG BELANJA</h3>
+              <span id="cartModalItemCount" class="bg-white text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                0 Item
+              </span>
+            </div>
+            <p class="text-[11px] text-amber-100">Periksa & sesuaikan racikan pesanan Anda</p>
+          </div>
+        </div>
+        <button onclick="closeCartModal()" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white transition active:scale-95">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- DAFTAR ITEM DI KERANJANG (BISA EDIT RACIKAN & HAPUS) -->
+      <div class="p-4 overflow-y-auto space-y-3 flex-1 bg-slate-50/60" id="cartModalItemsContainer">
+        <!-- Render via JS -->
+      </div>
+
+      <!-- FOOTER KERANJANG: RINGKASAN BIAYA & TOMBOL AKSI -->
+      <div class="p-4 border-t bg-white shadow-lg space-y-3">
+        <!-- RINGKASAN SUB-TOTAL & ONGKIR -->
+        <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100 text-xs space-y-1.5">
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Subtotal Makanan:</span>
+            <span id="cartModalSubtotal" class="font-extrabold text-slate-900">Rp 0</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-600">
+            <span>Estimasi Ongkir Kurir (Hemat):</span>
+            <span id="cartModalDeliveryFee" class="font-extrabold text-emerald-600">Rp 6.000</span>
+          </div>
+          <div class="border-t border-dashed border-gray-200 pt-1.5 flex justify-between items-center text-sm font-black text-slate-900">
+            <span>Total Sementara:</span>
+            <span id="cartModalTotal" class="text-red-600 text-base">Rp 0</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="closeCartModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs flex items-center justify-center space-x-1.5 transition active:scale-98">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            <span>Tambah Menu Lain</span>
+          </button>
+          <button onclick="proceedFromCartToCheckout()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md shadow-red-200 flex items-center justify-center space-x-1.5 transition active:scale-98">
+            <span>Lanjut Checkout</span>
+            <i class="fa-solid fa-arrow-right text-[11px]"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL KUSTOMISASI KEBAB (TAMBAH / EDIT RACIKAN) -->
+  <div id="customizeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center hidden">
+    <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up shadow-2xl">
       <div class="p-4 border-b flex justify-between items-center bg-yellow-50">
         <div>
-          <h3 id="modalMenuName" class="font-extrabold text-gray-900 text-base">Nama Kebab</h3>
+          <span id="modalCustomTitle" class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">Pilih Racikan Kebab</span>
+          <h3 id="modalMenuName" class="font-black text-gray-900 text-base">Nama Kebab</h3>
           <p id="modalMenuDesc" class="text-xs text-gray-500">Deskripsi singkat</p>
         </div>
         <button onclick="closeCustomizeModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">
@@ -240,8 +331,8 @@
           <span class="text-[10px] text-gray-500">Harga Item:</span>
           <div id="modalItemPrice" class="text-base font-extrabold text-red-600">Rp 0</div>
         </div>
-        <button onclick="confirmAddToCart()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md">
-          + Tambah ke Keranjang
+        <button onclick="confirmAddToCart()" id="modalBtnConfirmAddToCart" class="bg-red-600 hover:bg-red-700 text-white font-black px-6 py-2.5 rounded-xl text-xs shadow-md flex items-center space-x-1.5 transition active:scale-95">
+          <span>+ Tambah ke Keranjang</span>
         </button>
       </div>
     </div>
@@ -1929,12 +2020,17 @@
       renderMenu(catId);
     }
 
-    // Modal Customization
+    let editingCartIndex = -1;
+
+    // Modal Customization (Tambah Baru)
     function openCustomizeModal(itemId, catId) {
+      editingCartIndex = -1;
       const cat = globalMenu.categories.find(c => c.id === catId);
       const item = cat.items.find(i => i.id === itemId);
       currentCustomizingItem = { ...item, catName: cat.name };
 
+      const titleEl = document.getElementById('modalCustomTitle');
+      if (titleEl) titleEl.innerText = 'Pilih Racikan Kebab';
       document.getElementById('modalMenuName').innerText = item.name;
       document.getElementById('modalMenuDesc').innerText = cat.description;
 
@@ -1967,6 +2063,96 @@
           <span class="font-bold text-gray-700 text-[10px]">+${(t.price / 1000)}k</span>
         </label>
       `).join('');
+
+      const btnConfirm = document.getElementById('modalBtnConfirmAddToCart');
+      if (btnConfirm) {
+        btnConfirm.innerHTML = `<span>+ Tambah ke Keranjang</span>`;
+      }
+
+      updateModalPrice();
+      document.getElementById('customizeModal').classList.remove('hidden');
+    }
+
+    // Modal Edit Racikan (Item yang Sudah di Keranjang)
+    function editCartItem(index) {
+      if (!cart[index]) return;
+      editingCartIndex = index;
+      const cartItem = cart[index];
+
+      // Cari item asli dari menu
+      let originalItem = null;
+      let originalCat = null;
+      if (globalMenu && globalMenu.categories) {
+        for (const cat of globalMenu.categories) {
+          const found = cat.items.find(i => i.id === cartItem.id || cartItem.name.startsWith(i.name));
+          if (found) {
+            originalItem = found;
+            originalCat = cat;
+            break;
+          }
+        }
+      }
+
+      if (!originalItem) {
+        originalItem = {
+          id: cartItem.id,
+          name: cartItem.name.replace(/\s\([A-Z]+\)$/, ''),
+          prices: { reguler: cartItem.price, jumbo: cartItem.price + 5000, monster: cartItem.price + 10000 }
+        };
+      }
+
+      currentCustomizingItem = { ...originalItem, catName: originalCat ? originalCat.name : 'Kebab' };
+
+      const titleEl = document.getElementById('modalCustomTitle');
+      if (titleEl) titleEl.innerText = 'Edit Racikan Belanjaan';
+      document.getElementById('modalMenuName').innerText = originalItem.name;
+      document.getElementById('modalMenuDesc').innerText = 'Ubah porsi, ukuran, kepedasan, atau topping kebab ini';
+
+      selectedSize = cartItem.size || 'reguler';
+      selectedToppings = cartItem.toppings ? [...cartItem.toppings] : [];
+      modalQty = cartItem.quantity || 1;
+      document.getElementById('modalQtyDisplay').innerText = modalQty;
+
+      const spiceSelect = document.getElementById('spiceSelect');
+      if (spiceSelect && cartItem.spice) {
+        spiceSelect.value = cartItem.spice;
+      }
+
+      const notes = cartItem.notes || '';
+      document.getElementById('noPineapple').checked = notes.includes('Tanpa Nanas');
+      document.getElementById('noOnion').checked = notes.includes('Tanpa Bombay');
+      document.getElementById('noLettuce').checked = notes.includes('Tanpa Sayur');
+
+      // Render sizes
+      const sizeContainer = document.getElementById('sizeOptions');
+      sizeContainer.innerHTML = Object.entries(originalItem.prices).map(([sizeKey, price]) => `
+        <button type="button" onclick="selectSize('${sizeKey}')" id="size-btn-${sizeKey}" class="size-btn border rounded-xl p-2 text-center transition ${sizeKey === selectedSize ? 'border-red-600 bg-red-50 text-red-700 font-bold' : 'border-gray-200'}">
+          <div class="uppercase text-[10px]">${sizeKey}</div>
+          <div class="text-[11px] font-extrabold">Rp ${price.toLocaleString('id-ID')}</div>
+        </button>
+      `).join('');
+
+      // Render toppings
+      const toppingContainer = document.getElementById('toppingOptions');
+      if (globalMenu && globalMenu.extra_toppings) {
+        toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => {
+          const isChecked = selectedToppings.some(st => st.id === t.id);
+          return `
+            <label class="flex items-center justify-between border rounded-xl p-2 ${isChecked ? 'bg-amber-50 border-amber-300' : 'bg-gray-50'} cursor-pointer">
+              <div class="flex items-center space-x-1.5">
+                <input type="checkbox" onchange="toggleTopping('${t.id}')" ${isChecked ? 'checked' : ''} class="rounded text-red-600">
+                <span>${t.icon} ${t.name}</span>
+              </div>
+              <span class="font-bold text-gray-700 text-[10px]">+${(t.price / 1000)}k</span>
+            </label>
+          `;
+        }).join('');
+      }
+
+      const btnConfirm = document.getElementById('modalBtnConfirmAddToCart');
+      if (btnConfirm) {
+        btnConfirm.innerHTML = `<i class="fa-solid fa-check"></i><span>Simpan Perubahan</span>`;
+      }
 
       updateModalPrice();
       document.getElementById('customizeModal').classList.remove('hidden');
@@ -2024,22 +2210,10 @@
       const notesStr = notes.join(', ');
       const toppingsIds = selectedToppings.map(t => t.id).sort().join(',');
 
-      // Cek apakah item yang sama persis sudah ada di keranjang
-      const existingIdx = cart.findIndex(c => 
-        c.id === currentCustomizingItem.id &&
-        c.size === selectedSize &&
-        c.spice === spice &&
-        c.notes === notesStr &&
-        c.toppings.map(t => t.id).sort().join(',') === toppingsIds
-      );
-
-      if (existingIdx > -1) {
-        // Jika sudah ada, tinggal tambahkan porsinya!
-        cart[existingIdx].quantity += modalQty;
-      } else {
-        // Jika baru, masukkan ke keranjang
-        cart.push({
-          id: currentCustomizingItem.id,
+      if (editingCartIndex >= 0 && cart[editingCartIndex]) {
+        // Mode Edit Item
+        cart[editingCartIndex] = {
+          ...cart[editingCartIndex],
           name: `${currentCustomizingItem.name} (${selectedSize.toUpperCase()})`,
           price: unitPrice,
           quantity: modalQty,
@@ -2047,24 +2221,182 @@
           toppings: [...selectedToppings],
           spice: spice,
           notes: notesStr
-        });
+        };
+        editingCartIndex = -1;
+      } else {
+        // Mode Tambah Item Baru
+        const existingIdx = cart.findIndex(c => 
+          c.id === currentCustomizingItem.id &&
+          c.size === selectedSize &&
+          c.spice === spice &&
+          c.notes === notesStr &&
+          c.toppings.map(t => t.id).sort().join(',') === toppingsIds
+        );
+
+        if (existingIdx > -1) {
+          cart[existingIdx].quantity += modalQty;
+        } else {
+          cart.push({
+            id: currentCustomizingItem.id,
+            name: `${currentCustomizingItem.name} (${selectedSize.toUpperCase()})`,
+            price: unitPrice,
+            quantity: modalQty,
+            size: selectedSize,
+            toppings: [...selectedToppings],
+            spice: spice,
+            notes: notesStr
+          });
+        }
       }
 
       closeCustomizeModal();
       updateCartBar();
+      renderCartModal();
+      if (!document.getElementById('checkoutModal').classList.contains('hidden')) {
+        renderCheckoutItems();
+      }
     }
 
-    function updateCartItemQty(index, delta) {
+    // Modal Keranjang Belanja
+    function openCartModal() {
+      if (cart.length === 0) {
+        alert('Keranjang belanja Anda masih kosong. Silakan pilih menu kebab terlebih dahulu!');
+        return;
+      }
+      renderCartModal();
+      document.getElementById('cartModal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cartModal').classList.add('hidden');
+    }
+
+    function renderCartModal() {
+      const container = document.getElementById('cartModalItemsContainer');
+      const count = cart.reduce((acc, c) => acc + c.quantity, 0);
+      const subtotal = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      
+      let deliveryFee = 6000;
+      if (currentDeliveryDistanceKm > 2) {
+        deliveryFee += Math.ceil(currentDeliveryDistanceKm - 2) * 2000;
+      }
+      const total = subtotal + deliveryFee;
+
+      const countEl = document.getElementById('cartModalItemCount');
+      if (countEl) countEl.innerText = `${count} Porsi Kebab`;
+      const subEl = document.getElementById('cartModalSubtotal');
+      if (subEl) subEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+      const feeEl = document.getElementById('cartModalDeliveryFee');
+      if (feeEl) feeEl.innerText = `Rp ${deliveryFee.toLocaleString('id-ID')} (${currentDeliveryDistanceKm.toFixed(1)} km)`;
+      const totEl = document.getElementById('cartModalTotal');
+      if (totEl) totEl.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-12 text-center space-y-3">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center text-3xl mx-auto shadow-sm">
+              🛒
+            </div>
+            <h4 class="font-extrabold text-sm text-slate-800">Keranjang Belanja Kosong</h4>
+            <p class="text-xs text-slate-500 max-w-xs mx-auto">Anda belum menambahkan menu kebab lezat ke keranjang.</p>
+            <button onclick="closeCartModal()" class="mt-2 bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs shadow-md">
+              Mulai Pilih Menu Kebab
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm space-y-2.5">
+          <!-- BARIS ATAS: NAMA MENU & TOMBOL HAPUS -->
+          <div class="flex justify-between items-start">
+            <div class="flex-1 pr-2">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-sm">🍢</span>
+                <h4 class="font-black text-xs text-slate-900 leading-snug">${item.name}</h4>
+              </div>
+              
+              <!-- BADGE PILIHAN RACIKAN & TOPPING -->
+              <div class="mt-1.5 flex flex-wrap gap-1 text-[10px]">
+                <span class="bg-red-50 text-red-700 font-bold px-2 py-0.5 rounded-lg border border-red-200">
+                  🌶️ ${item.spice}
+                </span>
+                ${item.toppings.map(t => `
+                  <span class="bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded-lg border border-amber-200">
+                    +${t.name} (Rp ${(t.price / 1000)}k)
+                  </span>
+                `).join('')}
+                ${item.notes ? `
+                  <span class="bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded-lg border border-gray-200">
+                    📝 ${item.notes}
+                  </span>
+                ` : ''}
+              </div>
+
+              <!-- HARGA SATUAN & SUBTOTAL -->
+              <div class="mt-2 flex items-center space-x-2 text-xs">
+                <span class="text-slate-400 text-[10px]">Rp ${item.price.toLocaleString('id-ID')} /porsi</span>
+                <span class="font-black text-red-600 text-xs">Total: Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+              </div>
+            </div>
+
+            <!-- TOMBOL HAPUS ITEM (TRASH) -->
+            <button onclick="removeCartItem(${idx})" class="w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition active:scale-95 shrink-0" title="Hapus dari keranjang">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+
+          <!-- BARIS BAWAH: EDIT RACIKAN & QUANTITY STEPPER -->
+          <div class="border-t border-dashed border-gray-100 pt-2.5 flex items-center justify-between">
+            <button onclick="editCartItem(${idx})" class="text-[11px] font-black text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-300 flex items-center space-x-1.5 transition active:scale-95 shadow-sm">
+              <i class="fa-solid fa-pen text-amber-600 text-xs"></i>
+              <span>Edit Racikan & Topping</span>
+            </button>
+
+            <div class="flex items-center space-x-2 bg-slate-50 px-2 py-1 rounded-xl border border-gray-200">
+              <button onclick="changeCartQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-white text-slate-800 shadow-sm font-black text-xs flex items-center justify-center hover:bg-gray-100 transition active:scale-95">-</button>
+              <span class="font-black text-xs w-5 text-center text-slate-900">${item.quantity}</span>
+              <button onclick="changeCartQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-red-600 text-white shadow-sm font-black text-xs flex items-center justify-center hover:bg-red-700 transition active:scale-95">+</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function changeCartQty(index, delta) {
+      if (!cart[index]) return;
       cart[index].quantity += delta;
       if (cart[index].quantity <= 0) {
-        cart.splice(index, 1);
+        removeCartItem(index);
+        return;
       }
       updateCartBar();
-      if (cart.length === 0) {
-        closeCheckoutModal();
-      } else {
-        openCheckoutModal();
+      renderCartModal();
+      if (!document.getElementById('checkoutModal').classList.contains('hidden')) {
+        renderCheckoutItems();
       }
+    }
+
+    function removeCartItem(index) {
+      if (!cart[index]) return;
+      const itemName = cart[index].name;
+      if (confirm(`Hapus "${itemName}" dari keranjang?`)) {
+        cart.splice(index, 1);
+        updateCartBar();
+        renderCartModal();
+        if (cart.length === 0) {
+          closeCartModal();
+          closeCheckoutModal();
+        } else if (!document.getElementById('checkoutModal').classList.contains('hidden')) {
+          renderCheckoutItems();
+        }
+      }
+    }
+
+    function proceedFromCartToCheckout() {
+      closeCartModal();
+      openCheckoutModal();
     }
 
     function renderCheckoutItems() {
@@ -2072,18 +2404,28 @@
       document.getElementById('checkoutItemCount').innerText = `${cart.reduce((a, b) => a + b.quantity, 0)} Porsi Kebab`;
 
       container.innerHTML = cart.map((item, idx) => `
-        <div class="bg-gray-50 border p-2.5 rounded-xl flex items-center justify-between">
-          <div class="max-w-[65%]">
-            <span class="font-bold text-gray-900 block text-[11px] truncate">${item.name}</span>
-            <span class="text-[10px] text-gray-500 block">• ${item.spice}</span>
-            ${item.toppings.length ? `<span class="text-[10px] text-emerald-700 block">• +${item.toppings.map(t => t.name).join(', ')}</span>` : ''}
-            ${item.notes ? `<span class="text-[10px] text-red-600 font-semibold block">• ${item.notes}</span>` : ''}
-            <span class="text-[11px] font-black text-red-600 block mt-0.5">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
-          </div>
-          <div class="flex items-center space-x-2 bg-white px-2 py-1 rounded-lg border shadow-sm">
-            <button type="button" onclick="updateCartItemQty(${idx}, -1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-xs flex items-center justify-center">-</button>
-            <span class="font-extrabold text-xs w-4 text-center text-gray-900">${item.quantity}</span>
-            <button type="button" onclick="updateCartItemQty(${idx}, 1)" class="w-6 h-6 rounded bg-red-600 hover:bg-red-700 text-white font-black text-xs flex items-center justify-center">+</button>
+        <div class="bg-gray-50 border p-2.5 rounded-xl space-y-1.5">
+          <div class="flex items-start justify-between">
+            <div class="max-w-[70%]">
+              <span class="font-black text-gray-900 block text-[11px] truncate">${item.name}</span>
+              <div class="flex flex-wrap gap-1 mt-0.5 text-[9px]">
+                <span class="text-red-700 bg-red-100/60 px-1.5 py-0.2 rounded font-bold">• ${item.spice}</span>
+                ${item.toppings.length ? `<span class="text-emerald-800 bg-emerald-100/60 px-1.5 py-0.2 rounded font-bold">• +${item.toppings.map(t => t.name).join(', ')}</span>` : ''}
+                ${item.notes ? `<span class="text-gray-700 bg-gray-200/60 px-1.5 py-0.2 rounded font-bold">• ${item.notes}</span>` : ''}
+              </div>
+              <span class="text-[11px] font-black text-red-600 block mt-1">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+            </div>
+            
+            <div class="flex items-center space-x-1.5">
+              <button type="button" onclick="editCartItem(${idx})" class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 flex items-center justify-center text-xs transition" title="Edit Racikan">
+                <i class="fa-solid fa-pen text-[10px]"></i>
+              </button>
+              <div class="flex items-center space-x-1 bg-white px-1.5 py-0.5 rounded-lg border shadow-sm">
+                <button type="button" onclick="changeCartQty(${idx}, -1)" class="w-5 h-5 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-black text-[10px] flex items-center justify-center">-</button>
+                <span class="font-extrabold text-xs w-4 text-center text-gray-900">${item.quantity}</span>
+                <button type="button" onclick="changeCartQty(${idx}, 1)" class="w-5 h-5 rounded bg-red-600 hover:bg-red-700 text-white font-black text-[10px] flex items-center justify-center">+</button>
+              </div>
+            </div>
           </div>
         </div>
       `).join('');
@@ -2091,14 +2433,28 @@
 
     function updateCartBar() {
       const cartBar = document.getElementById('floatingCart');
+      const headerCartBadge = document.getElementById('headerCartBadge');
+      const count = cart.reduce((acc, c) => acc + c.quantity, 0);
+      const total = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+
+      // Update badge di header atas
+      if (headerCartBadge) {
+        if (count > 0) {
+          headerCartBadge.innerText = count;
+          headerCartBadge.classList.remove('hidden');
+        } else {
+          headerCartBadge.classList.add('hidden');
+        }
+      }
+
       if (cart.length === 0) {
         cartBar.classList.add('hidden');
         return;
       }
       cartBar.classList.remove('hidden');
 
-      const count = cart.reduce((acc, c) => acc + c.quantity, 0);
-      const total = cart.reduce((acc, c) => acc + (c.price * c.quantity), 0);
+      const countBadge = document.getElementById('cartCountBadge');
+      if (countBadge) countBadge.innerText = count;
 
       document.getElementById('cartCount').innerText = `${count} Kebab`;
       document.getElementById('cartTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
