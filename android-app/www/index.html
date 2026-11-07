@@ -2145,45 +2145,94 @@
 
     async function submitOrder() {
       const btn = document.getElementById('btnSubmitOrder');
+
+      // 1. Validasi keranjang
+      if (!cart || cart.length === 0) {
+        alert('Keranjang pesanan Anda masih kosong. Silakan pilih menu kebab terlebih dahulu!');
+        return;
+      }
+
+      // 2. Pastikan objek cabang tersedia
+      const targetBranch = currentBranch || (globalBranches && globalBranches[0]) || {
+        id: 'cabang-01',
+        name: 'Kebab AL Bewok Cabang Pasar Baru',
+        latitude: -6.2088,
+        longitude: 106.8456
+      };
+
+      // 3. Ambil data pelanggan dari input atau currentUser
+      const nameInput = document.getElementById('custName');
+      const phoneInput = document.getElementById('custPhone');
+      const addrInput = document.getElementById('custAddress');
+
+      const customerName = (nameInput && nameInput.value.trim()) || (currentUser ? currentUser.name : 'Pelanggan Kebab');
+      const customerPhone = (phoneInput && phoneInput.value.trim()) || (currentUser ? (currentUser.whatsapp || currentUser.phone) : '081234567890');
+      const customerAddress = (addrInput && addrInput.value.trim()) || 'Alamat Belum Diisi';
+
+      // 4. Koordinat pengantaran
+      const targetLat = (activeDestinationType === 'home' && currentUser && currentUser.home_latitude)
+        ? currentUser.home_latitude
+        : (userCurrentLat || (targetBranch.latitude - 0.005));
+
+      const targetLng = (activeDestinationType === 'home' && currentUser && currentUser.home_longitude)
+        ? currentUser.home_longitude
+        : (userCurrentLng || (targetBranch.longitude + 0.005));
+
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memproses Pesanan...</span>`;
 
       try {
         const payload = {
-          customer_name: document.getElementById('custName').value,
-          customer_phone: document.getElementById('custPhone').value,
-          customer_address: document.getElementById('custAddress').value,
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          customer_address: customerAddress,
           customer_email: currentUser ? currentUser.email : '',
-          destination_type: activeDestinationType,
-          branch_id: currentBranch.id,
+          destination_type: activeDestinationType || 'home',
+          branch_id: targetBranch.id,
+          customer_latitude: targetLat,
+          customer_longitude: targetLng,
           items: cart,
-          delivery_distance_km: currentDeliveryDistanceKm,
+          delivery_distance_km: currentDeliveryDistanceKm || 2.0,
           payment_method: 'qris_statis'
         };
 
-        const res = await fetch('/api/orders/checkout', {
+        const response = await fetch('/api/orders/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        }).then(r => r.json());
+        });
 
-        if (res.success) {
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || `Server error (Status: ${response.status})`);
+        }
+
+        const res = await response.json();
+
+        if (res.success && res.data && res.data.order) {
           activeOrderId = res.data.order.id;
 
-          // Kirim bukti transfer dummy otomatis agar langsung siap diverifikasi
-          await fetch(`/api/orders/${activeOrderId}/payment-proof`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ proof_image: 'https://placehold.co/400x600/png?text=Bukti+QRIS+Lunas' })
-          });
+          // Kirim bukti transfer dummy otomatis agar langsung siap diverifikasi dapur
+          try {
+            await fetch(`/api/orders/${activeOrderId}/payment-proof`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ proof_image: 'https://placehold.co/400x600/png?text=Bukti+QRIS+Lunas' })
+            });
+          } catch (proofErr) {
+            console.warn('Gagal upload auto-proof:', proofErr);
+          }
 
           cart = [];
           updateCartBar();
           closeCheckoutModal();
-          openTrackingModal(res.data.order.order_code);
+          openTrackingModal(res.data.order.order_code, activeOrderId);
+        } else {
+          throw new Error(res.message || 'Gagal membuat pesanan');
         }
       } catch (err) {
-        alert('Gagal mengirim pesanan');
+        console.error('Error saat submit order:', err);
+        alert('Gagal mengirim pesanan: ' + (err.message || 'Koneksi ke server terputus. Silakan coba lagi.'));
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Konfirmasi & Kirim Pesanan</span>`;
