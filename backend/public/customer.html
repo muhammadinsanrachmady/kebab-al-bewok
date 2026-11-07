@@ -2599,7 +2599,9 @@
     let trackDriverMarker = null;
     let trackCustomerMarker = null;
     let trackBranchMarker = null;
-    let trackRouteLine = null;
+    let trackRemainingLine = null; // Garis Solid Tebal (Sisa rute yang menyusut/berkurang saat motor melaju)
+    let trackTraversedLine = null; // Garis Abu-abu (Jalur yang sudah ditempuh kurir)
+    let trackFutureLine = null;    // Garis Panduan Samar untuk leg berikutnya
     let currentTrackingOrder = null;
 
     function openTrackingModal(orderCode, orderId) {
@@ -2719,28 +2721,70 @@
       const isHeadingToBranch = (order.driver_phase === 'to_branch' || order.status === 'driver_heading_to_branch');
       const isOnDelivery = (order.status === 'on_delivery' || order.driver_phase === 'to_customer');
 
+      let phaseStartLat = branchLat;
+      let phaseStartLng = branchLng;
       let targetLat = custLat;
       let targetLng = custLng;
-      let routeColor = '#10b981'; // Hijau jika menuju pelanggan
+      let solidColor = '#10b981'; // Hijau Emerald Solid untuk Fase 2 (Menuju Pelanggan)
 
       if (isHeadingToBranch) {
+        phaseStartLat = order.driver_start_latitude || (branchLat + 0.0065);
+        phaseStartLng = order.driver_start_longitude || (branchLng - 0.0055);
         targetLat = branchLat;
         targetLng = branchLng;
-        routeColor = '#f59e0b'; // Oranye jika menuju lapak
+        solidColor = '#f97316'; // Oranye Terang Solid untuk Fase 1 (Menuju Lapak)
+      } else {
+        phaseStartLat = branchLat;
+        phaseStartLng = branchLng;
+        targetLat = custLat;
+        targetLng = custLng;
+        solidColor = '#10b981';
       }
 
-      // Route polyline dinamis
-      const routeCoords = [[driverLat, driverLng], [targetLat, targetLng]];
-      if (!trackRouteLine) {
-        trackRouteLine = L.polyline(routeCoords, {
-          color: routeColor,
-          weight: 4,
-          dashArray: '6, 8',
-          opacity: 0.9
+      // 1. GARIS SOLID TEBAL (SISA RUTE: BERKURANG & MENYUSUT SAAT MOTOR MELAJU)
+      const remainingCoords = [[driverLat, driverLng], [targetLat, targetLng]];
+      if (!trackRemainingLine) {
+        trackRemainingLine = L.polyline(remainingCoords, {
+          color: solidColor,
+          weight: 6,
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
         }).addTo(trackMap);
       } else {
-        trackRouteLine.setLatLngs(routeCoords);
-        trackRouteLine.setStyle({ color: routeColor });
+        trackRemainingLine.setLatLngs(remainingCoords);
+        trackRemainingLine.setStyle({ color: solidColor });
+      }
+
+      // 2. GARIS ABU-ABU TIPIS (JALUR YANG SUDAH DITEMPUH / DILEWATI MOTOR)
+      const traversedCoords = [[phaseStartLat, phaseStartLng], [driverLat, driverLng]];
+      if (!trackTraversedLine) {
+        trackTraversedLine = L.polyline(traversedCoords, {
+          color: '#94a3b8',
+          weight: 3.5,
+          opacity: 0.45,
+          lineCap: 'round'
+        }).addTo(trackMap);
+      } else {
+        trackTraversedLine.setLatLngs(traversedCoords);
+      }
+
+      // 3. JIKA FASE 1, BERIKAN PANDUAN SAMAR DARI LAPAK KE RUMAH CUSTOMER
+      if (isHeadingToBranch) {
+        const futureCoords = [[branchLat, branchLng], [custLat, custLng]];
+        if (!trackFutureLine) {
+          trackFutureLine = L.polyline(futureCoords, {
+            color: '#cbd5e1',
+            weight: 2,
+            opacity: 0.5,
+            dashArray: '4, 6'
+          }).addTo(trackMap);
+        } else {
+          trackFutureLine.setLatLngs(futureCoords);
+          trackFutureLine.setStyle({ opacity: 0.5 });
+        }
+      } else if (trackFutureLine) {
+        trackFutureLine.setStyle({ opacity: 0 });
       }
 
       // Hitung Jarak sisa dan ETA sesuai fase aktif
