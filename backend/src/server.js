@@ -121,6 +121,10 @@ app.post('/api/auth/google-login', (req, res) => {
       wallets.customers[email].home_latitude = wallets.customers[email].latitude;
       wallets.customers[email].home_longitude = wallets.customers[email].longitude;
     }
+    wallets.customers[email].profile_completed = Boolean(
+      wallets.customers[email].whatsapp && 
+      (wallets.customers[email].home_address || wallets.customers[email].delivery_address)
+    );
   }
 
   writeJSON(WALLETS_FILE, wallets);
@@ -179,6 +183,9 @@ app.post('/api/customer/update-profile', (req, res) => {
   cust.delivery_address = cust.home_address || (delivery_address ? delivery_address.trim() : '');
   cust.latitude = cust.home_latitude || latitude || null;
   cust.longitude = cust.home_longitude || longitude || null;
+
+  // Status kelengkapan onboarding profil customer
+  cust.profile_completed = Boolean(cust.whatsapp && (cust.home_address || cust.delivery_address));
 
   cust.updated_at = new Date().toISOString();
 
@@ -590,9 +597,21 @@ app.post('/api/driver/auth/google-login', (req, res) => {
   });
 });
 
-// Update Profil Kurir
+// Update Profil Kurir & Pendaftaran Rekening Dompet (Terkunci 1x Input)
 app.post('/api/driver/update-profile', (req, res) => {
-  const { driver_id, email, name, phone, vehicle, vehicle_plate, avatar } = req.body;
+  const { 
+    driver_id, 
+    email, 
+    name, 
+    phone, 
+    vehicle, 
+    vehicle_plate, 
+    avatar,
+    wallet_channel,
+    wallet_account_number,
+    wallet_account_name
+  } = req.body;
+
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.drivers) wallets.drivers = {};
 
@@ -612,14 +631,112 @@ app.post('/api/driver/update-profile', (req, res) => {
   if (vehicle) driver.vehicle = vehicle;
   if (vehicle_plate) driver.vehicle_plate = vehicle_plate;
   if (avatar) driver.avatar = avatar;
+
+  // ATURAN DOMPET: HANYA BISA 1 KALI INPUT (LOCKED PERMANEN)
+  if (wallet_account_number) {
+    if (driver.registered_wallet && driver.registered_wallet.locked) {
+      // Jika sudah terkunci dan driver mencoba mengubah nomor tanpa persetujuan owner
+      if (
+        driver.registered_wallet.account_number !== wallet_account_number ||
+        driver.registered_wallet.channel !== wallet_channel
+      ) {
+        return res.status(403).json({
+          success: false,
+          wallet_locked: true,
+          message: 'Nomor dompet/rekening sudah TERKUNCI permanen demi keamanan. Untuk mengganti, silakan ajukan permohonan resmi ke Owner!'
+        });
+      }
+    } else {
+      // Pendaftaran pertama kali: langsung kunci permanen!
+      driver.registered_wallet = {
+        channel: wallet_channel || 'DANA',
+        account_number: wallet_account_number,
+        account_name: wallet_account_name || driver.name,
+        locked: true,
+        locked_at: new Date().toISOString()
+      };
+    }
+  }
+
+  driver.profile_completed = true;
   driver.updated_at = new Date().toISOString();
 
   writeJSON(WALLETS_FILE, wallets);
 
   res.json({
     success: true,
-    message: 'Profil kurir berhasil diperbarui!',
+    message: 'Biodata profil kurir & data dompet berhasil disimpan!',
     data: driver
+  });
+});
+
+// Permohonan Penggantian Rekening Dompet Kurir (Wajib Konfirmasi Owner)
+app.post('/api/driver/request-wallet-change', (req, res) => {
+  const { driver_id, reason, new_channel, new_account_number, new_account_name } = req.body;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers || !wallets.drivers[driver_id]) {
+    return res.status(404).json({ success: false, message: 'Driver tidak ditemukan' });
+  }
+
+  if (!wallets.wallet_change_requests) wallets.wallet_change_requests = [];
+
+  const request = {
+    id: `wcr-${Date.now()}`,
+    driver_id,
+    driver_name: wallets.drivers[driver_id].name,
+    current_wallet: wallets.drivers[driver_id].registered_wallet,
+    new_channel: new_channel || 'DANA',
+    new_account_number,
+    new_account_name: new_account_name || wallets.drivers[driver_id].name,
+    reason: reason || 'Pergantian nomor akun e-wallet / rekening bank',
+    status: 'pending',
+    requested_at: new Date().toISOString()
+  };
+
+  wallets.wallet_change_requests.unshift(request);
+  wallets.drivers[driver_id].wallet_change_pending = true;
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: 'Permohonan penggantian rekening berhasil diajukan! Menunggu konfirmasi & persetujuan dari Owner.',
+    data: request
+  });
+});
+
+// Super Admin / Owner Menyetujui Penggantian Rekening Dompet
+app.post('/api/super-admin/wallet-changes/:id/approve', (req, res) => {
+  const { id } = req.params;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.wallet_change_requests) wallets.wallet_change_requests = [];
+
+  const reqIndex = wallets.wallet_change_requests.findIndex(r => r.id === id);
+  if (reqIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Permohonan tidak ditemukan' });
+  }
+
+  const changeReq = wallets.wallet_change_requests[reqIndex];
+  changeReq.status = 'approved';
+  changeReq.approved_at = new Date().toISOString();
+
+  // Update rekening driver
+  if (wallets.drivers[changeReq.driver_id]) {
+    wallets.drivers[changeReq.driver_id].registered_wallet = {
+      channel: changeReq.new_channel,
+      account_number: changeReq.new_account_number,
+      account_name: changeReq.new_account_name,
+      locked: true,
+      updated_by_owner_at: new Date().toISOString()
+    };
+    wallets.drivers[changeReq.driver_id].wallet_change_pending = false;
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: 'Permohonan pergantian rekening kurir berhasil disetujui Owner!',
+    data: changeReq
   });
 });
 
@@ -888,7 +1005,7 @@ app.get('/api/driver/wallet/:driverId', (req, res) => {
 // 4. ENDPOINTS SUPER ADMIN / PEMILIK (OWNER)
 // ==========================================
 
-// Ajukan Penarikan Dana oleh Driver
+// Ajukan Penarikan Dana oleh Driver (Menggunakan Rekening Terkunci 1 Akun 1 Driver)
 app.post('/api/driver/wallet/withdraw', (req, res) => {
   const { driver_id, amount, payout_channel, account_number, account_name } = req.body;
   const wallets = readJSON(WALLETS_FILE);
@@ -897,22 +1014,28 @@ app.post('/api/driver/wallet/withdraw', (req, res) => {
     return res.status(400).json({ success: false, message: 'Saldo tidak mencukupi untuk ditarik' });
   }
 
+  const driver = wallets.drivers[driver_id];
+  // Jika driver sudah mengunci dompet/rekeningnya, gunakan rekening terdaftar
+  const finalChannel = (driver.registered_wallet && driver.registered_wallet.channel) ? driver.registered_wallet.channel : (payout_channel || 'DANA');
+  const finalAccountNum = (driver.registered_wallet && driver.registered_wallet.account_number) ? driver.registered_wallet.account_number : (account_number || driver.phone || '081234567890');
+  const finalAccountName = (driver.registered_wallet && driver.registered_wallet.account_name) ? driver.registered_wallet.account_name : (account_name || driver.name);
+
   if (!wallets.withdrawals) wallets.withdrawals = [];
 
   const newWithdrawal = {
     id: `wd-${Date.now()}`,
     driver_id,
-    driver_name: wallets.drivers[driver_id].name,
+    driver_name: driver.name,
     amount: Number(amount),
-    payout_channel: payout_channel || 'DANA',
-    account_number: account_number || '081234567890',
-    account_name: account_name || wallets.drivers[driver_id].name,
+    payout_channel: finalChannel,
+    account_number: finalAccountNum,
+    account_name: finalAccountName,
     status: 'pending', // 'pending', 'approved'
     created_at: new Date().toISOString()
   };
 
   // Kurangi saldo sementara
-  wallets.drivers[driver_id].balance -= Number(amount);
+  driver.balance -= Number(amount);
   wallets.withdrawals.unshift(newWithdrawal);
 
   if (!wallets.history) wallets.history = [];
@@ -921,15 +1044,19 @@ app.post('/api/driver/wallet/withdraw', (req, res) => {
     user_id: driver_id,
     type: 'withdrawal',
     amount: Number(amount),
-    current_balance: wallets.drivers[driver_id].balance,
-    description: `Penarikan Dana ke ${payout_channel || 'DANA'} (${account_number || '-'})`,
+    current_balance: driver.balance,
+    description: `Penarikan Dana ke ${finalChannel} (${finalAccountNum})`,
     status: 'pending',
     created_at: new Date().toISOString()
   });
 
   writeJSON(WALLETS_FILE, wallets);
 
-  res.json({ success: true, message: 'Permintaan penarikan dana berhasil diajukan! Menunggu transfer dari Owner.', data: newWithdrawal });
+  res.json({ 
+    success: true, 
+    message: `Permintaan penarikan Rp ${Number(amount).toLocaleString('id-ID')} ke ${finalChannel} (${finalAccountNum}) berhasil diajukan! Menunggu transfer dari Owner.`, 
+    data: newWithdrawal 
+  });
 });
 
 // Ringkasan Finansial Seluruh Cabang & Tagihan Titipan Ongkir

@@ -42,6 +42,88 @@
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800 pb-28">
 
+  <!-- ========================================================================= -->
+  <!-- PIPELINE CUSTOMER - STEP 1: COVER HALAMAN DEPAN PELANGGAN                 -->
+  <!-- ========================================================================= -->
+  <div id="customerCoverScreen" class="fixed inset-0 z-50 bg-gradient-to-b from-red-950 via-slate-950 to-amber-950 flex flex-col justify-between p-6 text-white text-center select-none overflow-y-auto hidden">
+    
+    <!-- BRANDING & HERO -->
+    <div class="pt-2">
+      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl shadow-red-500/30 mb-3 border-2 border-amber-300/40">
+        🍢
+      </div>
+      <span class="bg-amber-400/20 text-amber-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-amber-400/30">
+        Pemesanan Resmi Online
+      </span>
+      <h1 class="text-2xl font-black tracking-tight mt-2 text-white">KEBAB AL BEWOK</h1>
+      <p class="text-xs text-amber-100/80 mt-1 max-w-xs mx-auto">
+        Rasa Gurih Berempah, Daging Panggang Juicy & Saus Istimewa Langsung Diantar ke Pintu Anda!
+      </p>
+    </div>
+
+    <!-- PIPELINE ROADMAP 3 LANGKAH -->
+    <div class="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 my-4 text-left space-y-3 max-w-xs mx-auto w-full shadow-xl">
+      <span class="text-[10px] font-black uppercase text-amber-400 tracking-wider block">Alur Pemesanan Kebab:</span>
+      
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-[11px] shrink-0">1</span>
+        <div>
+          <span class="font-extrabold text-white block">Masuk Akun Google</span>
+          <span class="text-[10px] text-slate-400">Verifikasi pemesan & keamanan akun</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-[11px] shrink-0 border border-slate-700">2</span>
+        <div>
+          <span class="font-bold text-slate-300 block">Lengkapi Biodata & Alamat</span>
+          <span class="text-[10px] text-slate-400">Nama, No. WhatsApp & Titik GPS Antar</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-[11px] shrink-0 border border-slate-700">3</span>
+        <div>
+          <span class="font-bold text-slate-300 block">Dashboard Menu & Live Kurir</span>
+          <span class="text-[10px] text-slate-400">Pilih menu & pantau perjalanan motor kurir</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOGLE LOGIN SECTION -->
+    <div class="space-y-3 max-w-xs mx-auto w-full">
+      <!-- 1-Click Fast Login -->
+      <button onclick="loginGoogleFast('muhammadinsanrachmady@gmail.com', 'Muhammad Insan Rachmady')" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-3 px-4 rounded-2xl flex items-center justify-between text-xs shadow-xl active:scale-95 transition border border-slate-200 group">
+        <div class="flex items-center space-x-2.5 truncate">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <div class="text-left truncate">
+            <span class="block font-black text-slate-900 group-hover:text-red-600 truncate">Muhammad Insan Rachmady</span>
+            <span class="block text-[10px] text-slate-500 font-mono truncate">rachmadyinsan@gmail.com</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-red-600 text-xs"></i>
+      </button>
+
+      <!-- Atau Custom Google Email -->
+      <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-left space-y-2">
+        <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Atau Masuk Akun Google Lainnya:</span>
+        <input type="text" id="coverCustName" placeholder="Nama Lengkap Pemesan" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400 font-bold">
+        <input type="email" id="coverCustEmail" placeholder="nama@gmail.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400">
+        <button onclick="loginGoogleCoverCustom()" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
+          <span>Lanjutkan Masuk Google</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- FOOTER INFO -->
+    <div class="pt-4 pb-2">
+      <p class="text-[10px] text-slate-400">
+        🍢 Kebab AL Bewok • 100% Halal, Segar & Higienis
+      </p>
+    </div>
+  </div>
+
   <!-- TOP HEADER -->
   <header class="bg-[#FBBF24] p-4 sticky top-0 z-20 shadow-sm border-b border-yellow-500">
     <div class="flex items-center justify-between">
@@ -504,6 +586,81 @@
       <div class="pt-2 border-t text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
         🔒 Bebas biaya seumur hidup. Akun Google memvalidasi pelanggan resmi Kebab AL Bewok.
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PIPELINE CUSTOMER - STEP 2: ONBOARDING BIODATA PROFIL & ALAMAT PENGANTAR  -->
+  <!-- ========================================================================= -->
+  <div id="customerOnboardingBiodataModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-3.5 max-h-[92vh] overflow-y-auto animate-scale-up">
+      <div class="border-b pb-2.5">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center">2</span>
+          <h3 class="text-sm font-black text-slate-900">Lengkapi Biodata Pemesan</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-0.5">Langkah 2 dari 3: Nomor WhatsApp & alamat lengkap untuk kurir</p>
+      </div>
+
+      <!-- KARTU AKUN GOOGLE TERHUBUNG -->
+      <div class="flex items-center space-x-2.5 bg-amber-50/80 border border-amber-200 p-2.5 rounded-2xl">
+        <img id="onboardCustAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=kebab" alt="Avatar" class="w-10 h-10 rounded-full border border-amber-300 bg-white shadow-sm flex-shrink-0">
+        <div class="truncate">
+          <div class="flex items-center space-x-1">
+            <span id="onboardCustDisplayName" class="font-black text-xs text-slate-900 block truncate">Pelanggan Google</span>
+            <span class="bg-blue-100 text-blue-700 text-[8px] font-black px-1.5 py-0.2 rounded-md">Google</span>
+          </div>
+          <span id="onboardCustDisplayEmail" class="text-[10px] text-slate-500 font-mono block truncate">email@gmail.com</span>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="font-extrabold text-slate-700 block mb-1">Nama Lengkap Pemesan:</label>
+          <input type="text" id="onboardCustName" placeholder="Nama Anda" class="w-full border rounded-xl p-2.5 text-xs bg-slate-50 font-bold outline-none focus:border-red-500">
+        </div>
+
+        <div>
+          <label class="font-extrabold text-slate-700 block mb-1">
+            Nomor WhatsApp Aktif:
+            <span class="text-red-500 text-[10px] font-normal">(untuk kurir & status pesanan)</span>
+          </label>
+          <div class="flex items-center border rounded-xl bg-slate-50 px-2.5 focus-within:border-red-500">
+            <span class="text-slate-400 font-bold text-xs mr-1.5">🇮🇩 +62</span>
+            <input type="tel" id="onboardCustWhatsapp" placeholder="81234567890" class="w-full bg-transparent py-2.5 text-xs font-bold outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="font-extrabold text-slate-700 block mb-1">Tipe Alamat Pengantaran:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="selectOnboardAddressType('Rumah')" id="btnTypeRumah" class="p-2 rounded-xl border border-red-500 bg-red-50 text-red-700 font-bold text-center text-xs">🏠 Rumah</button>
+            <button type="button" onclick="selectOnboardAddressType('Kost')" id="btnTypeKost" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center text-xs">🏢 Kost</button>
+            <button type="button" onclick="selectOnboardAddressType('Kantor')" id="btnTypeKantor" class="p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center text-xs">💼 Kantor</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-extrabold text-slate-700">Alamat Lengkap Pengiriman:</label>
+            <button type="button" onclick="detectOnboardGPS()" class="text-[10px] text-blue-600 font-extrabold hover:underline flex items-center space-x-1">
+              <i class="fa-solid fa-location-crosshairs"></i>
+              <span>Pakai GPS HP</span>
+            </button>
+          </div>
+          <textarea id="onboardCustAddress" rows="2" placeholder="Nama Jalan, Nomor Rumah, RT/RW, Patokan..." class="w-full border rounded-xl p-2.5 text-xs bg-slate-50 outline-none focus:border-red-500"></textarea>
+          <span id="onboardGpsStatus" class="text-[10px] text-slate-400 block mt-0.5"></span>
+        </div>
+      </div>
+
+      <button type="button" onclick="saveCustomerOnboardingBiodata()" id="btnSaveOnboardCust" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black py-3 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+        <span>SIMPAN BIODATA & MENUJU MENU KEBAB</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+
+      <button type="button" onclick="logoutCustomerFromOnboard()" class="w-full text-center text-[10px] text-slate-400 hover:text-red-500 font-semibold py-1">
+        Keluar / Ganti Akun Google
+      </button>
     </div>
   </div>
 
@@ -1182,6 +1339,16 @@
       await doGoogleLogin(email, name || email.split('@')[0]);
     }
 
+    async function loginGoogleCoverCustom() {
+      const name = document.getElementById('coverCustName').value.trim();
+      const email = document.getElementById('coverCustEmail').value.trim();
+      if (!email || !email.includes('@')) {
+        alert('Mohon masukkan alamat email Google / Gmail yang valid.');
+        return;
+      }
+      await doGoogleLogin(email, name || email.split('@')[0]);
+    }
+
     async function doGoogleLogin(email, name) {
       try {
         const res = await fetch('/api/auth/google-login', {
@@ -1202,22 +1369,220 @@
           updateUserHeader();
           closeLoginModal();
 
-          // Cek apakah nomor WhatsApp atau Alamat pengiriman masih kosong
-          const wa = currentUser.whatsapp || currentUser.phone || '';
-          const addr = currentUser.delivery_address || currentUser.address || '';
-          if (!wa || !addr) {
-            alert(`🎉 Selamat Datang, Kak ${currentUser.name}!\n\nMohon lengkapi Nomor WhatsApp & Alamat Pengiriman agar pesanan kebab Anda siap diantar.`);
-            openProfileModal();
-          } else {
-            alert(`🎉 Selamat Datang kembali, Kak ${currentUser.name}!`);
-            if (cart.length > 0) openCheckoutModal();
-          }
+          // Jalankan pipeline pengecekan langkah onboarding
+          checkCustomerPipeline();
         } else {
           alert(res.message);
         }
       } catch (err) {
         alert('Gagal menghubungi server');
       }
+    }
+
+    // ==========================================
+    // PIPELINE ONBOARDING CUSTOMER
+    // Step 1: Cover Halaman Depan (Login Google)
+    // Step 2: Biodata & Alamat Pengiriman
+    // Step 3: Dashboard Utama (Katalog & Live Kurir)
+    // ==========================================
+
+    let onboardSelectedAddressType = 'Rumah';
+    let onboardLat = null;
+    let onboardLng = null;
+
+    function checkCustomerPipeline() {
+      const cover = document.getElementById('customerCoverScreen');
+      const onboardModal = document.getElementById('customerOnboardingBiodataModal');
+      if (!cover) return;
+
+      if (!currentUser) {
+        // Step 1: Belum login Google -> Munculkan Cover Halaman Depan
+        cover.classList.remove('hidden');
+        if (onboardModal) onboardModal.classList.add('hidden');
+        return;
+      }
+
+      // Cek apakah nomor WhatsApp dan Alamat pengantaran sudah lengkap
+      const wa = currentUser.whatsapp || currentUser.phone || '';
+      const addr = currentUser.delivery_address || currentUser.home_address || currentUser.address || '';
+
+      if (!wa || !addr) {
+        // Step 2: Sudah login Google, tapi belum isi biodata -> Buka Modal Onboarding Step 2
+        cover.classList.remove('hidden');
+        openCustomerOnboardingModal();
+        return;
+      }
+
+      // Step 3: Biodata lengkap! Sembunyikan cover & modal, masuk ke Dashboard Utama
+      cover.classList.add('hidden');
+      if (onboardModal) onboardModal.classList.add('hidden');
+      updateUserHeader();
+    }
+
+    function openCustomerOnboardingModal() {
+      if (!currentUser) return;
+      const modal = document.getElementById('customerOnboardingBiodataModal');
+      if (!modal) return;
+
+      const avatar = currentUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.email || currentUser.name}`;
+      document.getElementById('onboardCustAvatar').src = avatar;
+      document.getElementById('onboardCustDisplayName').innerText = currentUser.name || 'Pelanggan Google';
+      document.getElementById('onboardCustDisplayEmail').innerText = currentUser.email || '';
+
+      document.getElementById('onboardCustName').value = currentUser.name || '';
+      
+      const wa = currentUser.whatsapp || currentUser.phone || '';
+      const cleanWa = wa.startsWith('62') ? wa.slice(2) : (wa.startsWith('0') ? wa.slice(1) : wa);
+      document.getElementById('onboardCustWhatsapp').value = cleanWa;
+
+      document.getElementById('onboardCustAddress').value = currentUser.home_address || currentUser.delivery_address || '';
+      
+      selectOnboardAddressType('Rumah');
+      modal.classList.remove('hidden');
+    }
+
+    function closeCustomerOnboardingModal() {
+      const modal = document.getElementById('customerOnboardingBiodataModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function selectOnboardAddressType(type) {
+      onboardSelectedAddressType = type;
+      ['btnTypeRumah', 'btnTypeKost', 'btnTypeKantor'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.className = 'p-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-bold text-center text-xs transition';
+      });
+
+      const activeBtnId = type === 'Rumah' ? 'btnTypeRumah' : (type === 'Kost' ? 'btnTypeKost' : 'btnTypeKantor');
+      const activeBtn = document.getElementById(activeBtnId);
+      if (activeBtn) {
+        activeBtn.className = 'p-2 rounded-xl border border-red-500 bg-red-50 text-red-700 font-bold text-center text-xs shadow-xs';
+      }
+    }
+
+    function detectOnboardGPS() {
+      const statusEl = document.getElementById('onboardGpsStatus');
+      if (!navigator.geolocation) {
+        if (statusEl) statusEl.innerText = '⚠️ Browser tidak mendukung GPS satelit.';
+        return;
+      }
+
+      if (statusEl) statusEl.innerText = '📡 Mencari koordinat satelit GPS HP Anda...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          onboardLat = pos.coords.latitude;
+          onboardLng = pos.coords.longitude;
+          if (statusEl) {
+            statusEl.className = 'text-[10px] text-emerald-600 font-bold block mt-0.5';
+            statusEl.innerText = `✓ GPS Akurat: (${onboardLat.toFixed(5)}, ${onboardLng.toFixed(5)})`;
+          }
+
+          // Otomatis reverse geocode untuk mengisi alamat
+          try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${onboardLat}&lon=${onboardLng}&zoom=18&addressdetails=1`);
+            const data = await resp.json();
+            if (data && data.display_name) {
+              const currentAddr = document.getElementById('onboardCustAddress').value.trim();
+              if (!currentAddr) {
+                document.getElementById('onboardCustAddress').value = data.display_name;
+              }
+            }
+          } catch (e) {
+            console.log('Reverse geocoding error:', e);
+          }
+        },
+        (err) => {
+          if (statusEl) {
+            statusEl.className = 'text-[10px] text-amber-600 font-bold block mt-0.5';
+            statusEl.innerText = '⚠️ Izin GPS ditolak atau sinyal lemah. Silakan ketik alamat manual.';
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function saveCustomerOnboardingBiodata() {
+      if (!currentUser) return;
+
+      const name = document.getElementById('onboardCustName').value.trim();
+      let rawWa = document.getElementById('onboardCustWhatsapp').value.trim();
+      const addr = document.getElementById('onboardCustAddress').value.trim();
+
+      if (!name) {
+        alert('Mohon masukkan nama lengkap pemesan.');
+        return;
+      }
+
+      let cleanWa = rawWa.replace(/[^0-9]/g, '');
+      if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.slice(1);
+      else if (!cleanWa.startsWith('62')) cleanWa = '62' + cleanWa;
+
+      if (cleanWa.length < 10) {
+        alert('Mohon masukkan nomor WhatsApp yang valid (minimal 9 digit).');
+        return;
+      }
+
+      if (!addr || addr.length < 5) {
+        alert('Mohon masukkan alamat lengkap pengiriman agar kurir dapat menemukan lokasi Anda.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSaveOnboardCust');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan ke Server...';
+
+      try {
+        const payload = {
+          email: currentUser.email,
+          full_name: name,
+          whatsapp: cleanWa,
+          delivery_address: addr
+        };
+
+        if (onboardSelectedAddressType === 'Kantor') {
+          payload.office_address = addr;
+          if (onboardLat) payload.office_latitude = onboardLat;
+          if (onboardLng) payload.office_longitude = onboardLng;
+        } else {
+          payload.home_address = addr;
+          if (onboardLat) payload.home_latitude = onboardLat;
+          if (onboardLng) payload.home_longitude = onboardLng;
+        }
+
+        const res = await fetch('/api/customer/update-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          currentUser = res.data;
+          currentUser.phone = cleanWa;
+          localStorage.setItem('kebab_user', JSON.stringify(currentUser));
+          updateUserHeader();
+          closeCustomerOnboardingModal();
+          checkCustomerPipeline();
+          syncDestinationToApp();
+          alert(`🎉 Selamat Datang di Kebab AL Bewok, Kak ${currentUser.name}!\n\nBiodata & alamat pengiriman Anda siap. Silakan pilih menu favorit Anda.`);
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi server');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>SIMPAN BIODATA & MENUJU MENU KEBAB</span><i class="fa-solid fa-arrow-right"></i>`;
+      }
+    }
+
+    function logoutCustomerFromOnboard() {
+      currentUser = null;
+      localStorage.removeItem('kebab_user');
+      closeCustomerOnboardingModal();
+      checkCustomerPipeline();
+      updateUserHeader();
     }
 
     // ====================================================
@@ -1876,6 +2241,7 @@
         localStorage.removeItem('kebab_user');
         updateUserHeader();
         closeProfileModal();
+        checkCustomerPipeline();
         alert('Anda telah keluar dari akun.');
       }
     }
@@ -1930,6 +2296,7 @@
     // Load Initial Data
     async function init() {
       updateUserHeader();
+      checkCustomerPipeline(); // Pipeline roadmap: Cover -> Biodata -> Dashboard
       captureLiveLocation(); // Tangkap lokasi GPS fisik saat webapp dibuka (Gojek / Grab style)
 
       try {

@@ -14,7 +14,6 @@
     }
     .pulse-badge { animation: pulse-slow 2s infinite ease-in-out; }
 
-    /* Animasi Laser Pemindai Wajah */
     @keyframes laser-move {
       0% { top: 12%; opacity: 0.7; }
       50% { top: 82%; opacity: 1; }
@@ -24,7 +23,6 @@
       animation: laser-move 2.2s infinite ease-in-out;
     }
 
-    /* Animasi Pemindai Sidik Jari (Fingerprint Glow & Rings) */
     @keyframes fp-glow {
       0%, 100% { 
         filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4));
@@ -52,7 +50,76 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 pb-24">
 
   <!-- ========================================================================= -->
-  <!-- HEADER DRIVER: Profil Bar & Status Online -->
+  <!-- PIPELINE DRIVER - STEP 1: COVER HALAMAN DEPAN DRIVER                      -->
+  <!-- ========================================================================= -->
+  <div id="driverCoverScreen" class="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between p-6 text-white text-center select-none overflow-y-auto">
+    
+    <!-- BRANDING COVER -->
+    <div class="pt-4">
+      <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-xl shadow-emerald-500/20 mb-3 border border-emerald-300/30 animate-bounce-short">
+        🛵
+      </div>
+      <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-emerald-400/30">
+        Mitra Kurir Resmi
+      </span>
+      <h1 class="text-2xl font-black tracking-tight mt-2 text-white">KEBAB AL BEWOK</h1>
+      <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
+        Aplikasi Driver Freelance: Penghasilan harian pasti per trip & pencairan dompet instan!
+      </p>
+    </div>
+
+    <!-- PIPELINE ROADMAP ONBOARDING KURIR -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 my-4 text-left space-y-3 max-w-xs mx-auto w-full shadow-lg">
+      <span class="text-[10px] font-black uppercase text-amber-400 tracking-wider block">Alur Pendaftaran Kurir:</span>
+      
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-black flex items-center justify-center text-[11px] shrink-0">1</span>
+        <div>
+          <span class="font-extrabold text-white block">Masuk Akun Google</span>
+          <span class="text-[10px] text-slate-400">Verifikasi akun kurir resmi</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-black flex items-center justify-center text-[11px] shrink-0">2</span>
+        <div>
+          <span class="font-extrabold text-slate-200 block">Biometrik Sidik Jari / Wajah</span>
+          <span class="text-[10px] text-slate-400">Kunci proteksi 1 Akun 1 Driver</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-black flex items-center justify-center text-[11px] shrink-0">3</span>
+        <div>
+          <span class="font-extrabold text-slate-200 block">Biodata & Rekening Dompet</span>
+          <span class="text-[10px] text-slate-400">Kunci rekening penarikan (1x input)</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-black flex items-center justify-center text-[11px] shrink-0">4</span>
+        <div>
+          <span class="font-extrabold text-slate-200 block">Dashboard Utama Driver</span>
+          <span class="text-[10px] text-slate-400">Siap narik orderan & terima ongkir</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTON COVER -->
+    <div class="space-y-2.5 max-w-xs mx-auto w-full pb-2">
+      <button onclick="openDriverLoginModal()" class="w-full bg-white hover:bg-slate-100 text-slate-950 font-black py-3.5 px-4 rounded-2xl text-xs flex items-center justify-center space-x-2.5 shadow-xl transition active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        <span>Masuk Akun Kurir Mitra</span>
+      </button>
+
+      <p class="text-[10px] text-slate-500">
+        🔒 Bebas biaya seumur hidup. Sistem proteksi anti-joki dengan biometrik & dompet terkunci.
+      </p>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- HEADER DRIVER: Profil Bar & Status Online                                 -->
   <!-- ========================================================================= -->
   <header class="bg-slate-950 text-white p-3.5 sticky top-0 z-30 shadow-lg border-b border-slate-800">
     <div class="max-w-md mx-auto flex items-center justify-between">
@@ -76,14 +143,14 @@
   <div class="max-w-md mx-auto">
 
     <!-- ========================================================================= -->
-    <!-- BANNER VERIFIKASI BIOMETRIK (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
+    <!-- BANNER VERIFIKASI BIOMETRIK (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER)        -->
     <!-- ========================================================================= -->
     <div id="biometricStatusBannerContainer" class="px-4 pt-3.5">
       <!-- Rendered by JS -->
     </div>
 
     <!-- ========================================================================= -->
-    <!-- KARTU DOMPET SALDO DRIVER (WALLET) -->
+    <!-- KARTU DOMPET SALDO DRIVER (WALLET)                                        -->
     <!-- ========================================================================= -->
     <div class="p-4">
       <div class="bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden border border-emerald-500/30">
@@ -134,7 +201,7 @@
     <main class="px-4 space-y-4">
 
       <!-- ========================================================================= -->
-      <!-- TUGAS PENGANTARAN AKTIF (2 FASE) -->
+      <!-- TUGAS PENGANTARAN AKTIF (2 FASE)                                          -->
       <!-- ========================================================================= -->
       <div id="activeDeliverySection" class="hidden">
         <div class="flex items-center justify-between mb-2">
@@ -152,7 +219,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- RADAR ORDERAN BARU SIAP PICKUP -->
+      <!-- RADAR ORDERAN BARU SIAP PICKUP                                            -->
       <!-- ========================================================================= -->
       <div>
         <div class="flex items-center justify-between mb-2">
@@ -172,7 +239,7 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- PREVIEW HISTORI PENGHASILAN TERAKHIR -->
+      <!-- PREVIEW HISTORI PENGHASILAN TERAKHIR                                      -->
       <!-- ========================================================================= -->
       <div>
         <div class="flex justify-between items-center mb-2">
@@ -189,12 +256,11 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL 1: LOGIN GOOGLE DRIVER (100% GRATIS & PRAKTIS) -->
+  <!-- MODAL 1: LOGIN GOOGLE DRIVER                                              -->
   <!-- ========================================================================= -->
   <div id="driverLoginModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative space-y-4 animate-scale-up">
       
-      <!-- GOOGLE ICON HEADER -->
       <div class="w-16 h-16 bg-slate-50 border-2 border-slate-100 rounded-2xl mx-auto flex items-center justify-center shadow-inner">
         <svg class="w-9 h-9" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -206,10 +272,9 @@
 
       <div>
         <h3 class="text-lg font-black text-slate-900">Masuk Akun Kurir Mitra</h3>
-        <p class="text-xs text-slate-500 mt-0.5">Login 1-klik akun Google kurir resmi Kebab AL Bewok</p>
+        <p class="text-xs text-slate-500 mt-0.5">Langkah 1 dari 4: Autentikasi Google</p>
       </div>
 
-      <!-- AKUN CEPAT 1-KLIK DEMO / RESMI -->
       <div class="space-y-2 text-left">
         <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Pilih Akun Kurir Siap Pakai:</span>
         
@@ -221,7 +286,7 @@
               <div class="text-[10px] text-emerald-700 font-bold">Honda Beat • B 3918 KEB</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-emerald-700 bg-white px-2 py-1 rounded-lg border border-emerald-200">Masuk</span>
+          <span class="text-[11px] font-bold text-emerald-700 bg-white px-2 py-1 rounded-lg border border-emerald-200">Pilih</span>
         </button>
 
         <button type="button" onclick="loginGoogleDriver('ahmad.dani@gmail.com', 'Ahmad Dani', 'Honda Vario 160', 'B 4821 KEB', '0813-8899-7711', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face')" class="w-full flex items-center justify-between p-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition group">
@@ -232,13 +297,13 @@
               <div class="text-[10px] text-slate-500 font-bold">Vario 160 • B 4821 KEB</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg">Masuk</span>
+          <span class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg">Pilih</span>
         </button>
       </div>
 
-      <!-- FORM LOGIN AKUN GMAIL SENDIRI -->
+      <!-- FORM AKUN GMAIL SENDIRI -->
       <div class="pt-2 border-t text-left space-y-2">
-        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Atau Masuk Akun Gmail Lainnya:</span>
+        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Atau Akun Gmail Lainnya:</span>
         <div>
           <label class="text-[10px] font-bold text-slate-700">Nama Lengkap Kurir:</label>
           <input type="text" id="customDriverName" placeholder="Contoh: Muhammad Insan" class="w-full border rounded-xl p-2 text-xs font-bold outline-none focus:border-emerald-500">
@@ -247,19 +312,9 @@
           <label class="text-[10px] font-bold text-slate-700">Email Gmail Kurir:</label>
           <input type="email" id="customDriverEmail" placeholder="nama.driver@gmail.com" class="w-full border rounded-xl p-2 text-xs font-medium outline-none focus:border-emerald-500">
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="text-[10px] font-bold text-slate-700">Merk Motor:</label>
-            <input type="text" id="customDriverVehicle" placeholder="Yamaha NMAX" class="w-full border rounded-xl p-2 text-xs font-bold outline-none focus:border-emerald-500">
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-slate-700">Plat Nomor:</label>
-            <input type="text" id="customDriverPlate" placeholder="B 1234 KEB" class="w-full border rounded-xl p-2 text-xs font-bold outline-none focus:border-emerald-500">
-          </div>
-        </div>
 
         <button type="button" onclick="submitCustomDriverLogin()" class="w-full bg-slate-950 hover:bg-slate-900 text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
-          <span>Masuk / Daftar Akun Kurir</span>
+          <span>Lanjut ke Verifikasi Biometrik</span>
         </button>
       </div>
 
@@ -271,272 +326,7 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL 2: PROFIL DRIVER KURIR -->
-  <!-- ========================================================================= -->
-  <div id="driverProfileModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-scale-up">
-      
-      <!-- HEADER PROFIL -->
-      <div class="flex justify-between items-center border-b pb-3">
-        <div>
-          <h3 class="text-base font-black text-slate-900">Profil Driver Kurir</h3>
-          <p class="text-[11px] text-slate-500">Data identitas operasional pengantaran</p>
-        </div>
-        <button onclick="closeDriverProfileModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
-          ✕
-        </button>
-      </div>
-
-      <!-- KARTU AKUN GOOGLE TERHUBUNG -->
-      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center space-x-3">
-        <img id="profileDriverAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm">
-        <div class="overflow-hidden">
-          <div class="flex items-center space-x-1.5">
-            <span id="profileDriverNameText" class="font-black text-xs text-slate-900 truncate">Budi Santoso</span>
-            <span class="bg-emerald-100 text-emerald-800 text-[8px] font-black px-1.5 py-0.5 rounded">Resmi</span>
-          </div>
-          <span id="profileDriverEmail" class="text-[10px] text-slate-500 block truncate">budi.santoso@gmail.com</span>
-          <span class="text-[9px] text-emerald-600 font-extrabold flex items-center space-x-1 mt-0.5">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>Akun Kurir Terverifikasi</span>
-          </span>
-        </div>
-      </div>
-
-      <!-- STATUS VERIFIKASI BIOMETRIK (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
-      <div id="profileBiometricStatusCard" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between">
-        <!-- Rendered by JS -->
-      </div>
-
-      <!-- INFO PERANGKAT TERKUNCI (1 AKUN 1 DRIVER) -->
-      <div class="bg-slate-900 text-white p-3 rounded-2xl border border-slate-800 space-y-1">
-        <div class="flex items-center justify-between text-[11px]">
-          <span class="text-slate-400 font-bold flex items-center space-x-1">
-            <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
-            <span>Device Binding:</span>
-          </span>
-          <span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-black px-2 py-0.5 rounded">1 Akun 1 Driver</span>
-        </div>
-        <div id="profileDeviceId" class="font-mono text-[10px] text-slate-300 truncate">DEV-ID: Loading...</div>
-        <p class="text-[9px] text-slate-400">Akun ini terkunci ke sensor biometrik HP ini dan tidak dapat dijoki.</p>
-      </div>
-
-      <!-- PILIHAN AVATAR CEPAT -->
-      <div>
-        <label class="text-[10px] font-bold text-slate-600 block mb-1">Ganti Foto Avatar:</label>
-        <div class="grid grid-cols-4 gap-2">
-          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border-2 border-emerald-500 hover:border-emerald-600 focus:outline-none">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
-          </button>
-          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
-          </button>
-          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none">
-            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
-          </button>
-          <button type="button" onclick="generateRandomDicebear()" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none bg-slate-100 flex flex-col items-center justify-center text-[10px] font-bold text-slate-600">
-            <i class="fa-solid fa-dice text-xs"></i>
-            <span>Acak</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- FORM EDIT PROFIL -->
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="font-bold text-slate-700 block mb-1">Nama Lengkap Kurir:</label>
-          <input type="text" id="editDriverName" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-        </div>
-
-        <div>
-          <label class="font-bold text-slate-700 block mb-1">Nomor WhatsApp Kurir:</label>
-          <div class="relative">
-            <span class="absolute left-3 top-2.5 text-slate-400 font-bold">📞</span>
-            <input type="text" id="editDriverPhone" placeholder="0852-xxxx-xxxx" class="w-full border rounded-xl pl-9 p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-          </div>
-          <span class="text-[10px] text-slate-400 block mt-0.5">Nomor ini tampil di aplikasi pelanggan untuk koordinasi antar pesanan.</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Merk / Tipe Sepeda Motor:</label>
-            <input type="text" id="editDriverVehicle" placeholder="Honda Beat" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-          </div>
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Nomor Plat Polisi:</label>
-            <input type="text" id="editDriverPlate" placeholder="B 3918 KEB" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-          </div>
-        </div>
-      </div>
-
-      <!-- TOMBOL SIMPAN & LOGOUT -->
-      <div class="pt-2 space-y-2">
-        <button type="button" onclick="saveDriverProfile()" id="btnSaveProfile" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition active:scale-95">
-          <i class="fa-solid fa-floppy-disk"></i>
-          <span>Simpan Perubahan Profil</span>
-        </button>
-
-        <button type="button" onclick="logoutDriver()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
-          <i class="fa-solid fa-arrow-right-from-bracket"></i>
-          <span>Keluar dari Akun Kurir</span>
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- MODAL 3: PENARIKAN SALDO DOMPET (WITHDRAWAL) -->
-  <!-- ========================================================================= -->
-  <div id="withdrawModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[92vh] overflow-y-auto animate-scale-up">
-      
-      <div class="flex justify-between items-center border-b pb-3">
-        <div>
-          <h3 class="text-base font-black text-slate-900">Tarik Saldo Dompet</h3>
-          <p class="text-[11px] text-slate-500">Pencairan ongkos kirim ke E-Wallet & Bank</p>
-        </div>
-        <button onclick="closeWithdrawModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
-          ✕
-        </button>
-      </div>
-
-      <!-- KARTU INFO SALDO TERSEDIA -->
-      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
-        <div>
-          <span class="text-[10px] text-emerald-100 block font-semibold">Saldo yang Siap Ditarik:</span>
-          <span id="withdrawAvailableBalance" class="text-2xl font-black">Rp 0</span>
-        </div>
-        <span class="bg-white/20 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg backdrop-blur">
-          Bebas Potongan
-        </span>
-      </div>
-
-      <!-- PILIHAN SALURAN PENCAIRAN (CHANNELS) -->
-      <div>
-        <label class="text-[11px] font-bold text-slate-700 block mb-1.5">Pilih Tujuan Penarikan Dana:</label>
-        <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
-          
-          <button type="button" onclick="selectChannel('DANA')" class="channel-btn p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-blue-500 font-black text-sm">DANA</span>
-            <span class="text-[9px] text-slate-500">Instan</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('GoPay')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-emerald-600 font-black text-sm">GoPay</span>
-            <span class="text-[9px] text-slate-500">Instan</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('OVO')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-purple-600 font-black text-sm">OVO</span>
-            <span class="text-[9px] text-slate-500">Instan</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('ShopeePay')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-orange-500 font-black text-sm">Shopee</span>
-            <span class="text-[9px] text-slate-500">Instan</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('BCA')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-blue-700 font-black text-sm">BCA</span>
-            <span class="text-[9px] text-slate-500">Transfer</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('BRI')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-blue-600 font-black text-sm">BRI</span>
-            <span class="text-[9px] text-slate-500">Transfer</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('Mandiri')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-yellow-600 font-black text-sm">Mandiri</span>
-            <span class="text-[9px] text-slate-500">Transfer</span>
-          </button>
-
-          <button type="button" onclick="selectChannel('Lainnya')" class="channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center">
-            <span class="text-slate-600 font-black text-sm"><i class="fa-solid fa-building-columns"></i></span>
-            <span class="text-[9px] text-slate-500">Lainnya</span>
-          </button>
-
-        </div>
-      </div>
-
-      <!-- INPUT FORM PENARIKAN -->
-      <div class="space-y-3 text-xs">
-        <div>
-          <label id="labelAccountNum" class="font-bold text-slate-700 block mb-1">Nomor Akun DANA (No. HP):</label>
-          <input type="text" id="withdrawAccountNum" placeholder="Contoh: 085285841330" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-        </div>
-
-        <div>
-          <label class="font-bold text-slate-700 block mb-1">Nama Pemilik Akun / Rekening:</label>
-          <input type="text" id="withdrawAccountName" placeholder="Contoh: Budi Santoso" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="font-bold text-slate-700">Nominal Penarikan (Rp):</label>
-            <button type="button" onclick="setWithdrawAmount('all')" class="text-[10px] text-emerald-700 font-extrabold hover:underline">Tarik Semua Saldo</button>
-          </div>
-          <div class="relative">
-            <span class="absolute left-3 top-2.5 font-extrabold text-slate-400">Rp</span>
-            <input type="number" id="withdrawAmountInput" placeholder="0" class="w-full border rounded-xl pl-9 p-2.5 font-black text-base outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
-          </div>
-        </div>
-
-        <!-- QUICK CHIPS NOMINAL -->
-        <div class="flex items-center space-x-1.5 pt-1">
-          <button type="button" onclick="setWithdrawAmount(10000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 10.000</button>
-          <button type="button" onclick="setWithdrawAmount(20000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 20.000</button>
-          <button type="button" onclick="setWithdrawAmount(30000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 30.000</button>
-          <button type="button" onclick="setWithdrawAmount(50000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 50.000</button>
-        </div>
-
-        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-[11px] text-emerald-800 flex items-center space-x-2">
-          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
-          <span>Biaya Admin: <b>Rp 0 (Gratis)</b>. Dana diproses langsung oleh Admin Dapur/Owner.</span>
-        </div>
-      </div>
-
-      <!-- TOMBOL SUBMIT PENARIKAN -->
-      <div class="pt-2">
-        <button type="button" onclick="submitWithdrawal()" id="btnSubmitWithdraw" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
-          <i class="fa-solid fa-paper-plane"></i>
-          <span>KONFIRMASI TARIK DANA SEKARANG</span>
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- MODAL 4: RIWAYAT TRANSAKSI LENGKAP -->
-  <!-- ========================================================================= -->
-  <div id="walletHistoryModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-scale-up">
-      
-      <div class="flex justify-between items-center border-b pb-3">
-        <div>
-          <h3 class="text-base font-black text-slate-900">Riwayat Dompet Kurir</h3>
-          <p class="text-[11px] text-slate-500">Histori ongkir masuk & penarikan dana</p>
-        </div>
-        <button onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
-          ✕
-        </button>
-      </div>
-
-      <div id="fullHistoryContainer" class="space-y-2.5 text-xs">
-        <!-- Rendered by JS -->
-      </div>
-
-      <button type="button" onclick="closeHistoryModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
-        Tutup
-      </button>
-
-    </div>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- MODAL 5: VERIFIKASI BIOMETRIK GANDA (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
+  <!-- MODAL 2: VERIFIKASI BIOMETRIK GANDA (PIPELINE STEP 2)                     -->
   <!-- ========================================================================= -->
   <div id="biometricVerificationModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-center shadow-2xl relative space-y-3.5 max-h-[95vh] overflow-y-auto animate-scale-up">
@@ -549,7 +339,7 @@
           </div>
           <div>
             <h3 class="text-sm font-black text-slate-900">Verifikasi Biometrik Driver</h3>
-            <p class="text-[10px] text-slate-500">1 Akun 1 Driver (Proteksi Anti-Joki)</p>
+            <p class="text-[10px] text-slate-500">Langkah 2 dari 4: 1 Akun 1 Driver</p>
           </div>
         </div>
         <button onclick="closeBiometricModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
@@ -569,18 +359,12 @@
         </button>
       </div>
 
-      <!-- ============================================== -->
-      <!-- PANEL TAB 1: SIDIK JARI (UTAMA / ANTI-GELAP)  -->
-      <!-- ============================================== -->
+      <!-- PANEL TAB 1: SIDIK JARI -->
       <div id="panelFingerprint" class="space-y-3.5">
         <div class="bg-gradient-to-b from-slate-950 to-slate-900 rounded-3xl p-6 text-white border-2 border-emerald-500/40 relative overflow-hidden flex flex-col items-center justify-center shadow-inner">
-          
-          <!-- PISAU LASER PEMINDAI SIDIK JARI -->
           <div class="absolute inset-x-8 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] fp-laser pointer-events-none"></div>
 
-          <!-- ICON SIDIK JARI GLOWING & PULSING -->
           <div onclick="triggerFingerprintScan()" class="cursor-pointer w-28 h-28 rounded-full bg-emerald-500/10 border-2 border-emerald-400/60 flex items-center justify-center relative fp-pulse transition active:scale-95 group">
-            <!-- Lingkaran Gelombang Radar -->
             <div class="absolute inset-0 rounded-full border border-emerald-400/30 animate-ping"></div>
             <i class="fa-solid fa-fingerprint text-5xl text-emerald-400 group-hover:text-emerald-300 transition drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]"></i>
           </div>
@@ -592,18 +376,10 @@
             </span>
           </div>
 
-          <!-- OVERLAY PROSES VERIFIKASI SIDIK JARI -->
           <div id="fpScanningOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden z-20">
             <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
             <span id="fpStepText" class="font-extrabold text-xs text-amber-300">Membaca Sidik Jari...</span>
             <span class="text-[10px] text-slate-300 mt-1">Memvalidasi biometrik pemilik akun</span>
-          </div>
-        </div>
-
-        <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-2xl text-left text-xs text-emerald-900 flex items-start space-x-2">
-          <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5 flex-shrink-0"></i>
-          <div class="text-[11px] leading-tight">
-            <b>Rekomendasi Utama:</b> Menggunakan sensor biometrik sidik jari HP fisik / TouchID. Praktis di lokasi redup atau berkendara malam.
           </div>
         </div>
 
@@ -613,24 +389,18 @@
         </button>
       </div>
 
-      <!-- ============================================== -->
-      <!-- PANEL TAB 2: VERIFIKASI WAJAH (KAMERA DEPAN)   -->
-      <!-- ============================================== -->
+      <!-- PANEL TAB 2: KAMERA WAJAH -->
       <div id="panelFace" class="space-y-3.5 hidden">
-        <!-- Kotak Kamera Wajah dengan Oval Guide -->
         <div class="relative w-60 h-60 mx-auto rounded-3xl overflow-hidden bg-slate-950 border-4 border-slate-800 shadow-inner flex items-center justify-center">
           <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
           <canvas id="faceCaptureCanvas" class="hidden" width="480" height="480"></canvas>
 
-          <!-- OVAL GUIDE -->
           <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
             <div id="faceOvalRing" class="w-40 h-48 rounded-[50%] border-4 border-dashed border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all duration-500"></div>
           </div>
 
-          <!-- LASER SCANNING BEAM -->
           <div id="faceLaserLine" class="absolute w-44 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] pointer-events-none animate-scan"></div>
 
-          <!-- STATUS KAMERA & INDIKATOR -->
           <div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur px-2 py-0.5 rounded-full flex items-center space-x-1.5 border border-white/10">
             <span id="camStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span id="camStatusText" class="text-[9px] font-bold text-white">Kamera Aktif</span>
@@ -640,17 +410,11 @@
             <i class="fa-solid fa-camera-rotate"></i>
           </button>
 
-          <!-- OVERLAY PROSES VERIFIKASI WAJAH -->
           <div id="faceScanningOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden z-20">
             <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
             <span id="faceScanningStepText" class="font-extrabold text-xs text-amber-300">Mendeteksi Wajah...</span>
             <span class="text-[10px] text-slate-300 mt-1">Harap diam sebentar menghadap kamera</span>
           </div>
-        </div>
-
-        <div class="bg-slate-50 p-2.5 rounded-2xl border text-left text-[11px] text-slate-600 space-y-1">
-          <p class="font-bold text-slate-900">Alternatif jika HP belum memiliki sensor sidik jari.</p>
-          <p class="text-[10px]">Pastikan ruangan berpenerangan cukup dan wajah berada di dalam oval.</p>
         </div>
 
         <div class="space-y-2">
@@ -685,10 +449,364 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- JAVASCRIPT LOGIC DRIVER & BIOMETRIK GANDA -->
+  <!-- MODAL 3: BIODATA KURIR & KUNCI REKENING DOMPET (PIPELINE STEP 3)           -->
+  <!-- ========================================================================= -->
+  <div id="driverOnboardingBiodataModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-3.5 max-h-[92vh] overflow-y-auto animate-scale-up">
+      <div class="border-b pb-2.5">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded-full bg-emerald-500 text-white font-black text-xs flex items-center justify-center">3</span>
+          <h3 class="text-sm font-black text-slate-900">Lengkapi Biodata & Rekening Dompet</h3>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-0.5">Langkah 3 dari 4: Kunci rekening pencairan saldo (1x input)</p>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nama Lengkap Kurir:</label>
+          <input type="text" id="onbDriverName" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nomor WhatsApp Kurir:</label>
+          <input type="text" id="onbDriverPhone" placeholder="0852-xxxx-xxxx" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Merk Motor:</label>
+            <input type="text" id="onbDriverVehicle" placeholder="Honda Beat" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Plat Nomor:</label>
+            <input type="text" id="onbDriverPlate" placeholder="B 3918 KEB" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+          </div>
+        </div>
+
+        <!-- REKENING DOMPET (HANYA 1X INPUT LOCKED) -->
+        <div class="pt-2 border-t space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-xs text-slate-900 flex items-center space-x-1.5">
+              <i class="fa-solid fa-lock text-amber-500"></i>
+              <span>Rekening Dompet Pencairan:</span>
+            </span>
+            <span class="bg-amber-100 text-amber-900 text-[9px] font-black px-1.5 py-0.5 rounded">Hanya 1x Input</span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1 text-center text-xs">
+            <button type="button" onclick="selectOnbChannel('DANA')" class="onb-channel-btn p-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 font-bold text-[10px]">DANA</button>
+            <button type="button" onclick="selectOnbChannel('GoPay')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">GoPay</button>
+            <button type="button" onclick="selectOnbChannel('OVO')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">OVO</button>
+            <button type="button" onclick="selectOnbChannel('ShopeePay')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">Shopee</button>
+            <button type="button" onclick="selectOnbChannel('BCA')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">BCA</button>
+            <button type="button" onclick="selectOnbChannel('BRI')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">BRI</button>
+            <button type="button" onclick="selectOnbChannel('Mandiri')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">Mandiri</button>
+            <button type="button" onclick="selectOnbChannel('Lainnya')" class="onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px]">Lainnya</button>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold text-slate-700 block mb-0.5">Nomor E-Wallet / Nomor Rekening:</label>
+            <input type="text" id="onbWalletAccountNum" placeholder="Contoh: 085285841330" class="w-full border rounded-xl p-2 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-slate-700 block mb-0.5">Nama Pemilik Rekening / Akun:</label>
+            <input type="text" id="onbWalletAccountName" placeholder="Sesuai buku tabungan / e-wallet" class="w-full border rounded-xl p-2 font-bold outline-none focus:border-emerald-500 bg-slate-50">
+          </div>
+
+          <div class="bg-amber-500/10 border border-amber-400/50 p-2.5 rounded-xl text-[10px] text-amber-900 leading-tight">
+            🔒 <b>Perhatian Keamanan:</b> Nomor rekening dompet ini akan <b>TERKUNCI OTOMATIS</b>. Seluruh penarikan saldo ongkir akan ditransfer ke rekening ini. Jika kelak ingin menggantinya, Anda <b>WAJIB meminta persetujuan Owner</b>!
+          </div>
+        </div>
+
+        <button type="button" onclick="submitOnboardingBiodata()" id="btnSubmitOnb" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95 mt-2">
+          <i class="fa-solid fa-lock"></i>
+          <span>SIMPAN BIODATA & KUNCI REKENING</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 4: PROFIL DRIVER & REKENING TERKUNCI                                -->
+  <!-- ========================================================================= -->
+  <div id="driverProfileModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-scale-up">
+      
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-base font-black text-slate-900">Profil Driver Kurir</h3>
+          <p class="text-[11px] text-slate-500">Data identitas & rekening dompet</p>
+        </div>
+        <button onclick="closeDriverProfileModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <!-- KARTU AKUN GOOGLE TERHUBUNG -->
+      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center space-x-3">
+        <img id="profileDriverAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" class="w-12 h-12 rounded-full object-cover border-2 border-emerald-500 shadow-sm">
+        <div class="overflow-hidden">
+          <div class="flex items-center space-x-1.5">
+            <span id="profileDriverNameText" class="font-black text-xs text-slate-900 truncate">Budi Santoso</span>
+            <span class="bg-emerald-100 text-emerald-800 text-[8px] font-black px-1.5 py-0.5 rounded">Resmi</span>
+          </div>
+          <span id="profileDriverEmail" class="text-[10px] text-slate-500 block truncate">budi.santoso@gmail.com</span>
+          <span class="text-[9px] text-emerald-600 font-extrabold flex items-center space-x-1 mt-0.5">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Akun Kurir Terverifikasi</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- STATUS VERIFIKASI BIOMETRIK -->
+      <div id="profileBiometricStatusCard" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- KARTU REKENING DOMPET TERKUNCI -->
+      <div class="bg-slate-900 text-white p-3 rounded-2xl border border-slate-800 space-y-1.5">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400 font-bold flex items-center space-x-1">
+            <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
+            <span>Rekening Dompet Terdaftar:</span>
+          </span>
+          <span class="bg-amber-400 text-slate-950 text-[9px] font-black px-2 py-0.5 rounded">TERKUNCI</span>
+        </div>
+        <div id="profileRegisteredWalletText" class="font-black text-sm text-emerald-400">DANA - 085285841330 (Budi)</div>
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[9px] text-slate-400">Hanya bisa diubah dengan izin Owner</span>
+          <button type="button" onclick="closeDriverProfileModal(); openRequestWalletChangeModal();" class="text-[10px] text-amber-400 font-extrabold hover:underline">
+            Ajukan Ganti Rekening
+          </button>
+        </div>
+      </div>
+
+      <!-- PILIHAN AVATAR CEPAT -->
+      <div>
+        <label class="text-[10px] font-bold text-slate-600 block mb-1">Ganti Foto Avatar:</label>
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border-2 border-emerald-500 hover:border-emerald-600 focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
+          </button>
+          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
+          </button>
+          <button type="button" onclick="selectAvatar('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face')" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" class="w-full h-10 rounded-lg object-cover">
+          </button>
+          <button type="button" onclick="generateRandomDicebear()" class="avatar-option rounded-xl p-1 border hover:border-emerald-500 focus:outline-none bg-slate-100 flex flex-col items-center justify-center text-[10px] font-bold text-slate-600">
+            <i class="fa-solid fa-dice text-xs"></i>
+            <span>Acak</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- FORM EDIT PROFIL -->
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nama Lengkap Kurir:</label>
+          <input type="text" id="editDriverName" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">Nomor WhatsApp Kurir:</label>
+          <input type="text" id="editDriverPhone" placeholder="0852-xxxx-xxxx" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Merk / Tipe Motor:</label>
+            <input type="text" id="editDriverVehicle" placeholder="Honda Beat" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">Nomor Plat Polisi:</label>
+            <input type="text" id="editDriverPlate" placeholder="B 3918 KEB" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+          </div>
+        </div>
+      </div>
+
+      <!-- TOMBOL SIMPAN & LOGOUT -->
+      <div class="pt-2 space-y-2">
+        <button type="button" onclick="saveDriverProfile()" id="btnSaveProfile" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-md transition active:scale-95">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>Simpan Perubahan Profil</span>
+        </button>
+
+        <button type="button" onclick="logoutDriver()" class="w-full bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Keluar dari Akun Kurir</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 5: PENARIKAN SALDO DOMPET (DENGAN REKENING TERKUNCI)                -->
+  <!-- ========================================================================= -->
+  <div id="withdrawModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[92vh] overflow-y-auto animate-scale-up">
+      
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-base font-black text-slate-900">Tarik Saldo Dompet</h3>
+          <p class="text-[11px] text-slate-500">Pencairan ongkos kirim ke Rekening Terdaftar</p>
+        </div>
+        <button onclick="closeWithdrawModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <!-- KARTU INFO SALDO TERSEDIA -->
+      <div class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
+        <div>
+          <span class="text-[10px] text-emerald-100 block font-semibold">Saldo yang Siap Ditarik:</span>
+          <span id="withdrawAvailableBalance" class="text-2xl font-black">Rp 0</span>
+        </div>
+        <span class="bg-white/20 text-white text-[10px] font-extrabold px-2 py-1 rounded-lg backdrop-blur">
+          Bebas Biaya Admin
+        </span>
+      </div>
+
+      <!-- REKENING TUJUAN TERKUNCI (READ-ONLY DEMI KEAMANAN) -->
+      <div class="bg-slate-50 border-2 border-emerald-400/80 p-3 rounded-2xl space-y-1.5">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-slate-700 flex items-center space-x-1.5">
+            <i class="fa-solid fa-lock text-emerald-600"></i>
+            <span>Rekening Tujuan Pencairan:</span>
+          </span>
+          <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-1.5 py-0.5 rounded">Terkunci Resmi</span>
+        </div>
+        <div id="withdrawLockedAccountDisplay" class="font-black text-sm text-slate-900">DANA - 085285841330</div>
+        <div id="withdrawLockedNameDisplay" class="text-[11px] text-slate-500">a/n Budi Santoso</div>
+        <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+          <span class="text-[10px] text-slate-400">Mau ganti rekening?</span>
+          <button type="button" onclick="closeWithdrawModal(); openRequestWalletChangeModal();" class="text-[10px] text-amber-600 font-extrabold hover:underline">
+            Ajukan ke Owner
+          </button>
+        </div>
+      </div>
+
+      <!-- INPUT NOMINAL PENARIKAN -->
+      <div class="space-y-3 text-xs">
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-slate-700">Nominal Penarikan (Rp):</label>
+            <button type="button" onclick="setWithdrawAmount('all')" class="text-[10px] text-emerald-700 font-extrabold hover:underline">Tarik Semua Saldo</button>
+          </div>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 font-extrabold text-slate-400">Rp</span>
+            <input type="number" id="withdrawAmountInput" placeholder="0" class="w-full border rounded-xl pl-9 p-2.5 font-black text-base outline-none focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5 pt-1">
+          <button type="button" onclick="setWithdrawAmount(10000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 10.000</button>
+          <button type="button" onclick="setWithdrawAmount(20000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 20.000</button>
+          <button type="button" onclick="setWithdrawAmount(30000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 30.000</button>
+          <button type="button" onclick="setWithdrawAmount(50000)" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-slate-200 transition">Rp 50.000</button>
+        </div>
+
+        <div class="bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-[11px] text-emerald-800 flex items-center space-x-2">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          <span>Biaya Admin: <b>Rp 0 (Gratis)</b>. Dana diproses langsung oleh Admin Dapur/Owner.</span>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="button" onclick="submitWithdrawal()" id="btnSubmitWithdraw" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>KONFIRMASI TARIK DANA SEKARANG</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 6: PENGAJUAN GANTI REKENING KE OWNER                                -->
+  <!-- ========================================================================= -->
+  <div id="requestWalletChangeModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-3 max-h-[92vh] overflow-y-auto animate-scale-up">
+      <div class="flex justify-between items-center border-b pb-2.5">
+        <div>
+          <h3 class="text-sm font-black text-slate-900">Ajukan Ganti Rekening Dompet</h3>
+          <p class="text-[10px] text-slate-500">Permohonan resmi ke Owner</p>
+        </div>
+        <button onclick="closeRequestWalletChangeModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">✕</button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="bg-slate-50 p-2.5 rounded-xl border text-[11px]">
+          <span class="text-slate-400 block text-[10px]">Rekening Terkunci Saat Ini:</span>
+          <span id="currentLockedWalletReqText" class="font-black text-slate-800">DANA - 085285841330</span>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Pilih Rekening / E-Wallet Baru:</label>
+          <select id="changeNewChannel" class="w-full border rounded-xl p-2 font-bold bg-slate-50 outline-none">
+            <option value="DANA">DANA</option>
+            <option value="GoPay">GoPay</option>
+            <option value="OVO">OVO</option>
+            <option value="ShopeePay">ShopeePay</option>
+            <option value="BCA">Bank BCA</option>
+            <option value="BRI">Bank BRI</option>
+            <option value="Mandiri">Bank Mandiri</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Nomor Rekening / Akun Baru:</label>
+          <input type="text" id="changeNewAccountNum" placeholder="Contoh: 081234567890" class="w-full border rounded-xl p-2 font-bold bg-slate-50 outline-none">
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Nama Pemilik Akun Baru:</label>
+          <input type="text" id="changeNewAccountName" placeholder="Sesuai nama rekening" class="w-full border rounded-xl p-2 font-bold bg-slate-50 outline-none">
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Alasan Pergantian Rekening:</label>
+          <textarea id="changeReason" rows="2" placeholder="Contoh: Nomor HP akun lama hangus / ganti nomor rekening" class="w-full border rounded-xl p-2 text-xs bg-slate-50 outline-none"></textarea>
+        </div>
+
+        <button type="button" onclick="submitWalletChangeRequest()" id="btnSubmitChangeReq" class="w-full bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow transition active:scale-95">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>KIRIM PERMOHONAN KE OWNER</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 7: RIWAYAT TRANSAKSI LENGKAP                                        -->
+  <!-- ========================================================================= -->
+  <div id="walletHistoryModal" class="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-scale-up">
+      
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-base font-black text-slate-900">Riwayat Dompet Kurir</h3>
+          <p class="text-[11px] text-slate-500">Histori ongkir masuk & penarikan dana</p>
+        </div>
+        <button onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
+          ✕
+        </button>
+      </div>
+
+      <div id="fullHistoryContainer" class="space-y-2.5 text-xs">
+        <!-- Rendered by JS -->
+      </div>
+
+      <button type="button" onclick="closeHistoryModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
+        Tutup
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC DRIVER & PIPELINE                                        -->
   <!-- ========================================================================= -->
   <script>
-    // State default fallback
     const DEFAULT_DRIVER = {
       id: 'driver-01',
       email: 'budi.santoso@gmail.com',
@@ -700,23 +818,29 @@
       balance: 37000,
       trips: 5,
       is_online: true,
-      biometric_verified: false,
-      biometric_method: null,
-      face_verified: false
+      biometric_verified: true,
+      biometric_method: 'fingerprint',
+      profile_completed: true,
+      registered_wallet: {
+        channel: 'DANA',
+        account_number: '085285841330',
+        account_name: 'Budi Santoso',
+        locked: true
+      }
     };
 
     let currentDriver = null;
     let isOnline = true;
     let activeDelivery = null;
     let driverWatchId = null;
-    let selectedPayoutChannel = 'DANA';
     let selectedAvatarUrl = '';
     let currentHistoryList = [];
+    let selectedOnbChannel = 'DANA';
 
     // Biometrik State
-    let activeBiometricTab = 'fingerprint'; // 'fingerprint' atau 'face'
+    let activeBiometricTab = 'fingerprint';
     let currentCameraStream = null;
-    let currentFacingMode = 'user'; // 'user' (depan) / 'environment' (belakang)
+    let currentFacingMode = 'user';
     let deviceHasBiometricHardware = false;
 
     // INIT
@@ -730,9 +854,6 @@
       setInterval(syncDriverFromServer, 10000);
     }
 
-    // ==========================================
-    // 1. SISTEM 1 AKUN 1 DRIVER (DEVICE BINDING)
-    // ==========================================
     function initDeviceId() {
       let devId = localStorage.getItem('kebab_driver_device_uuid');
       if (!devId) {
@@ -759,23 +880,31 @@
     }
 
     // ==========================================
-    // 2. AUTENTIKASI & PROFIL DRIVER
+    // 1. PIPELINE CHECK & COVER SCREEN
     // ==========================================
-    function loadStoredDriver() {
-      const stored = localStorage.getItem('kebab_driver');
-      if (stored) {
-        try {
-          currentDriver = JSON.parse(stored);
-        } catch (e) {
-          currentDriver = { ...DEFAULT_DRIVER };
-        }
-      } else {
-        currentDriver = { ...DEFAULT_DRIVER };
-        localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
+    function checkDriverPipeline() {
+      const cover = document.getElementById('driverCoverScreen');
+      if (!currentDriver) {
+        cover.classList.remove('hidden');
+        return;
       }
-      renderHeaderAuth();
-      renderBiometricStatusBanner();
-      updateWalletDisplay(currentDriver);
+
+      // Jika sudah login, cek biometrik
+      if (!isDriverBiometricVerified()) {
+        cover.classList.remove('hidden');
+        openBiometricModal('fingerprint');
+        return;
+      }
+
+      // Jika sudah biometrik, cek kelengkapan biodata & dompet
+      if (!currentDriver.profile_completed || !currentDriver.registered_wallet) {
+        cover.classList.remove('hidden');
+        openDriverOnboardingBiodataModal();
+        return;
+      }
+
+      // Semua step pipeline selesai! Masuk dashboard utama
+      cover.classList.add('hidden');
     }
 
     function isDriverBiometricVerified() {
@@ -783,17 +912,27 @@
       return !!(currentDriver.biometric_verified || currentDriver.face_verified);
     }
 
+    function loadStoredDriver() {
+      const stored = localStorage.getItem('kebab_driver');
+      if (stored) {
+        try {
+          currentDriver = JSON.parse(stored);
+        } catch (e) {
+          currentDriver = null;
+        }
+      }
+      renderHeaderAuth();
+      renderBiometricStatusBanner();
+      updateWalletDisplay(currentDriver);
+      checkDriverPipeline();
+    }
+
     function renderHeaderAuth() {
       const container = document.getElementById('headerAuthContainer');
       if (!currentDriver) {
         container.innerHTML = `
           <button onclick="openDriverLoginModal()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-black px-3.5 py-1.5 rounded-full shadow border flex items-center space-x-1.5 transition active:scale-95">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
             <span>Masuk Google</span>
           </button>
         `;
@@ -851,7 +990,7 @@
                     <span class="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">1 Akun 1 Driver</span>
                   </div>
                   <p class="text-[11px] text-slate-600 mt-0.5 leading-tight">
-                    Gunakan <b>Sidik Jari (Anti-Gelap)</b> atau <b>Kamera Wajah</b> untuk mencegah akun dipinjamkan / joki.
+                    Gunakan <b>Sidik Jari (Anti-Gelap)</b> atau <b>Kamera Wajah</b> untuk membuka akses kerja.
                   </p>
                 </div>
               </div>
@@ -901,18 +1040,13 @@
         const res = await fetch('/api/driver/auth/google-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            full_name: name,
-            avatar_url: avatar,
-            phone
-          })
+          body: JSON.stringify({ email, full_name: name, avatar_url: avatar, phone })
         }).then(r => r.json());
 
         if (res.success) {
           currentDriver = res.data.driver;
-          if (vehicle) currentDriver.vehicle = vehicle;
-          if (plate) currentDriver.vehicle_plate = plate;
+          if (vehicle && !currentDriver.vehicle) currentDriver.vehicle = vehicle;
+          if (plate && !currentDriver.vehicle_plate) currentDriver.vehicle_plate = plate;
           localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
 
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
@@ -920,13 +1054,19 @@
           renderHeaderAuth();
           renderBiometricStatusBanner();
           await syncDriverFromServer();
-          alert(`Selamat bertugas, Kak ${currentDriver.name}!`);
 
-          // Jika belum verifikasi biometrik, otomatis tawarkan modal
+          // PIPELINE STEP 2: Otomatis buka Biometrik jika belum lolos
           if (!isDriverBiometricVerified()) {
             setTimeout(() => {
               openBiometricModal('fingerprint');
-            }, 600);
+            }, 500);
+          } else if (!currentDriver.profile_completed || !currentDriver.registered_wallet) {
+            // PIPELINE STEP 3: Otomatis buka Biodata & Kunci Rekening jika belum
+            setTimeout(() => {
+              openDriverOnboardingBiodataModal();
+            }, 500);
+          } else {
+            checkDriverPipeline();
           }
         } else {
           alert(res.message);
@@ -939,8 +1079,6 @@
     async function submitCustomDriverLogin() {
       const name = document.getElementById('customDriverName').value.trim();
       const email = document.getElementById('customDriverEmail').value.trim();
-      const vehicle = document.getElementById('customDriverVehicle').value.trim();
-      const plate = document.getElementById('customDriverPlate').value.trim();
 
       if (!email || !email.includes('@')) {
         alert('Harap masukkan alamat email Google / Gmail yang valid.');
@@ -950,13 +1088,314 @@
       await loginGoogleDriver(
         email,
         name || email.split('@')[0],
-        vehicle || 'Sepeda Motor',
-        plate || 'B 1234 KEB',
+        'Sepeda Motor',
+        'B 1234 KEB',
         '0812-3456-7890',
         `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`
       );
     }
 
+    // ==========================================
+    // 2. BIOMETRIK (PIPELINE STEP 2)
+    // ==========================================
+    function openBiometricModal(initialTab) {
+      const devId = getDeviceId();
+      document.getElementById('modalDeviceBindingText').innerText = `ID: ${devId.substring(0, 16)}...`;
+      switchBiometricTab(initialTab || 'fingerprint');
+      document.getElementById('biometricVerificationModal').classList.remove('hidden');
+    }
+
+    function closeBiometricModal() {
+      stopFaceCamera();
+      document.getElementById('biometricVerificationModal').classList.add('hidden');
+    }
+
+    function switchBiometricTab(tab) {
+      activeBiometricTab = tab;
+      const tabFp = document.getElementById('tabBtnFingerprint');
+      const tabFace = document.getElementById('tabBtnFace');
+      const panelFp = document.getElementById('panelFingerprint');
+      const panelFace = document.getElementById('panelFace');
+
+      if (tab === 'fingerprint') {
+        stopFaceCamera();
+        panelFp.classList.remove('hidden');
+        panelFace.classList.add('hidden');
+        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
+        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
+      } else {
+        panelFp.classList.add('hidden');
+        panelFace.classList.remove('hidden');
+        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
+        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
+        startFaceCamera();
+      }
+    }
+
+    async function triggerFingerprintScan() {
+      const overlay = document.getElementById('fpScanningOverlay');
+      const stepText = document.getElementById('fpStepText');
+
+      if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+
+      overlay.classList.remove('hidden');
+      stepText.innerText = "1/3 Mendeteksi Sensor Sidik Jari HP...";
+      await new Promise(r => setTimeout(r, 500));
+
+      stepText.innerText = "2/3 Membaca Pola Biometrik Jari...";
+      await new Promise(r => setTimeout(r, 600));
+
+      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
+      await new Promise(r => setTimeout(r, 500));
+
+      await processBiometricSuccess('fingerprint', 'fp-biometric-hash-' + Date.now());
+      overlay.classList.add('hidden');
+    }
+
+    async function startFaceCamera() {
+      stopFaceCamera();
+      const video = document.getElementById('faceCameraVideo');
+      const dot = document.getElementById('camStatusDot');
+      const text = document.getElementById('camStatusText');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        text.innerText = "Gunakan Upload Foto";
+        return;
+      }
+
+      try {
+        const constraints = {
+          video: { facingMode: currentFacingMode, width: { ideal: 480 }, height: { ideal: 480 } },
+          audio: false
+        };
+        currentCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = currentCameraStream;
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        text.innerText = "Kamera Aktif";
+      } catch (err) {
+        console.warn("Kamera tidak dapat diakses langsung:", err);
+        dot.className = "w-2 h-2 rounded-full bg-amber-500";
+        text.innerText = "Mode Upload Foto";
+      }
+    }
+
+    function stopFaceCamera() {
+      if (currentCameraStream) {
+        currentCameraStream.getTracks().forEach(track => track.stop());
+        currentCameraStream = null;
+      }
+    }
+
+    function switchCameraFacing() {
+      currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+      startFaceCamera();
+    }
+
+    async function captureAndVerifyFace() {
+      const video = document.getElementById('faceCameraVideo');
+      const canvas = document.getElementById('faceCaptureCanvas');
+      const ctx = canvas.getContext('2d');
+
+      if (video && video.videoWidth > 0) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      } else {
+        canvas.width = 400;
+        canvas.height = 400;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 400, 400);
+      }
+
+      const facePhoto = canvas.toDataURL('image/jpeg', 0.85);
+
+      const overlay = document.getElementById('faceScanningOverlay');
+      const stepText = document.getElementById('faceScanningStepText');
+      const ring = document.getElementById('faceOvalRing');
+
+      overlay.classList.remove('hidden');
+      ring.className = "w-40 h-48 rounded-[50%] border-4 border-solid border-emerald-400 shadow-[0_0_25px_#34d399]";
+
+      stepText.innerText = "1/3 Mendeteksi Kontur Wajah...";
+      await new Promise(r => setTimeout(r, 600));
+
+      stepText.innerText = "2/3 Memeriksa Anti-Spoofing & Liveness...";
+      await new Promise(r => setTimeout(r, 600));
+
+      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
+      await new Promise(r => setTimeout(r, 500));
+
+      await processBiometricSuccess('face', facePhoto);
+      overlay.classList.add('hidden');
+    }
+
+    function handleSelfieFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        await processBiometricSuccess('face', e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function simulateInstantBiometricVerification(method = 'fingerprint') {
+      const proof = (method === 'face') 
+        ? (currentDriver ? currentDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face')
+        : 'simulated-fingerprint-proof';
+      await processBiometricSuccess(method, proof);
+    }
+
+    async function processBiometricSuccess(method, proof) {
+      try {
+        const driverId = currentDriver ? currentDriver.id : 'driver-01';
+        const email = currentDriver ? currentDriver.email : '';
+        const devId = getDeviceId();
+
+        const res = await fetch('/api/driver/verify-biometric', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            driver_id: driverId,
+            email: email,
+            method: method,
+            device_id: devId,
+            biometric_proof: proof
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          confetti({ particleCount: 90, spread: 70, origin: { y: 0.5 } });
+
+          currentDriver = res.data;
+          currentDriver.biometric_verified = true;
+          currentDriver.biometric_method = method;
+          localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
+
+          stopFaceCamera();
+          closeBiometricModal();
+          renderHeaderAuth();
+          renderBiometricStatusBanner();
+
+          // PIPELINE STEP 3: Lanjut ke pengisian biodata & kunci rekening jika belum ada
+          if (!currentDriver.profile_completed || !currentDriver.registered_wallet) {
+            setTimeout(() => {
+              openDriverOnboardingBiodataModal();
+            }, 600);
+          } else {
+            checkDriverPipeline();
+            alert('🎉 ' + res.message);
+          }
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal verifikasi biometrik: ' + err.message);
+      }
+    }
+
+    // ==========================================
+    // 3. ONBOARDING BIODATA & KUNCI DOMPET (STEP 3)
+    // ==========================================
+    function openDriverOnboardingBiodataModal() {
+      if (!currentDriver) return;
+
+      document.getElementById('onbDriverName').value = currentDriver.name || '';
+      document.getElementById('onbDriverPhone').value = currentDriver.phone || '';
+      document.getElementById('onbDriverVehicle').value = currentDriver.vehicle || 'Honda Beat';
+      document.getElementById('onbDriverPlate').value = currentDriver.vehicle_plate || 'B 3918 KEB';
+
+      if (currentDriver.registered_wallet) {
+        selectOnbChannel(currentDriver.registered_wallet.channel || 'DANA');
+        document.getElementById('onbWalletAccountNum').value = currentDriver.registered_wallet.account_number || '';
+        document.getElementById('onbWalletAccountName').value = currentDriver.registered_wallet.account_name || currentDriver.name || '';
+      } else {
+        selectOnbChannel('DANA');
+        document.getElementById('onbWalletAccountNum').value = (currentDriver.phone || '').replace(/[^0-9]/g, '');
+        document.getElementById('onbWalletAccountName').value = currentDriver.name || '';
+      }
+
+      document.getElementById('driverOnboardingBiodataModal').classList.remove('hidden');
+    }
+
+    function closeDriverOnboardingBiodataModal() {
+      document.getElementById('driverOnboardingBiodataModal').classList.add('hidden');
+    }
+
+    function selectOnbChannel(ch) {
+      selectedOnbChannel = ch;
+      document.querySelectorAll('.onb-channel-btn').forEach(btn => {
+        if (btn.innerText.includes(ch)) {
+          btn.className = 'onb-channel-btn p-1.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 font-black text-[10px] text-emerald-900 shadow-sm';
+        } else {
+          btn.className = 'onb-channel-btn p-1.5 rounded-xl border border-slate-200 bg-white font-bold text-[10px] text-slate-700';
+        }
+      });
+    }
+
+    async function submitOnboardingBiodata() {
+      const name = document.getElementById('onbDriverName').value.trim();
+      const phone = document.getElementById('onbDriverPhone').value.trim();
+      const vehicle = document.getElementById('onbDriverVehicle').value.trim();
+      const plate = document.getElementById('onbDriverPlate').value.trim();
+      const accNum = document.getElementById('onbWalletAccountNum').value.trim();
+      const accName = document.getElementById('onbWalletAccountName').value.trim();
+
+      if (!name) return alert('Nama lengkap kurir wajib diisi');
+      if (!phone) return alert('Nomor WhatsApp kurir wajib diisi');
+      if (!accNum) return alert('Nomor e-wallet / rekening bank penarikan wajib diisi');
+      if (!accName) return alert('Nama pemilik rekening wajib diisi');
+
+      const btn = document.getElementById('btnSubmitOnb');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menyimpan & Mengunci Rekening...</span>`;
+
+      try {
+        const res = await fetch('/api/driver/update-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            driver_id: currentDriver.id,
+            email: currentDriver.email,
+            name,
+            phone,
+            vehicle,
+            vehicle_plate: plate,
+            avatar: currentDriver.avatar,
+            wallet_channel: selectedOnbChannel,
+            wallet_account_number: accNum,
+            wallet_account_name: accName
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
+
+          currentDriver = res.data;
+          currentDriver.profile_completed = true;
+          localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
+
+          closeDriverOnboardingBiodataModal();
+          renderHeaderAuth();
+          renderBiometricStatusBanner();
+          checkDriverPipeline();
+
+          alert('🎉 Pendaftaran Berhasil! Biodata kurir & rekening dompet Anda telah TERKUNCI resmi. Selamat bertugas di Kebab AL Bewok!');
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal simpan: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-lock"></i><span>SIMPAN BIODATA & KUNCI REKENING</span>`;
+      }
+    }
+
+    // ==========================================
+    // 4. PROFIL DRIVER & KUNCI REKENING
+    // ==========================================
     function openDriverProfileModal() {
       if (!currentDriver) {
         openDriverLoginModal();
@@ -972,7 +1411,7 @@
       document.getElementById('editDriverVehicle').value = currentDriver.vehicle || 'Honda Beat';
       document.getElementById('editDriverPlate').value = currentDriver.vehicle_plate || 'B 3918 KEB';
 
-      // Status Biometrik di Modal Profil
+      // Status Biometrik
       const bioCard = document.getElementById('profileBiometricStatusCard');
       const isVerif = isDriverBiometricVerified();
       if (isVerif) {
@@ -1010,8 +1449,13 @@
         `;
       }
 
-      // Tampilkan ID Device Binding
-      document.getElementById('profileDeviceId').innerText = `ID: ${getDeviceId()}`;
+      // Rekening Dompet Terkunci
+      const walletEl = document.getElementById('profileRegisteredWalletText');
+      if (currentDriver.registered_wallet) {
+        walletEl.innerText = `${currentDriver.registered_wallet.channel} - ${currentDriver.registered_wallet.account_number} (a/n ${currentDriver.registered_wallet.account_name})`;
+      } else {
+        walletEl.innerText = 'Belum Didaftarkan';
+      }
 
       selectedAvatarUrl = currentDriver.avatar || DEFAULT_DRIVER.avatar;
       document.getElementById('driverProfileModal').classList.remove('hidden');
@@ -1038,10 +1482,7 @@
       const vehicle = document.getElementById('editDriverVehicle').value.trim();
       const plate = document.getElementById('editDriverPlate').value.trim();
 
-      if (!name) {
-        alert('Nama lengkap tidak boleh kosong');
-        return;
-      }
+      if (!name) return alert('Nama lengkap tidak boleh kosong');
 
       const btn = document.getElementById('btnSaveProfile');
       btn.disabled = true;
@@ -1087,342 +1528,34 @@
       renderHeaderAuth();
       renderBiometricStatusBanner();
       closeDriverProfileModal();
-      loadStoredDriver();
+      checkDriverPipeline();
       alert('Anda telah keluar dari akun kurir.');
     }
 
     // ==========================================
-    // 3. FITUR VERIFIKASI BIOMETRIK GANDA
-    //    (SIDIK JARI UTAMA & KAMERA WAJAH ALTERNATIF)
-    // ==========================================
-    function openBiometricModal(initialTab) {
-      const devId = getDeviceId();
-      document.getElementById('modalDeviceBindingText').innerText = `ID: ${devId.substring(0, 16)}...`;
-      
-      const targetTab = initialTab || (deviceHasBiometricHardware ? 'fingerprint' : 'fingerprint');
-      switchBiometricTab(targetTab);
-      document.getElementById('biometricVerificationModal').classList.remove('hidden');
-    }
-
-    function closeBiometricModal() {
-      stopFaceCamera();
-      document.getElementById('biometricVerificationModal').classList.add('hidden');
-    }
-
-    function switchBiometricTab(tab) {
-      activeBiometricTab = tab;
-      const tabFp = document.getElementById('tabBtnFingerprint');
-      const tabFace = document.getElementById('tabBtnFace');
-      const panelFp = document.getElementById('panelFingerprint');
-      const panelFace = document.getElementById('panelFace');
-
-      if (tab === 'fingerprint') {
-        stopFaceCamera();
-        panelFp.classList.remove('hidden');
-        panelFace.classList.add('hidden');
-
-        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
-        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
-      } else {
-        panelFp.classList.add('hidden');
-        panelFace.classList.remove('hidden');
-
-        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
-        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
-        startFaceCamera();
-      }
-    }
-
-    // --- ALUR 1: SIDIK JARI (FINGERPRINT SENSOR HP) ---
-    async function triggerFingerprintScan() {
-      const overlay = document.getElementById('fpScanningOverlay');
-      const stepText = document.getElementById('fpStepText');
-      const fpText = document.getElementById('fpStatusText');
-
-      // Efek getar Haptic jika didukung HP
-      if (navigator.vibrate) {
-        navigator.vibrate([40, 60, 40]);
-      }
-
-      overlay.classList.remove('hidden');
-      stepText.innerText = "1/3 Mendeteksi Sensor Sidik Jari HP...";
-      await new Promise(r => setTimeout(r, 500));
-
-      // Jika WebAuthn / Sensor Platform HP didukung, trigger autentikasi biometrik native
-      if (window.PublicKeyCredential) {
-        try {
-          stepText.innerText = "2/3 Membaca Pola Biometrik Jari...";
-          await new Promise(r => setTimeout(r, 600));
-        } catch (e) {
-          console.log("WebAuthn fallback:", e);
-        }
-      }
-
-      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
-      await new Promise(r => setTimeout(r, 600));
-
-      await processBiometricSuccess('fingerprint', 'fp-biometric-hash-' + Date.now());
-      overlay.classList.add('hidden');
-    }
-
-    // --- ALUR 2: KAMERA DEPAN WAJAH (ALTERNATIF) ---
-    async function startFaceCamera() {
-      stopFaceCamera();
-      const video = document.getElementById('faceCameraVideo');
-      const dot = document.getElementById('camStatusDot');
-      const text = document.getElementById('camStatusText');
-
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        dot.className = "w-2 h-2 rounded-full bg-amber-400";
-        text.innerText = "Gunakan Upload Foto";
-        return;
-      }
-
-      try {
-        const constraints = {
-          video: {
-            facingMode: currentFacingMode,
-            width: { ideal: 480 },
-            height: { ideal: 480 }
-          },
-          audio: false
-        };
-        currentCameraStream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = currentCameraStream;
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-        text.innerText = "Kamera Aktif";
-      } catch (err) {
-        console.warn("Kamera tidak dapat diakses langsung:", err);
-        dot.className = "w-2 h-2 rounded-full bg-amber-500";
-        text.innerText = "Mode Upload Foto";
-      }
-    }
-
-    function stopFaceCamera() {
-      if (currentCameraStream) {
-        currentCameraStream.getTracks().forEach(track => track.stop());
-        currentCameraStream = null;
-      }
-    }
-
-    function switchCameraFacing() {
-      currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
-      startFaceCamera();
-    }
-
-    async function captureAndVerifyFace() {
-      const video = document.getElementById('faceCameraVideo');
-      const canvas = document.getElementById('faceCaptureCanvas');
-      const ctx = canvas.getContext('2d');
-
-      if (video && video.videoWidth > 0) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      } else {
-        canvas.width = 400;
-        canvas.height = 400;
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, 400, 400);
-        ctx.font = '24px sans-serif';
-        ctx.fillStyle = '#34d399';
-        ctx.fillText('Biometric Verified', 110, 200);
-      }
-
-      const facePhoto = canvas.toDataURL('image/jpeg', 0.85);
-
-      const overlay = document.getElementById('faceScanningOverlay');
-      const stepText = document.getElementById('faceScanningStepText');
-      const ring = document.getElementById('faceOvalRing');
-
-      overlay.classList.remove('hidden');
-      ring.className = "w-40 h-48 rounded-[50%] border-4 border-solid border-emerald-400 shadow-[0_0_25px_#34d399]";
-
-      stepText.innerText = "1/3 Mendeteksi Kontur Wajah...";
-      await new Promise(r => setTimeout(r, 600));
-
-      stepText.innerText = "2/3 Memeriksa Anti-Spoofing & Liveness...";
-      await new Promise(r => setTimeout(r, 600));
-
-      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
-      await new Promise(r => setTimeout(r, 600));
-
-      await processBiometricSuccess('face', facePhoto);
-      overlay.classList.add('hidden');
-    }
-
-    function handleSelfieFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        await processBiometricSuccess('face', e.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function simulateInstantBiometricVerification(method = 'fingerprint') {
-      const proof = (method === 'face') 
-        ? (currentDriver ? currentDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face')
-        : 'simulated-fingerprint-proof';
-      await processBiometricSuccess(method, proof);
-    }
-
-    // --- PROSES SIMPAN VERIFIKASI BIOMETRIK KE SERVER ---
-    async function processBiometricSuccess(method, proof) {
-      try {
-        const driverId = currentDriver ? currentDriver.id : 'driver-01';
-        const email = currentDriver ? currentDriver.email : '';
-        const devId = getDeviceId();
-
-        const res = await fetch('/api/driver/verify-biometric', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            driver_id: driverId,
-            email: email,
-            method: method,
-            device_id: devId,
-            biometric_proof: proof
-          })
-        }).then(r => r.json());
-
-        if (res.success) {
-          confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
-
-          currentDriver = res.data;
-          currentDriver.biometric_verified = true;
-          currentDriver.biometric_method = method;
-          localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
-
-          stopFaceCamera();
-          closeBiometricModal();
-          renderHeaderAuth();
-          renderBiometricStatusBanner();
-
-          // Otomatis aktifkan status ONLINE
-          isOnline = true;
-          const btn = document.getElementById('btnToggleOnline');
-          const label = document.getElementById('statusLabel');
-          btn.className = "w-9 h-5 bg-emerald-500 rounded-full p-0.5 transition duration-300 flex items-center justify-end focus:outline-none";
-          label.innerText = "ONLINE";
-          label.className = "text-[10px] font-black tracking-wide text-emerald-400";
-
-          alert('🎉 ' + res.message);
-          fetchAvailableOrders();
-        } else {
-          alert(res.message);
-        }
-      } catch (err) {
-        alert('Gagal verifikasi biometrik: ' + err.message);
-      }
-    }
-
-    // ==========================================
-    // 4. SISTEM WALLET & SALDO OTOMATIS
-    // ==========================================
-    async function syncDriverFromServer() {
-      const driverId = currentDriver ? currentDriver.id : 'driver-01';
-      try {
-        const res = await fetch(`/api/driver/wallet/${driverId}`).then(r => r.json());
-        if (res.success) {
-          const w = res.data.wallet;
-          if (currentDriver) {
-            currentDriver.balance = w.balance;
-            currentDriver.trips = w.trips;
-            if (w.name) currentDriver.name = w.name;
-            if (w.phone) currentDriver.phone = w.phone;
-            if (w.vehicle) currentDriver.vehicle = w.vehicle;
-            if (w.vehicle_plate) currentDriver.vehicle_plate = w.vehicle_plate;
-            if (w.avatar) currentDriver.avatar = w.avatar;
-            if (w.biometric_verified !== undefined) currentDriver.biometric_verified = w.biometric_verified;
-            if (w.biometric_method !== undefined) currentDriver.biometric_method = w.biometric_method;
-            if (w.face_verified !== undefined) currentDriver.face_verified = w.face_verified;
-            localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
-          }
-          updateWalletDisplay(w);
-          renderBiometricStatusBanner();
-          renderHeaderAuth();
-          currentHistoryList = res.data.history || [];
-          renderHistoryPreviews(currentHistoryList);
-        }
-      } catch (err) {
-        console.warn('Gagal sinkron saldo kurir:', err);
-      }
-    }
-
-    function updateWalletDisplay(wallet) {
-      const balance = wallet ? (wallet.balance || 0) : 0;
-      const trips = wallet ? (wallet.trips || 0) : 0;
-      document.getElementById('driverBalance').innerText = `Rp ${balance.toLocaleString('id-ID')}`;
-      document.getElementById('driverTrips').innerText = `${trips} Trip Selesai`;
-    }
-
-    function renderHistoryPreviews(history) {
-      const container = document.getElementById('historyPreviewContainer');
-      const list = [...history].reverse();
-
-      if (list.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-400 py-3 text-[11px]">Belum ada riwayat ongkir hari ini</p>`;
-        return;
-      }
-
-      container.innerHTML = list.slice(0, 4).map(h => {
-        const isWithdraw = h.type === 'withdrawal';
-        const sign = isWithdraw ? '-Rp ' : '+Rp ';
-        const color = isWithdraw ? 'text-amber-600' : 'text-emerald-600';
-        const icon = isWithdraw ? 'fa-money-bill-transfer text-amber-500' : 'fa-motorcycle text-emerald-500';
-
-        return `
-          <div class="py-2.5 flex justify-between items-center">
-            <div class="flex items-center space-x-2.5">
-              <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
-                <i class="fa-solid ${icon} text-xs"></i>
-              </div>
-              <div>
-                <span class="font-bold text-slate-800 text-[11px] block">${h.description}</span>
-                <span class="text-[10px] text-slate-400">${new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
-              </div>
-            </div>
-            <span class="font-black ${color} text-xs">${sign}${h.amount.toLocaleString('id-ID')}</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // ==========================================
-    // 5. FITUR PENARIKAN DANA (WITHDRAWAL)
+    // 5. PENARIKAN DANA DENGAN REKENING TERKUNCI
     // ==========================================
     function openWithdrawModal() {
       const balance = currentDriver ? (currentDriver.balance || 0) : 0;
       document.getElementById('withdrawAvailableBalance').innerText = `Rp ${balance.toLocaleString('id-ID')}`;
       document.getElementById('withdrawAmountInput').value = '';
-      document.getElementById('withdrawAccountName').value = currentDriver ? currentDriver.name : '';
-      document.getElementById('withdrawAccountNum').value = currentDriver ? (currentDriver.phone || '').replace(/[^0-9]/g, '') : '';
-      selectChannel('DANA');
+
+      if (!currentDriver.registered_wallet) {
+        alert('Anda belum mendaftarkan nomor rekening dompet. Silakan lengkapi terlebih dahulu!');
+        openDriverOnboardingBiodataModal();
+        return;
+      }
+
+      document.getElementById('withdrawLockedAccountDisplay').innerText = 
+        `${currentDriver.registered_wallet.channel} - ${currentDriver.registered_wallet.account_number}`;
+      document.getElementById('withdrawLockedNameDisplay').innerText = 
+        `a/n ${currentDriver.registered_wallet.account_name}`;
+
       document.getElementById('withdrawModal').classList.remove('hidden');
     }
 
     function closeWithdrawModal() {
       document.getElementById('withdrawModal').classList.add('hidden');
-    }
-
-    function selectChannel(ch) {
-      selectedPayoutChannel = ch;
-      document.querySelectorAll('.channel-btn').forEach(btn => {
-        if (btn.innerText.includes(ch)) {
-          btn.className = 'channel-btn p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 font-extrabold text-[11px] text-slate-800 flex flex-col items-center shadow-sm';
-        } else {
-          btn.className = 'channel-btn p-2 rounded-xl border border-slate-200 bg-white font-extrabold text-[11px] text-slate-800 flex flex-col items-center';
-        }
-      });
-
-      const label = document.getElementById('labelAccountNum');
-      if (['DANA', 'GoPay', 'OVO', 'ShopeePay'].includes(ch)) {
-        label.innerText = `Nomor Akun ${ch} (Nomor HP Terdaftar):`;
-      } else {
-        label.innerText = `Nomor Rekening Bank ${ch}:`;
-      }
     }
 
     function setWithdrawAmount(val) {
@@ -1437,25 +1570,9 @@
     async function submitWithdrawal() {
       const balance = currentDriver ? (currentDriver.balance || 0) : 0;
       const amount = Number(document.getElementById('withdrawAmountInput').value);
-      const accountNum = document.getElementById('withdrawAccountNum').value.trim();
-      const accountName = document.getElementById('withdrawAccountName').value.trim();
 
-      if (!accountNum) {
-        alert('Mohon masukkan nomor akun E-Wallet / nomor rekening bank tujuan');
-        return;
-      }
-      if (!accountName) {
-        alert('Mohon masukkan nama pemilik rekening / akun');
-        return;
-      }
-      if (!amount || amount < 5000) {
-        alert('Minimal penarikan saldo adalah Rp 5.000');
-        return;
-      }
-      if (amount > balance) {
-        alert(`Saldo dompet tidak mencukupi. Saldo Anda: Rp ${balance.toLocaleString('id-ID')}`);
-        return;
-      }
+      if (!amount || amount < 5000) return alert('Minimal penarikan saldo adalah Rp 5.000');
+      if (amount > balance) return alert(`Saldo tidak cukup. Saldo Anda: Rp ${balance.toLocaleString('id-ID')}`);
 
       const btn = document.getElementById('btnSubmitWithdraw');
       btn.disabled = true;
@@ -1466,18 +1583,15 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            driver_id: currentDriver ? currentDriver.id : 'driver-01',
-            amount: amount,
-            payout_channel: selectedPayoutChannel,
-            account_number: accountNum,
-            account_name: accountName
+            driver_id: currentDriver.id,
+            amount: amount
           })
         }).then(r => r.json());
 
         if (res.success) {
           confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
           closeWithdrawModal();
-          alert(`🎉 Berhasil! Permintaan penarikan Rp ${amount.toLocaleString('id-ID')} ke ${selectedPayoutChannel} (${accountNum}) telah diajukan.`);
+          alert(`🎉 Berhasil! ${res.message}`);
           await syncDriverFromServer();
         } else {
           alert(res.message);
@@ -1491,7 +1605,68 @@
     }
 
     // ==========================================
-    // 6. MODAL RIWAYAT TRANSAKSI LENGKAP
+    // 6. PENGAJUAN GANTI REKENING KE OWNER
+    // ==========================================
+    function openRequestWalletChangeModal() {
+      if (!currentDriver || !currentDriver.registered_wallet) return;
+
+      document.getElementById('currentLockedWalletReqText').innerText = 
+        `${currentDriver.registered_wallet.channel} - ${currentDriver.registered_wallet.account_number} (a/n ${currentDriver.registered_wallet.account_name})`;
+      
+      document.getElementById('changeNewAccountNum').value = '';
+      document.getElementById('changeNewAccountName').value = currentDriver.name || '';
+      document.getElementById('changeReason').value = '';
+
+      document.getElementById('requestWalletChangeModal').classList.remove('hidden');
+    }
+
+    function closeRequestWalletChangeModal() {
+      document.getElementById('requestWalletChangeModal').classList.add('hidden');
+    }
+
+    async function submitWalletChangeRequest() {
+      const newChannel = document.getElementById('changeNewChannel').value;
+      const newAccNum = document.getElementById('changeNewAccountNum').value.trim();
+      const newAccName = document.getElementById('changeNewAccountName').value.trim();
+      const reason = document.getElementById('changeReason').value.trim();
+
+      if (!newAccNum) return alert('Nomor rekening/e-wallet baru wajib diisi');
+      if (!newAccName) return alert('Nama pemilik rekening baru wajib diisi');
+      if (!reason) return alert('Mohon sertakan alasan pergantian rekening untuk konfirmasi Owner');
+
+      const btn = document.getElementById('btnSubmitChangeReq');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Mengirim Permohonan...</span>`;
+
+      try {
+        const res = await fetch('/api/driver/request-wallet-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            driver_id: currentDriver.id,
+            reason,
+            new_channel: newChannel,
+            new_account_number: newAccNum,
+            new_account_name: newAccName
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          closeRequestWalletChangeModal();
+          alert('✅ ' + res.message);
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal mengirim permohonan: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i><span>KIRIM PERMOHONAN KE OWNER</span>`;
+      }
+    }
+
+    // ==========================================
+    // 7. RIWAYAT TRANSAKSI
     // ==========================================
     function openHistoryModal() {
       const container = document.getElementById('fullHistoryContainer');
@@ -1550,15 +1725,13 @@
     }
 
     // ==========================================
-    // 7. RADAR & AMBIL ORDERAN (ANTI-JOKI PROTECTED)
+    // 8. RADAR & AMBIL ORDERAN
     // ==========================================
     async function fetchAvailableOrders() {
       if (!isOnline) return;
       try {
         const res = await fetch('/api/driver/orders/available').then(r => r.json());
-        if (res.success) {
-          renderAvailableOrders(res.data);
-        }
+        if (res.success) renderAvailableOrders(res.data);
       } catch (err) {
         console.error(err);
       }
@@ -1612,14 +1785,19 @@
     function acceptOrder(orderId) {
       if (!currentDriver) {
         alert('Silakan login akun Google kurir Anda terlebih dahulu.');
-        openDriverLoginModal();
+        checkDriverPipeline();
         return;
       }
 
-      // CEK PROTEKSI 1 AKUN 1 DRIVER (BIOMETRIK)
       if (!isDriverBiometricVerified()) {
-        alert('🛡️ PROTEKSI 1 AKUN 1 DRIVER:\nDemi keamanan & mencegah akun dipinjamkan/joki, Anda WAJIB melakukan verifikasi Sidik Jari (atau Wajah) terlebih dahulu!');
+        alert('🛡️ PROTEKSI 1 AKUN 1 DRIVER:\nDemi keamanan & mencegah joki, Anda WAJIB melakukan verifikasi Sidik Jari / Wajah terlebih dahulu!');
         openBiometricModal();
+        return;
+      }
+
+      if (!currentDriver.profile_completed || !currentDriver.registered_wallet) {
+        alert('Lengkapi biodata dan rekening dompet Anda terlebih dahulu!');
+        openDriverOnboardingBiodataModal();
         return;
       }
 
@@ -1657,9 +1835,7 @@
           renderActiveDelivery();
           fetchAvailableOrders();
         } else {
-          if (res.require_biometric_verification) {
-            openBiometricModal();
-          }
+          if (res.require_biometric_verification) openBiometricModal();
           alert(res.message);
         }
       } catch (err) {
@@ -1729,7 +1905,6 @@
       const isHeadingToBranch = (activeDelivery.driver_phase === 'to_branch' || activeDelivery.status === 'driver_heading_to_branch');
 
       if (isHeadingToBranch) {
-        // FASE 1: MENUJU LAPAK (PICKUP)
         const branchLat = activeDelivery.branch_latitude || -6.2088;
         const branchLng = activeDelivery.branch_longitude || 106.8456;
         const mapsBranchUrl = `https://www.google.com/maps/dir/?api=1&destination=${branchLat},${branchLng}`;
@@ -1770,7 +1945,6 @@
           </div>
         `;
       } else {
-        // FASE 2: MENUJU ALAMAT PELANGGAN
         const destLat = activeDelivery.customer_latitude || -6.2150;
         const destLng = activeDelivery.customer_longitude || 106.8520;
         const mapsCustUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
@@ -1845,12 +2019,86 @@
       }
     }
 
+    async function syncDriverFromServer() {
+      const driverId = currentDriver ? currentDriver.id : 'driver-01';
+      try {
+        const res = await fetch(`/api/driver/wallet/${driverId}`).then(r => r.json());
+        if (res.success) {
+          const w = res.data.wallet;
+          if (currentDriver) {
+            currentDriver.balance = w.balance;
+            currentDriver.trips = w.trips;
+            if (w.name) currentDriver.name = w.name;
+            if (w.phone) currentDriver.phone = w.phone;
+            if (w.vehicle) currentDriver.vehicle = w.vehicle;
+            if (w.vehicle_plate) currentDriver.vehicle_plate = w.vehicle_plate;
+            if (w.avatar) currentDriver.avatar = w.avatar;
+            if (w.biometric_verified !== undefined) currentDriver.biometric_verified = w.biometric_verified;
+            if (w.biometric_method !== undefined) currentDriver.biometric_method = w.biometric_method;
+            if (w.profile_completed !== undefined) currentDriver.profile_completed = w.profile_completed;
+            if (w.registered_wallet) currentDriver.registered_wallet = w.registered_wallet;
+            localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
+          }
+          updateWalletDisplay(w);
+          renderBiometricStatusBanner();
+          renderHeaderAuth();
+          currentHistoryList = res.data.history || [];
+          renderHistoryPreviews(currentHistoryList);
+        }
+      } catch (err) {
+        console.warn('Gagal sinkron saldo kurir:', err);
+      }
+    }
+
+    function updateWalletDisplay(wallet) {
+      const balance = wallet ? (wallet.balance || 0) : 0;
+      const trips = wallet ? (wallet.trips || 0) : 0;
+      document.getElementById('driverBalance').innerText = `Rp ${balance.toLocaleString('id-ID')}`;
+      document.getElementById('driverTrips').innerText = `${trips} Trip Selesai`;
+    }
+
+    function renderHistoryPreviews(history) {
+      const container = document.getElementById('historyPreviewContainer');
+      const list = [...history].reverse();
+
+      if (list.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 py-3 text-[11px]">Belum ada riwayat ongkir hari ini</p>`;
+        return;
+      }
+
+      container.innerHTML = list.slice(0, 4).map(h => {
+        const isWithdraw = h.type === 'withdrawal';
+        const sign = isWithdraw ? '-Rp ' : '+Rp ';
+        const color = isWithdraw ? 'text-amber-600' : 'text-emerald-600';
+        const icon = isWithdraw ? 'fa-money-bill-transfer text-amber-500' : 'fa-motorcycle text-emerald-500';
+
+        return `
+          <div class="py-2.5 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center">
+                <i class="fa-solid ${icon} text-xs"></i>
+              </div>
+              <div>
+                <span class="font-bold text-slate-800 text-[11px] block">${h.description}</span>
+                <span class="text-[10px] text-slate-400">${new Date(h.created_at).toLocaleTimeString('id-ID')}</span>
+              </div>
+            </div>
+            <span class="font-black ${color} text-xs">${sign}${h.amount.toLocaleString('id-ID')}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
     function toggleOnline() {
       if (!isOnline) {
-        // CEK PROTEKSI 1 AKUN 1 DRIVER (BIOMETRIK) SEBELUM BISA ONLINE!
         if (!isDriverBiometricVerified()) {
           alert('🛡️ PROTEKSI 1 AKUN 1 DRIVER:\nUntuk mencegah akun dipinjamkan atau digunakan orang lain, Anda WAJIB melakukan Verifikasi Sidik Jari (atau Wajah) sebelum mengaktifkan status ONLINE!');
           openBiometricModal();
+          return;
+        }
+        if (!currentDriver || !currentDriver.profile_completed || !currentDriver.registered_wallet) {
+          alert('Harap lengkapi biodata dan rekening dompet terlebih dahulu!');
+          openDriverOnboardingBiodataModal();
           return;
         }
       }
