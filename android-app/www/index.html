@@ -24,6 +24,9 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <!-- GOOGLE IDENTITY SERVICES (GSI) - AUTENTIKASI RESMI GOOGLE OAUTH 2.0 -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -92,24 +95,52 @@
 
     <!-- GOOGLE LOGIN SECTION -->
     <div class="space-y-3 max-w-xs mx-auto w-full">
+      
+      <!-- 1. RESMI: GOOGLE IDENTITY SERVICES (ACCOUNTS.GOOGLE.COM) -->
+      <div class="bg-slate-900/90 border border-amber-400/30 p-3 rounded-2xl text-center space-y-2 shadow-lg">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider flex items-center space-x-1.5">
+            <i class="fa-brands fa-google text-red-500"></i>
+            <span>Google Identity Resmi:</span>
+          </span>
+          <button onclick="openGoogleConfigModal()" class="text-[9px] text-amber-400 hover:text-white underline font-bold flex items-center space-x-1" title="Atur Google Client ID">
+            <i class="fa-solid fa-gear"></i>
+            <span>Atur Client ID</span>
+          </button>
+        </div>
+
+        <!-- Wadah Tombol Asli Google (Dirender oleh accounts.google.com) -->
+        <div id="gsiButtonCustomerCover" class="flex justify-center min-h-[44px] items-center">
+          <div class="text-[10px] text-slate-400 animate-pulse">Menghubungkan ke Google Identity...</div>
+        </div>
+        <div id="gsiStatusCustomerCover" class="text-[9px] text-slate-400"></div>
+      </div>
+
+      <!-- PEMBATAS / PILIHAN PENGUJIAN -->
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-slate-700"></div>
+        <span class="flex-shrink mx-2 text-[10px] text-slate-400 uppercase font-black tracking-wider">Atau Akses Cepat Dev</span>
+        <div class="flex-grow border-t border-slate-700"></div>
+      </div>
+
       <!-- 1-Click Fast Login -->
-      <button onclick="loginGoogleFast('muhammadinsanrachmady@gmail.com', 'Muhammad Insan Rachmady')" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-3 px-4 rounded-2xl flex items-center justify-between text-xs shadow-xl active:scale-95 transition border border-slate-200 group">
+      <button onclick="loginGoogleFast('muhammadinsanrachmady@gmail.com', 'Muhammad Insan Rachmady')" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-2.5 px-3.5 rounded-2xl flex items-center justify-between text-xs shadow-xl active:scale-95 transition border border-slate-200 group">
         <div class="flex items-center space-x-2.5 truncate">
           <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
           <div class="text-left truncate">
-            <span class="block font-black text-slate-900 group-hover:text-red-600 truncate">Muhammad Insan Rachmady</span>
-            <span class="block text-[10px] text-slate-500 font-mono truncate">rachmadyinsan@gmail.com</span>
+            <span class="block font-black text-slate-900 group-hover:text-red-600 truncate text-[11px]">Muhammad Insan Rachmady</span>
+            <span class="block text-[9px] text-slate-500 font-mono truncate">rachmadyinsan@gmail.com</span>
           </div>
         </div>
-        <i class="fa-solid fa-arrow-right text-slate-400 group-hover:text-red-600 text-xs"></i>
+        <span class="bg-amber-100 text-amber-800 text-[8px] font-black px-1.5 py-0.5 rounded ml-1 shrink-0">1-KLIK</span>
       </button>
 
       <!-- Atau Custom Google Email -->
-      <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-2xl text-left space-y-2">
-        <span class="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Atau Masuk Akun Google Lainnya:</span>
-        <input type="text" id="coverCustName" placeholder="Nama Lengkap Pemesan" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400 font-bold">
-        <input type="email" id="coverCustEmail" placeholder="nama@gmail.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400">
-        <button onclick="loginGoogleCoverCustom()" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+      <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-2xl text-left space-y-1.5">
+        <span class="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Atau Masuk Gmail Lainnya:</span>
+        <input type="text" id="coverCustName" placeholder="Nama Lengkap" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400 font-bold">
+        <input type="email" id="coverCustEmail" placeholder="nama@gmail.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400">
+        <button onclick="loginGoogleCoverCustom()" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black py-2 rounded-xl text-xs flex items-center justify-center space-x-2 shadow transition active:scale-95">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
           <span>Lanjutkan Masuk Google</span>
         </button>
@@ -661,6 +692,49 @@
       <button type="button" onclick="logoutCustomerFromOnboard()" class="w-full text-center text-[10px] text-slate-400 hover:text-red-500 font-semibold py-1">
         Keluar / Ganti Akun Google
       </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL PENGATURAN GOOGLE CLIENT ID RESMI (OAUTH 2.0)                       -->
+  <!-- ========================================================================= -->
+  <div id="googleConfigModal" class="fixed inset-0 bg-black/85 z-[70] flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-3.5 max-h-[92vh] overflow-y-auto animate-scale-up text-slate-800">
+      <div class="flex items-center justify-between border-b pb-2.5">
+        <div class="flex items-center space-x-2">
+          <i class="fa-brands fa-google text-red-600 text-lg"></i>
+          <h3 class="text-sm font-black text-slate-900">Pengaturan Google OAuth 2.0</h3>
+        </div>
+        <button onclick="closeGoogleConfigModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">✕</button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <p class="text-[11px] text-slate-600 leading-relaxed">
+          Untuk mengaktifkan dialog popup akun resmi dari <strong>accounts.google.com</strong>, masukkan <em>Client ID</em> dari Google Cloud Console:
+        </p>
+
+        <div>
+          <label class="font-extrabold text-slate-700 block mb-1">Google OAuth Client ID:</label>
+          <input type="text" id="inputGoogleClientId" placeholder="Contoh: 123456789-abcdef.apps.googleusercontent.com" class="w-full border rounded-xl p-2.5 text-[11px] bg-slate-50 font-mono outline-none focus:border-red-500">
+        </div>
+
+        <button onclick="saveGoogleClientIdConfig()" id="btnSaveGoogleConfig" class="w-full bg-slate-900 hover:bg-black text-white font-extrabold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>Simpan & Aktifkan Google Sign-In</span>
+        </button>
+
+        <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[10px] text-amber-900 space-y-1">
+          <span class="font-bold block">💡 Cara Buat Google Client ID (100% Gratis):</span>
+          <ol class="list-decimal list-inside space-y-0.5 text-slate-700">
+            <li>Buka <strong>console.cloud.google.com</strong></li>
+            <li>Pilih <strong>APIs & Services</strong> &gt; <strong>Credentials</strong></li>
+            <li>Klik <strong>Create Credentials</strong> &gt; <strong>OAuth client ID</strong></li>
+            <li>Pilih Application type: <strong>Web application</strong></li>
+            <li>Tambahkan URL domain Anda ke <strong>Authorized JavaScript origins</strong></li>
+            <li>Salin Client ID dan tempelkan di atas!</li>
+          </ol>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1323,6 +1397,148 @@
 
     function closeLoginModal() {
       document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    // ==========================================
+    // SISTEM GOOGLE IDENTITY SERVICES (GSI) RESMI
+    // ==========================================
+    let googleClientId = '';
+
+    async function loadGoogleAuthConfig() {
+      try {
+        const res = await fetch('/api/config/auth').then(r => r.json());
+        if (res.success && res.data.google_client_id) {
+          googleClientId = res.data.google_client_id;
+          const inputEl = document.getElementById('inputGoogleClientId');
+          if (inputEl) inputEl.value = googleClientId;
+        }
+      } catch (err) {
+        console.warn('Gagal memuat config auth:', err);
+      }
+      initGoogleIdentityServices();
+    }
+
+    function initGoogleIdentityServices() {
+      const btnContainer = document.getElementById('gsiButtonCustomerCover');
+      const statusEl = document.getElementById('gsiStatusCustomerCover');
+
+      if (!googleClientId) {
+        if (btnContainer) {
+          btnContainer.innerHTML = `
+            <button onclick="openGoogleConfigModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-2 px-3 rounded-full text-xs flex items-center justify-center space-x-2 shadow transition active:scale-95">
+              <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
+              <span>Hubungkan Google Client ID Resmi</span>
+            </button>
+          `;
+        }
+        if (statusEl) {
+          statusEl.innerHTML = `<span class="text-[9px] text-amber-300">💡 Belum terhubung ke Client ID. Klik tombol di atas untuk memasukkan Client ID resmi.</span>`;
+        }
+        return;
+      }
+
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+
+        if (btnContainer) {
+          btnContainer.innerHTML = '';
+          google.accounts.id.renderButton(btnContainer, {
+            type: 'standard',
+            shape: 'pill',
+            theme: 'filled_blue',
+            text: 'signin_with',
+            size: 'large',
+            logo_alignment: 'left',
+            width: 280
+          });
+        }
+
+        if (statusEl) {
+          statusEl.innerHTML = `<span class="text-[9px] text-emerald-300 font-bold">✓ Google Identity Services Terhubung (accounts.google.com)</span>`;
+        }
+      } else {
+        // SDK Google GSI masih dalam proses download, coba lagi dalam 350ms
+        setTimeout(initGoogleIdentityServices, 350);
+      }
+    }
+
+    async function handleGoogleCredentialResponse(response) {
+      if (!response || !response.credential) {
+        alert('Autentikasi Google dibatalkan atau tidak menerima credential.');
+        return;
+      }
+
+      const statusEl = document.getElementById('gsiStatusCustomerCover');
+      if (statusEl) statusEl.innerHTML = `<span class="text-[9px] text-yellow-300 animate-pulse">Memverifikasi token Google ke server...</span>`;
+
+      try {
+        const res = await fetch('/api/auth/google-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        }).then(r => r.json());
+
+        if (res.success) {
+          currentUser = res.data.user;
+          if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
+          localStorage.setItem('kebab_user', JSON.stringify(currentUser));
+          updateUserHeader();
+          closeLoginModal();
+          checkCustomerPipeline();
+          alert(`🎉 ${res.message}`);
+        } else {
+          alert(`⚠️ ${res.message}`);
+          if (statusEl) statusEl.innerHTML = `<span class="text-[9px] text-red-300 font-bold">${res.message}</span>`;
+        }
+      } catch (err) {
+        alert('Gagal memverifikasi token Google ke server.');
+      }
+    }
+
+    function openGoogleConfigModal() {
+      const modal = document.getElementById('googleConfigModal');
+      const input = document.getElementById('inputGoogleClientId');
+      if (input) input.value = googleClientId;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeGoogleConfigModal() {
+      const modal = document.getElementById('googleConfigModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function saveGoogleClientIdConfig() {
+      const input = document.getElementById('inputGoogleClientId');
+      const val = (input ? input.value : '').trim();
+
+      const btn = document.getElementById('btnSaveGoogleConfig');
+      if (btn) btn.innerText = 'Menyimpan...';
+
+      try {
+        const res = await fetch('/api/config/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ google_client_id: val })
+        }).then(r => r.json());
+
+        if (res.success) {
+          googleClientId = val;
+          closeGoogleConfigModal();
+          initGoogleIdentityServices();
+          alert('✓ Konfigurasi Google Client ID berhasil disimpan!');
+        } else {
+          alert(res.message);
+        }
+      } catch (err) {
+        alert('Gagal menyimpan konfigurasi Google.');
+      } finally {
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Simpan & Aktifkan Google Sign-In</span>`;
+      }
     }
 
     async function loginGoogleFast(email, name) {
@@ -2297,6 +2513,7 @@
     async function init() {
       updateUserHeader();
       checkCustomerPipeline(); // Pipeline roadmap: Cover -> Biodata -> Dashboard
+      loadGoogleAuthConfig(); // Load Google Identity Services SDK Client ID
       captureLiveLocation(); // Tangkap lokasi GPS fisik saat webapp dibuka (Gojek / Grab style)
 
       try {

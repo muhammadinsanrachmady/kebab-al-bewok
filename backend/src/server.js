@@ -26,6 +26,7 @@ const MENU_FILE = path.join(DATA_DIR, 'menu.json');
 const BRANCHES_FILE = path.join(DATA_DIR, 'branches.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
+const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 
 // Helper untuk membaca & menulis file JSON (dengan In-Memory Fallback untuk Serverless Cloud seperti Vercel/Render)
 const memoryCache = {};
@@ -81,9 +82,61 @@ if (!fs.existsSync(WALLETS_FILE)) {
 // 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
 // ==========================================
 
-// Login / Registrasi Akun Google (100% Gratis Selamanya)
-app.post('/api/auth/google-login', (req, res) => {
-  const { email, full_name, avatar_url, google_id } = req.body;
+// Konfigurasi Google Client ID (Dapat diatur dinamis / disimpan di auth_config.json)
+app.get('/api/config/auth', (req, res) => {
+  const authConfig = readJSON(AUTH_CONFIG_FILE, { google_client_id: '' });
+  const clientId = process.env.GOOGLE_CLIENT_ID || authConfig.google_client_id || '';
+  res.json({
+    success: true,
+    data: {
+      google_client_id: clientId,
+      is_configured: Boolean(clientId && clientId.length > 10)
+    }
+  });
+});
+
+app.post('/api/config/auth', (req, res) => {
+  const { google_client_id } = req.body;
+  const authConfig = readJSON(AUTH_CONFIG_FILE, { google_client_id: '' });
+  authConfig.google_client_id = (google_client_id || '').trim();
+  authConfig.updated_at = new Date().toISOString();
+  writeJSON(AUTH_CONFIG_FILE, authConfig);
+
+  console.log(`🔑 [AUTH CONFIG UPDATED] Google Client ID set to: ${authConfig.google_client_id ? authConfig.google_client_id.slice(0, 15) + '...' : '(dikosongkan)'}`);
+  res.json({
+    success: true,
+    message: 'Konfigurasi Google Client ID berhasil disimpan!',
+    data: { google_client_id: authConfig.google_client_id }
+  });
+});
+
+// Login / Registrasi Akun Google (Mendukung Real Token JWT Google Identity Services & Mode Cepat)
+app.post('/api/auth/google-login', async (req, res) => {
+  let { credential, email, full_name, avatar_url, google_id } = req.body;
+  let isGoogleVerified = false;
+
+  // Verifikasi Kriptografis Resmi Google jika credential JWT dikirim
+  if (credential) {
+    try {
+      const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+      const gData = await gRes.json();
+      if (gData.error_description || !gData.email) {
+        return res.status(401).json({
+          success: false,
+          message: `Verifikasi Akun Google Gagal: ${gData.error_description || 'Token kedaluwarsa atau tidak valid'}`
+        });
+      }
+      email = gData.email;
+      full_name = gData.name || full_name || email.split('@')[0];
+      avatar_url = gData.picture || avatar_url;
+      google_id = gData.sub;
+      isGoogleVerified = true;
+      console.log(`🔐 [GOOGLE OAUTH VERIFIED] Pelanggan terverifikasi: ${full_name} (${email})`);
+    } catch (err) {
+      console.error('Error saat menghubungi server Google tokeninfo:', err);
+      return res.status(500).json({ success: false, message: 'Gagal menghubungi server verifikasi Google' });
+    }
+  }
 
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email Google diperlukan' });
@@ -110,12 +163,14 @@ app.post('/api/auth/google-login', (req, res) => {
       latitude: null,
       longitude: null,
       auth_provider: 'google',
+      google_verified: isGoogleVerified,
       registered_at: new Date().toISOString()
     };
   } else {
     // Update data Google terbaru & pastikan field rumah/kantor ada
     if (full_name) wallets.customers[email].name = full_name;
     if (avatar_url) wallets.customers[email].avatar = avatar_url;
+    if (isGoogleVerified) wallets.customers[email].google_verified = true;
     if (!wallets.customers[email].home_address && wallets.customers[email].delivery_address) {
       wallets.customers[email].home_address = wallets.customers[email].delivery_address;
       wallets.customers[email].home_latitude = wallets.customers[email].latitude;
@@ -131,9 +186,12 @@ app.post('/api/auth/google-login', (req, res) => {
 
   res.json({
     success: true,
-    message: `Login Google Berhasil! Selamat datang, ${wallets.customers[email].name}.`,
+    message: isGoogleVerified 
+      ? `Autentikasi Google Terverifikasi 100%! Selamat datang, ${wallets.customers[email].name}.`
+      : `Login Google Berhasil! Selamat datang, ${wallets.customers[email].name}.`,
     data: {
       token: `token-google-${email}-${Date.now()}`,
+      verified_by_google: isGoogleVerified,
       user: wallets.customers[email]
     }
   });
@@ -550,9 +608,32 @@ app.post('/api/admin/orders/:id/ready', (req, res) => {
 // 3. ENDPOINTS DRIVER FREELANCE & SALDO OTOMATIS
 // ==========================================
 
-// Login / Registrasi Akun Google Kurir
-app.post('/api/driver/auth/google-login', (req, res) => {
-  const { email, full_name, avatar_url, phone } = req.body;
+// Login / Registrasi Akun Google Kurir (Mendukung Real Token JWT Google Identity Services & Mode Cepat)
+app.post('/api/driver/auth/google-login', async (req, res) => {
+  let { credential, email, full_name, avatar_url, phone } = req.body;
+  let isGoogleVerified = false;
+
+  // Verifikasi Kriptografis Resmi Google jika credential JWT dikirim
+  if (credential) {
+    try {
+      const gRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+      const gData = await gRes.json();
+      if (gData.error_description || !gData.email) {
+        return res.status(401).json({
+          success: false,
+          message: `Verifikasi Akun Google Kurir Gagal: ${gData.error_description || 'Token kedaluwarsa atau tidak valid'}`
+        });
+      }
+      email = gData.email;
+      full_name = gData.name || full_name || email.split('@')[0];
+      avatar_url = gData.picture || avatar_url;
+      isGoogleVerified = true;
+      console.log(`🛵 [GOOGLE OAUTH VERIFIED DRIVER] Kurir terverifikasi: ${full_name} (${email})`);
+    } catch (err) {
+      console.error('Error saat menghubungi server Google tokeninfo driver:', err);
+      return res.status(500).json({ success: false, message: 'Gagal menghubungi server verifikasi Google' });
+    }
+  }
 
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email Google kurir diperlukan' });
@@ -577,21 +658,26 @@ app.post('/api/driver/auth/google-login', (req, res) => {
       trips: 5,
       is_online: true,
       is_verified: true,
+      google_verified: isGoogleVerified,
       registered_at: new Date().toISOString()
     };
     wallets.drivers[driver.id] = driver;
   } else {
     if (full_name) driver.name = full_name;
     if (avatar_url) driver.avatar = avatar_url;
+    if (isGoogleVerified) driver.google_verified = true;
   }
 
   writeJSON(WALLETS_FILE, wallets);
 
   res.json({
     success: true,
-    message: `Login Google Berhasil! Selamat bertugas, Kak ${driver.name}.`,
+    message: isGoogleVerified 
+      ? `Autentikasi Google Terverifikasi 100%! Selamat bertugas, Kak ${driver.name}.`
+      : `Login Google Berhasil! Selamat bertugas, Kak ${driver.name}.`,
     data: {
       token: `token-driver-${driver.id}-${Date.now()}`,
+      verified_by_google: isGoogleVerified,
       driver
     }
   });

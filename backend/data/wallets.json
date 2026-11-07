@@ -101,7 +101,8 @@
       "home_longitude": 106.8456,
       "office_address": "Gedung Cyber 2 Lantai 5, Rasuna Said",
       "office_latitude": -6.225,
-      "office_longitude": 106.831
+      "office_longitude": 106.831,
+      "profile_completed": true
     },
     "testcust@gmail.com": {
       "id": "cust-1794058163424",
@@ -122,6 +123,24 @@
       "registered_at": "2026-11-07T13:29:23.425Z",
       "profile_completed": true,
       "updated_at": "2026-11-07T13:29:23.453Z"
+    },
+    "insanrachmady2@gmail.com": {
+      "id": "cust-1794059765806",
+      "email": "insanrachmady2@gmail.com",
+      "name": "insan",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=insanrachmady2@gmail.com",
+      "whatsapp": "",
+      "home_address": "",
+      "home_latitude": null,
+      "home_longitude": null,
+      "office_address": "",
+      "office_latitude": null,
+      "office_longitude": null,
+      "delivery_address": "",
+      "latitude": null,
+      "longitude": null,
+      "auth_provider": "google",
+      "registered_at": "2026-11-07T13:56:05.806Z"
     }
   },
   "history": [
