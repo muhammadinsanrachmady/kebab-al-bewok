@@ -141,6 +141,29 @@
       "longitude": null,
       "auth_provider": "google",
       "registered_at": "2026-11-07T13:56:05.806Z"
+    },
+    "userpass@gmail.com": {
+      "id": "cust-1794062045312",
+      "email": "userpass@gmail.com",
+      "name": "Rina Permata",
+      "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=userpass@gmail.com",
+      "whatsapp": "6281311223344",
+      "home_address": "Komplek Melati Indah Blok C No 5",
+      "home_latitude": null,
+      "home_longitude": null,
+      "office_address": "",
+      "office_latitude": null,
+      "office_longitude": null,
+      "delivery_address": "Komplek Melati Indah Blok C No 5",
+      "latitude": null,
+      "longitude": null,
+      "auth_provider": "google",
+      "google_verified": false,
+      "registered_at": "2026-11-07T14:34:05.312Z",
+      "password_hash": "3f9f6ce94ce68bbdc8dd46a4fed1fd03818fe1fd7a1520d37d967bb4b59b02d5",
+      "has_password": true,
+      "profile_completed": true,
+      "updated_at": "2026-11-07T14:34:05.426Z"
     }
   },
   "history": [

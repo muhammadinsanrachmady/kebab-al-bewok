@@ -2,6 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+
+function hashPassword(password, salt = 'kebab_al_bewok_secret_salt_2026') {
+  return crypto.createHmac('sha256', salt).update(String(password)).digest('hex');
+}
+
+function normalizePhone(p) {
+  if (!p) return '';
+  let s = String(p).replace(/[^0-9]/g, '');
+  if (s.startsWith('62')) s = s.slice(2);
+  else if (s.startsWith('0')) s = s.slice(1);
+  return s;
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -197,12 +210,13 @@ app.post('/api/auth/google-login', async (req, res) => {
   });
 });
 
-// Update Profil Pelanggan (Nomor WhatsApp & Alamat Pengiriman Rumah & Kantor)
+// Update Profil Pelanggan (Nomor WhatsApp, Alamat Pengiriman & Kata Sandi Akun)
 app.post('/api/customer/update-profile', (req, res) => {
   const {
     email,
     whatsapp,
     full_name,
+    password, // Fitur Kata Sandi Baru
     home_address,
     home_latitude,
     home_longitude,
@@ -227,6 +241,13 @@ app.post('/api/customer/update-profile', (req, res) => {
   if (full_name) cust.name = full_name.trim();
   if (whatsapp) cust.whatsapp = whatsapp.trim();
 
+  // Pengaturan Kata Sandi
+  if (password && typeof password === 'string' && password.trim().length >= 4) {
+    cust.password_hash = hashPassword(password.trim());
+    cust.has_password = true;
+    console.log(`🔑 [KATA SANDI DISIMPAN] Pelanggan ${cust.name} (${cust.email}) telah mengatur password akun.`);
+  }
+
   // Alamat Rumah (Utama)
   if (home_address !== undefined) cust.home_address = home_address.trim();
   if (home_latitude !== undefined) cust.home_latitude = home_latitude;
@@ -249,12 +270,86 @@ app.post('/api/customer/update-profile', (req, res) => {
 
   writeJSON(WALLETS_FILE, wallets);
 
-  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Rumah: ${cust.home_address} | Kantor: ${cust.office_address}`);
+  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Password: ${cust.has_password ? 'YA' : 'TIDAK'} | Rumah: ${cust.home_address}`);
+
+  const safeCust = { ...cust };
+  delete safeCust.password_hash;
 
   res.json({
     success: true,
-    message: 'Profil & alamat tujuan pengantaran berhasil disimpan!',
-    data: cust
+    message: password 
+      ? 'Profil, alamat & kata sandi akun berhasil disimpan!' 
+      : 'Profil & alamat tujuan pengantaran berhasil disimpan!',
+    data: safeCust
+  });
+});
+
+// Login Pelanggan dengan Email / Nomor WhatsApp & Kata Sandi
+app.post('/api/auth/login-password', (req, res) => {
+  const { identifier, password } = req.body;
+
+  if (!identifier || !password) {
+    return res.status(400).json({ success: false, message: 'Email / Nomor WhatsApp dan Kata Sandi wajib diisi' });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.customers) wallets.customers = {};
+
+  const cleanId = identifier.trim().toLowerCase();
+  const normInputPhone = normalizePhone(identifier);
+
+  // Cari user berdasarkan email ATAU nomor whatsapp
+  let targetCust = null;
+
+  // 1. Cari exact match email key
+  if (wallets.customers[cleanId]) {
+    targetCust = wallets.customers[cleanId];
+  } else {
+    // 2. Cari di daftar seluruh pelanggan
+    targetCust = Object.values(wallets.customers).find(c => {
+      if (c.email && c.email.toLowerCase() === cleanId) return true;
+      if (c.whatsapp && normInputPhone && normInputPhone.length >= 7) {
+        const normWa = normalizePhone(c.whatsapp);
+        if (normWa === normInputPhone) return true;
+      }
+      return false;
+    });
+  }
+
+  if (!targetCust) {
+    return res.status(404).json({
+      success: false,
+      message: 'Akun dengan Email atau Nomor WhatsApp tersebut belum terdaftar. Silakan masuk via Google terlebih dahulu.'
+    });
+  }
+
+  if (!targetCust.password_hash) {
+    return res.status(400).json({
+      success: false,
+      message: 'Akun ini belum memiliki kata sandi. Silakan masuk dengan Akun Google terlebih dahulu, lalu atur kata sandi di Profil Anda.'
+    });
+  }
+
+  const incomingHash = hashPassword(password.trim());
+  if (incomingHash !== targetCust.password_hash) {
+    return res.status(401).json({
+      success: false,
+      message: 'Kata sandi salah. Silakan periksa kembali kata sandi akun Anda.'
+    });
+  }
+
+  const safeCust = { ...targetCust };
+  delete safeCust.password_hash;
+
+  console.log(`🔑 [LOGIN PASSWORD BERHASIL] Pelanggan: ${safeCust.name} (${safeCust.email})`);
+
+  res.json({
+    success: true,
+    message: `Login Berhasil! Selamat datang kembali, Kak ${safeCust.name}.`,
+    data: {
+      token: `token-pass-${safeCust.id || safeCust.email}-${Date.now()}`,
+      user: safeCust
+    }
   });
 });
 

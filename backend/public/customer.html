@@ -93,10 +93,23 @@
       </div>
     </div>
 
-    <!-- GOOGLE LOGIN SECTION -->
-    <div class="space-y-3 max-w-xs mx-auto w-full">
-      
-      <!-- 1. RESMI: GOOGLE IDENTITY SERVICES (ACCOUNTS.GOOGLE.COM) -->
+    <!-- PILIHAN METODE LOGIN: GOOGLE ATAU PASSWORD -->
+    <div class="max-w-xs mx-auto w-full">
+      <div class="grid grid-cols-2 bg-slate-900/95 p-1 rounded-2xl border border-slate-800 text-xs font-bold mb-3 shadow-md">
+        <button type="button" onclick="switchCoverLoginTab('google')" id="tabBtnGoogle" class="py-2 rounded-xl bg-amber-400 text-slate-950 font-black shadow transition flex items-center justify-center space-x-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Akun Google</span>
+        </button>
+        <button type="button" onclick="switchCoverLoginTab('password')" id="tabBtnPassword" class="py-2 rounded-xl text-slate-400 hover:text-white transition flex items-center justify-center space-x-1.5">
+          <i class="fa-solid fa-key text-amber-400"></i>
+          <span>Kata Sandi</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 1. KONTEN TAB: LOGIN GOOGLE -->
+    <div id="coverSectionGoogle" class="space-y-3 max-w-xs mx-auto w-full">
+      <!-- RESMI: GOOGLE IDENTITY SERVICES (ACCOUNTS.GOOGLE.COM) -->
       <div class="bg-slate-900/90 border border-amber-400/30 p-3 rounded-2xl text-center space-y-2 shadow-lg">
         <div class="flex items-center justify-between">
           <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider flex items-center space-x-1.5">
@@ -144,6 +157,49 @@
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/></svg>
           <span>Lanjutkan Masuk Google</span>
         </button>
+      </div>
+    </div>
+
+    <!-- 2. KONTEN TAB: LOGIN PASSWORD (EMAIL / WHATSAPP + PASSWORD) -->
+    <div id="coverSectionPassword" class="hidden space-y-3 max-w-xs mx-auto w-full text-left">
+      <div class="bg-slate-900/90 border border-amber-400/30 p-3.5 rounded-2xl space-y-2.5 shadow-xl">
+        <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+          <div class="w-7 h-7 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-xs font-bold">
+            <i class="fa-solid fa-key"></i>
+          </div>
+          <div>
+            <span class="font-extrabold text-xs text-white block">Masuk Akun Terdaftar</span>
+            <span class="text-[9px] text-slate-400 block">Gunakan Email atau Nomor WhatsApp Anda</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-300 block mb-1">Email atau No. WhatsApp:</label>
+          <div class="flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 focus-within:border-amber-400">
+            <i class="fa-solid fa-user text-slate-400 text-xs mr-2"></i>
+            <input type="text" id="coverPassIdentifier" placeholder="nama@gmail.com / 0812..." class="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none font-bold">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-slate-300 block mb-1">Kata Sandi (Password):</label>
+          <div class="flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 focus-within:border-amber-400">
+            <i class="fa-solid fa-lock text-slate-400 text-xs mr-2"></i>
+            <input type="password" id="coverPassSecret" placeholder="Masukkan kata sandi akun" class="w-full bg-transparent text-xs text-white placeholder-slate-500 outline-none font-bold">
+            <button type="button" onclick="togglePasswordVisibility('coverPassSecret', 'coverPassEye')" class="text-slate-400 hover:text-slate-200 p-1">
+              <i id="coverPassEye" class="fa-solid fa-eye-slash text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <button onclick="submitCoverPasswordLogin()" id="btnCoverLoginPass" class="w-full bg-gradient-to-r from-red-600 via-amber-600 to-yellow-500 hover:opacity-95 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>MASUK DENGAN KATA SANDI</span>
+        </button>
+
+        <p class="text-[9px] text-slate-400 leading-tight text-center pt-1 border-t border-slate-800">
+          💡 Kata sandi dapat dibuat di biodata profil setelah Anda login pertama kali via Google.
+        </p>
       </div>
     </div>
 
@@ -609,6 +665,27 @@
           </button>
         </div>
 
+        <!-- Opsi 3: Masuk Pakai Kata Sandi -->
+        <div class="border rounded-2xl p-3 bg-amber-50/70 border-amber-200 space-y-2">
+          <span class="text-[10px] font-extrabold text-amber-900 block uppercase tracking-wider flex items-center space-x-1">
+            <i class="fa-solid fa-key text-amber-600"></i>
+            <span>Atau Masuk Pakai Kata Sandi:</span>
+          </span>
+          <div>
+            <input type="text" id="modalLoginIdentifier" placeholder="Email atau Nomor WhatsApp" class="w-full border rounded-xl p-2 text-xs bg-white outline-none focus:border-amber-500 font-bold">
+          </div>
+          <div class="relative flex items-center border rounded-xl bg-white px-2.5 py-1.5 focus-within:border-amber-500">
+            <input type="password" id="modalLoginPassword" placeholder="Kata Sandi Akun" class="w-full bg-transparent text-xs font-bold outline-none">
+            <button type="button" onclick="togglePasswordVisibility('modalLoginPassword', 'modalPassEye')" class="text-gray-400 hover:text-gray-600 p-1">
+              <i id="modalPassEye" class="fa-solid fa-eye-slash text-xs"></i>
+            </button>
+          </div>
+          <button type="button" onclick="submitModalPasswordLogin()" class="w-full bg-gradient-to-r from-red-600 to-amber-600 hover:opacity-95 text-white font-extrabold py-2 rounded-xl text-xs flex items-center justify-center space-x-2 transition shadow">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
+            <span>Masuk dengan Kata Sandi</span>
+          </button>
+        </div>
+
         <button type="button" onclick="closeLoginModal()" class="w-full text-center text-[11px] text-gray-400 hover:text-gray-600 py-1 font-semibold">
           Nanti saja, lihat-lihat menu dulu
         </button>
@@ -659,6 +736,20 @@
           <div class="flex items-center border rounded-xl bg-slate-50 px-2.5 focus-within:border-red-500">
             <span class="text-slate-400 font-bold text-xs mr-1.5">🇮🇩 +62</span>
             <input type="tel" id="onboardCustWhatsapp" placeholder="81234567890" class="w-full bg-transparent py-2.5 text-xs font-bold outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="font-extrabold text-slate-700 block mb-1">
+            Buat Kata Sandi Akun (Password):
+            <span class="text-emerald-600 text-[10px] font-semibold">(untuk login nanti tanpa Google)</span>
+          </label>
+          <div class="relative flex items-center border rounded-xl bg-slate-50 px-2.5 focus-within:border-red-500">
+            <span class="text-slate-400 font-bold text-xs mr-2">🔑</span>
+            <input type="password" id="onboardCustPassword" placeholder="Minimal 6 karakter" class="w-full bg-transparent py-2.5 text-xs font-bold outline-none">
+            <button type="button" onclick="togglePasswordVisibility('onboardCustPassword', 'onboardPassEye')" class="text-slate-400 hover:text-slate-600 p-1">
+              <i id="onboardPassEye" class="fa-solid fa-eye-slash text-xs"></i>
+            </button>
           </div>
         </div>
 
@@ -838,6 +929,25 @@
             <span>GPS Kantor: <b id="profileOfficeGPSCoords">-</b></span>
             <span class="text-emerald-800 font-bold">✓ Terkunci</span>
           </div>
+        </div>
+
+        <!-- PENGATURAN KATA SANDI (PASSWORD LOGIN ALTERNATIF) -->
+        <div class="border rounded-2xl p-3 bg-amber-50/60 border-amber-300 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-xs text-gray-800 flex items-center space-x-1.5">
+              <i class="fa-solid fa-key text-amber-600"></i>
+              <span>Kata Sandi Akun (Login Tanpa Google)</span>
+            </span>
+            <span id="profileHasPasswordBadge" class="text-[9px] bg-slate-200 text-slate-700 font-bold px-1.5 py-0.2 rounded">Belum Ada</span>
+          </div>
+          <div class="relative flex items-center border rounded-xl bg-white px-2.5 focus-within:border-amber-500">
+            <i class="fa-solid fa-lock text-gray-400 text-xs mr-2"></i>
+            <input type="password" id="profileInputPassword" placeholder="Ketik kata sandi baru (minimal 6 karakter)" class="w-full bg-transparent py-2 text-xs font-bold outline-none text-gray-800">
+            <button type="button" onclick="togglePasswordVisibility('profileInputPassword', 'profilePassEye')" class="text-gray-400 hover:text-gray-600 p-1">
+              <i id="profilePassEye" class="fa-solid fa-eye-slash text-xs"></i>
+            </button>
+          </div>
+          <p class="text-[10px] text-gray-500 leading-tight">Kata sandi ini memungkinkan Anda masuk langsung menggunakan Email atau Nomor WhatsApp tanpa harus login Google.</p>
         </div>
 
         <!-- TOMBOL SIMPAN -->
@@ -1541,6 +1651,88 @@
       }
     }
 
+    // ==========================================
+    // SISTEM LOGIN PASSWORD & SHOW/HIDE PASSWORD
+    // ==========================================
+    function togglePasswordVisibility(inputId, eyeId) {
+      const input = document.getElementById(inputId);
+      const eye = document.getElementById(eyeId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (eye) eye.className = 'fa-solid fa-eye text-xs text-amber-500';
+      } else {
+        input.type = 'password';
+        if (eye) eye.className = 'fa-solid fa-eye-slash text-xs text-slate-400';
+      }
+    }
+
+    function switchCoverLoginTab(tab) {
+      const btnGoogle = document.getElementById('tabBtnGoogle');
+      const btnPass = document.getElementById('tabBtnPassword');
+      const secGoogle = document.getElementById('coverSectionGoogle');
+      const secPass = document.getElementById('coverSectionPassword');
+
+      if (tab === 'google') {
+        if (btnGoogle) btnGoogle.className = 'py-2 rounded-xl bg-amber-400 text-slate-950 font-black shadow transition flex items-center justify-center space-x-1.5';
+        if (btnPass) btnPass.className = 'py-2 rounded-xl text-slate-400 hover:text-white transition flex items-center justify-center space-x-1.5';
+        if (secGoogle) secGoogle.classList.remove('hidden');
+        if (secPass) secPass.classList.add('hidden');
+      } else {
+        if (btnPass) btnPass.className = 'py-2 rounded-xl bg-amber-400 text-slate-950 font-black shadow transition flex items-center justify-center space-x-1.5';
+        if (btnGoogle) btnGoogle.className = 'py-2 rounded-xl text-slate-400 hover:text-white transition flex items-center justify-center space-x-1.5';
+        if (secGoogle) secGoogle.classList.add('hidden');
+        if (secPass) secPass.classList.remove('hidden');
+      }
+    }
+
+    async function submitCoverPasswordLogin() {
+      const id = document.getElementById('coverPassIdentifier').value.trim();
+      const pass = document.getElementById('coverPassSecret').value;
+      const btn = document.getElementById('btnCoverLoginPass');
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memeriksa Kata Sandi...</span>`;
+      try {
+        await doPasswordLogin(id, pass);
+      } finally {
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket"></i><span>MASUK DENGAN KATA SANDI</span>`;
+      }
+    }
+
+    async function submitModalPasswordLogin() {
+      const id = document.getElementById('modalLoginIdentifier').value.trim();
+      const pass = document.getElementById('modalLoginPassword').value;
+      await doPasswordLogin(id, pass);
+    }
+
+    async function doPasswordLogin(identifier, password) {
+      if (!identifier || !password) {
+        alert('Mohon masukkan Email atau Nomor WhatsApp serta Kata Sandi Anda.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/login-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        }).then(r => r.json());
+
+        if (res.success) {
+          currentUser = res.data.user;
+          if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
+          localStorage.setItem('kebab_user', JSON.stringify(currentUser));
+          updateUserHeader();
+          closeLoginModal();
+          checkCustomerPipeline();
+          alert(`🎉 ${res.message}`);
+        } else {
+          alert(`⚠️ ${res.message}`);
+        }
+      } catch (err) {
+        alert('Gagal menghubungi server untuk verifikasi kata sandi.');
+      }
+    }
+
     async function loginGoogleFast(email, name) {
       await doGoogleLogin(email, name);
     }
@@ -1745,6 +1937,13 @@
         return;
       }
 
+      const passEl = document.getElementById('onboardCustPassword');
+      const passVal = passEl ? passEl.value.trim() : '';
+      if (passVal && passVal.length < 4) {
+        alert('Kata sandi minimal 4 karakter (disarankan 6 karakter atau lebih).');
+        return;
+      }
+
       const btn = document.getElementById('btnSaveOnboardCust');
       btn.disabled = true;
       btn.innerText = 'Menyimpan ke Server...';
@@ -1756,6 +1955,7 @@
           whatsapp: cleanWa,
           delivery_address: addr
         };
+        if (passVal) payload.password = passVal;
 
         if (onboardSelectedAddressType === 'Kantor') {
           payload.office_address = addr;
@@ -2372,6 +2572,20 @@
         document.getElementById('profileOfficeGPSInfo').classList.add('hidden');
       }
 
+      // Reset input password & tampilkan status kata sandi saat ini
+      const passInput = document.getElementById('profileInputPassword');
+      if (passInput) passInput.value = '';
+      const passBadge = document.getElementById('profileHasPasswordBadge');
+      if (passBadge) {
+        if (currentUser.has_password) {
+          passBadge.className = 'text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.2 rounded';
+          passBadge.innerText = '✓ Sudah Aktif';
+        } else {
+          passBadge.className = 'text-[9px] bg-slate-200 text-slate-700 font-bold px-1.5 py-0.2 rounded';
+          passBadge.innerText = 'Belum Ada';
+        }
+      }
+
       document.getElementById('profileModal').classList.remove('hidden');
     }
 
@@ -2386,6 +2600,9 @@
       let wa = document.getElementById('profileInputWhatsapp').value.trim();
       const homeAddr = document.getElementById('profileInputHomeAddress').value.trim();
       const officeAddr = document.getElementById('profileInputOfficeAddress').value.trim();
+
+      const passInput = document.getElementById('profileInputPassword');
+      const passVal = passInput ? passInput.value.trim() : '';
 
       if (!name) {
         alert('Mohon masukkan nama pemesan.');
@@ -2405,25 +2622,33 @@
         return;
       }
 
+      if (passVal && passVal.length < 4) {
+        alert('Kata sandi baru minimal 4 karakter (disarankan 6 karakter atau lebih).');
+        return;
+      }
+
       const btn = document.getElementById('btnSaveProfile');
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menyimpan...</span>`;
 
       try {
+        const payload = {
+          email: currentUser.email,
+          full_name: name,
+          whatsapp: wa,
+          home_address: homeAddr,
+          home_latitude: homeGPS.latitude || currentUser.home_latitude || null,
+          home_longitude: homeGPS.longitude || currentUser.home_longitude || null,
+          office_address: officeAddr,
+          office_latitude: officeGPS.latitude || currentUser.office_latitude || null,
+          office_longitude: officeGPS.longitude || currentUser.office_longitude || null
+        };
+        if (passVal) payload.password = passVal;
+
         const res = await fetch('/api/customer/update-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: currentUser.email,
-            full_name: name,
-            whatsapp: wa,
-            home_address: homeAddr,
-            home_latitude: homeGPS.latitude || currentUser.home_latitude || null,
-            home_longitude: homeGPS.longitude || currentUser.home_longitude || null,
-            office_address: officeAddr,
-            office_latitude: officeGPS.latitude || currentUser.office_latitude || null,
-            office_longitude: officeGPS.longitude || currentUser.office_longitude || null
-          })
+          body: JSON.stringify(payload)
         }).then(r => r.json());
 
         if (res.success) {
