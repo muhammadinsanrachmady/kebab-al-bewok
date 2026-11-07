@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+  <!-- LEAFLET.JS MAP INTERAKTIF (100% GRATIS & OPEN-SOURCE OPENSTREETMAP, TANPA API BERBAYAR) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <!-- GOOGLE IDENTITY SERVICES (GSI) - AUTENTIKASI RESMI GOOGLE OAUTH 2.0 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
@@ -910,6 +914,14 @@
     let currentHistoryList = [];
     let selectedOnbChannel = 'DANA';
 
+    // Free Maps State (Leaflet.js + OpenStreetMap - 100% Bebas Biaya API)
+    let driverCurrentLat = -6.2088;
+    let driverCurrentLng = 106.8456;
+    let driverMapInstance = null;
+    let driverMarker = null;
+    let targetMarker = null;
+    let driverRouteLine = null;
+
     // Biometrik State
     let activeBiometricTab = 'fingerprint';
     let currentCameraStream = null;
@@ -919,6 +931,16 @@
     // INIT
     async function init() {
       initDeviceId();
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            driverCurrentLat = pos.coords.latitude;
+            driverCurrentLng = pos.coords.longitude;
+          },
+          (err) => console.log('Init GPS silent fail:', err),
+          { enableHighAccuracy: false, timeout: 5000 }
+        );
+      }
       await checkBiometricCapabilities();
       loadStoredDriver();
       await syncDriverFromServer();
@@ -2082,6 +2104,10 @@
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
+          driverCurrentLat = lat;
+          driverCurrentLng = lng;
+          updateDriverMapLivePosition(lat, lng);
+
           const phase = activeDelivery ? activeDelivery.driver_phase : 'to_branch';
           fetch(`/api/driver/orders/${orderId}/location`, {
             method: 'POST',
@@ -2098,6 +2124,127 @@
       if (driverWatchId) {
         navigator.geolocation.clearWatch(driverWatchId);
         driverWatchId = null;
+      }
+      cleanupDriverMap();
+    }
+
+    // ==========================================
+    // PETA KURIR 100% GRATIS (LEAFLET + OPENSTREETMAP)
+    // ==========================================
+    function cleanupDriverMap() {
+      if (driverMapInstance) {
+        try {
+          driverMapInstance.remove();
+        } catch (e) {}
+        driverMapInstance = null;
+        driverMarker = null;
+        targetMarker = null;
+        driverRouteLine = null;
+      }
+    }
+
+    function updateDriverMapLivePosition(lat, lng) {
+      if (driverMarker) {
+        driverMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    async function initOrUpdateDriverMap(targetLat, targetLng, targetType, targetTitle) {
+      const el = document.getElementById('driverActiveMap');
+      if (!el) return;
+
+      cleanupDriverMap();
+
+      try {
+        driverMapInstance = L.map('driverActiveMap', {
+          zoomControl: true,
+          attributionControl: true
+        }).setView([driverCurrentLat, driverCurrentLng], 15);
+
+        // Tile layer CartoDB Voyager / OpenStreetMap (100% Free, Bebas Biaya API Selamanya)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> (100% Gratis Tanpa API Key)'
+        }).addTo(driverMapInstance);
+
+        // Marker Kurir (Motor Berkedip)
+        const driverIcon = L.divIcon({
+          className: 'driver-live-marker',
+          html: `
+            <div class="relative flex items-center justify-center">
+              <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-amber-400 opacity-75"></span>
+              <div class="w-8 h-8 rounded-full bg-slate-950 border-2 border-amber-400 flex items-center justify-center text-amber-400 shadow-lg text-xs">
+                <i class="fa-solid fa-motorcycle"></i>
+              </div>
+            </div>
+          `,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+
+        // Marker Titik Antar / Lapak
+        const isBranch = targetType === 'branch';
+        const targetIcon = L.divIcon({
+          className: 'target-live-marker',
+          html: `
+            <div class="flex flex-col items-center">
+              <div class="bg-${isBranch ? 'amber' : 'emerald'}-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow whitespace-nowrap mb-0.5">
+                ${isBranch ? '🏬 Lapak Cabang' : '🏠 Rumah Pemesan'}
+              </div>
+              <div class="w-7 h-7 rounded-full bg-${isBranch ? 'amber' : 'emerald'}-500 border-2 border-white flex items-center justify-center text-white shadow-md text-xs">
+                <i class="fa-solid ${isBranch ? 'fa-store' : 'fa-location-dot'}"></i>
+              </div>
+            </div>
+          `,
+          iconSize: [40, 48],
+          iconAnchor: [20, 44]
+        });
+
+        driverMarker = L.marker([driverCurrentLat, driverCurrentLng], { icon: driverIcon }).addTo(driverMapInstance);
+        targetMarker = L.marker([targetLat, targetLng], { icon: targetIcon }).addTo(driverMapInstance);
+        targetMarker.bindPopup(`<b>${targetTitle}</b>`);
+
+        const bounds = L.latLngBounds([
+          [driverCurrentLat, driverCurrentLng],
+          [targetLat, targetLng]
+        ]);
+        driverMapInstance.fitBounds(bounds, { padding: [35, 35], maxZoom: 16 });
+
+        // Garis Rute Otomatis dari OSRM (100% Gratis)
+        try {
+          const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${driverCurrentLng},${driverCurrentLat};${targetLng},${targetLat}?overview=full&geometries=geojson`;
+          const res = await fetch(osrmUrl).then(r => r.json());
+          if (res.code === 'Ok' && res.routes && res.routes[0]) {
+            const coords = res.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+            driverRouteLine = L.polyline(coords, {
+              color: isBranch ? '#f59e0b' : '#10b981',
+              weight: 5,
+              opacity: 0.9,
+              dashArray: '1, 8',
+              lineJoin: 'round'
+            }).addTo(driverMapInstance);
+          } else {
+            driverRouteLine = L.polyline([[driverCurrentLat, driverCurrentLng], [targetLat, targetLng]], {
+              color: isBranch ? '#f59e0b' : '#10b981',
+              weight: 4,
+              dashArray: '4, 6',
+              opacity: 0.85
+            }).addTo(driverMapInstance);
+          }
+        } catch (e) {
+          driverRouteLine = L.polyline([[driverCurrentLat, driverCurrentLng], [targetLat, targetLng]], {
+            color: isBranch ? '#f59e0b' : '#10b981',
+            weight: 4,
+            dashArray: '4, 6',
+            opacity: 0.85
+          }).addTo(driverMapInstance);
+        }
+
+        setTimeout(() => {
+          if (driverMapInstance) driverMapInstance.invalidateSize();
+        }, 150);
+      } catch (err) {
+        console.warn('Gagal render Leaflet kurir:', err);
       }
     }
 
@@ -2128,6 +2275,7 @@
 
       if (!activeDelivery) {
         sec.classList.add('hidden');
+        cleanupDriverMap();
         return;
       }
 
@@ -2138,7 +2286,8 @@
       if (isHeadingToBranch) {
         const branchLat = activeDelivery.branch_latitude || -6.2088;
         const branchLng = activeDelivery.branch_longitude || 106.8456;
-        const mapsBranchUrl = `https://www.google.com/maps/dir/?api=1&destination=${branchLat},${branchLng}`;
+        const osmBranchUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${driverCurrentLat},${driverCurrentLng}%3B${branchLat},${branchLng}`;
+        const geoBranchUrl = `geo:${branchLat},${branchLng}?q=${branchLat},${branchLng}(${encodeURIComponent(activeDelivery.branch_name || 'Lapak Cabang')})`;
 
         card.innerHTML = `
           <div class="flex justify-between items-start border-b pb-3">
@@ -2163,22 +2312,43 @@
             <p class="text-slate-600 text-[11px]">Silakan tunjukkan nomor pesanan ke koki dapur.</p>
           </div>
 
-          <div class="grid grid-cols-1 gap-2 pt-1">
-            <a href="${mapsBranchUrl}" target="_blank" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl text-xs text-center flex items-center justify-center space-x-2 shadow-sm transition">
-              <i class="fa-solid fa-location-arrow text-amber-400"></i>
-              <span>Buka Navigasi Maps ke Lapak Dapur</span>
-            </a>
-
-            <button onclick="pickupOrder('${activeDelivery.id}')" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-95">
-              <i class="fa-solid fa-box-check text-base"></i>
-              <span>✓ SAYA SUDAH TIBA DI LAPAK & AMBIL KEBAB</span>
-            </button>
+          <!-- PETA INTERAKTIF LIVE LEAFLET & OPENSTREETMAP (100% BEBAS BIAYA API) -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] bg-emerald-50 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-200">
+              <span class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-map-location-dot text-emerald-600"></i>
+                <span>Peta Interaktif Kurir (OpenStreetMap)</span>
+              </span>
+              <span class="bg-emerald-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black">100% Gratis Tanpa Biaya API</span>
+            </div>
+            <div id="driverActiveMap" class="w-full h-44 rounded-2xl overflow-hidden border border-slate-300 relative shadow-inner z-0"></div>
           </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <a href="${osmBranchUrl}" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white font-black py-2.5 px-2 rounded-xl text-[11px] text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
+              <i class="fa-solid fa-map text-amber-400"></i>
+              <span>Buka OpenStreetMap</span>
+            </a>
+            <a href="${geoBranchUrl}" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 px-2 rounded-xl text-[11px] text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
+              <i class="fa-solid fa-location-arrow text-white"></i>
+              <span>Navigasi Aplikasi HP</span>
+            </a>
+          </div>
+
+          <button onclick="pickupOrder('${activeDelivery.id}')" class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-95 mt-1">
+            <i class="fa-solid fa-box-check text-base"></i>
+            <span>✓ SAYA SUDAH TIBA DI LAPAK & AMBIL KEBAB</span>
+          </button>
         `;
+
+        setTimeout(() => {
+          initOrUpdateDriverMap(branchLat, branchLng, 'branch', activeDelivery.branch_name || 'Lapak Cabang');
+        }, 80);
       } else {
         const destLat = activeDelivery.customer_latitude || -6.2150;
         const destLng = activeDelivery.customer_longitude || 106.8520;
-        const mapsCustUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
+        const osmCustUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${driverCurrentLat},${driverCurrentLng}%3B${destLat},${destLng}`;
+        const geoCustUrl = `geo:${destLat},${destLng}?q=${destLat},${destLng}(${encodeURIComponent(activeDelivery.customer_name || 'Pelanggan')})`;
 
         card.innerHTML = `
           <div class="flex justify-between items-start border-b pb-3">
@@ -2205,14 +2375,30 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <a href="${mapsCustUrl}" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
-              <i class="fa-solid fa-map-location-dot text-amber-400"></i>
-              <span>Navigasi Maps</span>
+          <!-- PETA INTERAKTIF LIVE LEAFLET & OPENSTREETMAP (100% BEBAS BIAYA API) -->
+          <div class="space-y-1.5 pt-1">
+            <div class="flex items-center justify-between text-[10px] bg-emerald-50 text-emerald-800 font-bold px-3 py-1.5 rounded-xl border border-emerald-200">
+              <span class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-map-location-dot text-emerald-600"></i>
+                <span>Peta Interaktif Kurir (OpenStreetMap)</span>
+              </span>
+              <span class="bg-emerald-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black">100% Gratis Tanpa Biaya API</span>
+            </div>
+            <div id="driverActiveMap" class="w-full h-44 rounded-2xl overflow-hidden border border-slate-300 relative shadow-inner z-0"></div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1.5 text-xs pt-1">
+            <a href="${osmCustUrl}" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white font-bold p-2.5 rounded-xl text-center flex flex-col items-center justify-center space-y-0.5 shadow-sm transition text-[10px]">
+              <i class="fa-solid fa-map text-amber-400 text-xs"></i>
+              <span>OpenStreetMap</span>
             </a>
-            <a href="https://wa.me/${(activeDelivery.customer_phone || '').replace(/[^0-9]/g, '')}?text=Halo%20Kak%20${encodeURIComponent(activeDelivery.customer_name || 'Pelanggan')},%20saya%20kurir%20Kebab%20AL%20Bewok%20sedang%20menuju%20ke%20lokasi%20Anda." target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
-              <i class="fa-brands fa-whatsapp text-lg"></i>
-              <span>Chat WhatsApp</span>
+            <a href="${geoCustUrl}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2.5 rounded-xl text-center flex flex-col items-center justify-center space-y-0.5 shadow-sm transition text-[10px]">
+              <i class="fa-solid fa-location-arrow text-white text-xs"></i>
+              <span>Aplikasi HP</span>
+            </a>
+            <a href="https://wa.me/${(activeDelivery.customer_phone || '').replace(/[^0-9]/g, '')}?text=Halo%20Kak%20${encodeURIComponent(activeDelivery.customer_name || 'Pelanggan')},%20saya%20kurir%20Kebab%20AL%20Bewok%20sedang%20menuju%20ke%20lokasi%20Anda." target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2.5 rounded-xl text-center flex flex-col items-center justify-center space-y-0.5 shadow-sm transition text-[10px]">
+              <i class="fa-brands fa-whatsapp text-white text-sm"></i>
+              <span>Chat WA</span>
             </a>
           </div>
 
@@ -2221,6 +2407,10 @@
             <span>SELESAIKAN PENGANTARAN (KLAIM SALDO)</span>
           </button>
         `;
+
+        setTimeout(() => {
+          initOrUpdateDriverMap(destLat, destLng, 'customer', activeDelivery.customer_name || 'Pelanggan');
+        }, 80);
       }
     }
 

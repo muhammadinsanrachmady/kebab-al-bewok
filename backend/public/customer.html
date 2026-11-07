@@ -1076,7 +1076,10 @@
             <i class="fa-solid fa-map-location-dot"></i>
           </div>
           <div>
-            <h3 class="font-black text-sm text-gray-900 leading-tight">Titiki Lokasi Pengantaran</h3>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-black text-sm text-gray-900 leading-tight">Titiki Lokasi Pengantaran</h3>
+              <span class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full border border-emerald-300">🟢 OSM & Leaflet: 100% Bebas Biaya</span>
+            </div>
             <p class="text-[10px] text-gray-500">Geser peta untuk mengarahkan pin ke titik yang tepat</p>
           </div>
         </div>
@@ -1208,10 +1211,16 @@
               <span id="trackEtaText" class="font-black text-amber-300">~10 - 15 Menit</span>
             </div>
           </div>
-          <button onclick="recenterTrackMap()" class="bg-white/95 hover:bg-white text-slate-800 px-2.5 py-1.5 rounded-2xl shadow-lg border border-gray-200 pointer-events-auto text-xs font-bold flex items-center space-x-1 active:scale-95 transition">
-            <i class="fa-solid fa-location-crosshairs text-red-600 text-xs"></i>
-            <span class="text-[10px]">Fokus Rute</span>
-          </button>
+          <div class="flex items-center space-x-1.5 pointer-events-auto">
+            <span class="hidden sm:inline-flex bg-emerald-950/90 backdrop-blur text-emerald-300 px-2.5 py-1.5 rounded-2xl shadow-lg border border-emerald-400/30 text-[9px] font-extrabold items-center space-x-1">
+              <i class="fa-solid fa-map text-emerald-400"></i>
+              <span>OpenStreetMap (Bebas Biaya API)</span>
+            </span>
+            <button onclick="recenterTrackMap()" class="bg-white/95 hover:bg-white text-slate-800 px-2.5 py-1.5 rounded-2xl shadow-lg border border-gray-200 text-xs font-bold flex items-center space-x-1 active:scale-95 transition">
+              <i class="fa-solid fa-location-crosshairs text-red-600 text-xs"></i>
+              <span class="text-[10px]">Fokus Rute</span>
+            </button>
+          </div>
         </div>
 
         <!-- FLOATING STATUS BANNER DI BAWAH MAP -->
@@ -1889,13 +1898,10 @@
 
           // Otomatis reverse geocode untuk mengisi alamat
           try {
-            const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${onboardLat}&lon=${onboardLng}&zoom=18&addressdetails=1`);
-            const data = await resp.json();
-            if (data && data.display_name) {
-              const currentAddr = document.getElementById('onboardCustAddress').value.trim();
-              if (!currentAddr) {
-                document.getElementById('onboardCustAddress').value = data.display_name;
-              }
+            const cleanAddr = await getCleanAddressFromCoords(onboardLat, onboardLng);
+            const currentAddr = document.getElementById('onboardCustAddress').value.trim();
+            if (!currentAddr && cleanAddr) {
+              document.getElementById('onboardCustAddress').value = cleanAddr;
             }
           } catch (e) {
             console.log('Reverse geocoding error:', e);
@@ -2141,7 +2147,38 @@
       );
     }
 
-    // Pencarian nama jalan atau daerah di atas peta
+    // Helper umum: Dapatkan alamat rapi dari koordinat GPS (100% Gratis, Tanpa API Key & Tanpa Kartu Kredit)
+    async function getCleanAddressFromCoords(lat, lng) {
+      // 1. Coba OpenStreetMap Nominatim
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.address) {
+            const a = data.address;
+            const road = a.road || a.pedestrian || a.suburb || a.village || a.neighbourhood || '';
+            const district = a.city_district || a.suburb || a.village || a.county || '';
+            const city = a.city || a.town || a.municipality || a.state || '';
+            const clean = [road, district, city].filter(Boolean).join(', ');
+            if (clean && clean.length >= 6) return clean;
+          }
+          if (data && data.display_name) return data.display_name;
+        }
+      } catch (e1) {}
+
+      // 2. Fallback cadangan ke BigDataCloud (100% Gratis & responsif)
+      try {
+        const bdc = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`).then(r => r.json());
+        if (bdc && (bdc.locality || bdc.city)) {
+          const parts = [bdc.locality, bdc.city, bdc.principalSubdivision].filter(Boolean);
+          if (parts.length > 0) return parts.join(', ');
+        }
+      } catch (e2) {}
+
+      return `Titik Lokasi (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+    }
+
+    // Pencarian nama jalan atau daerah di atas peta (Photon Komoot OSM + Nominatim Fallback)
     async function searchMapLocation() {
       const q = document.getElementById('mapSearchInput').value.trim();
       if (!q) return;
@@ -2151,10 +2188,18 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', Indonesia')}&limit=1`, {
-          headers: { 'User-Agent': 'KebabAlBewokApp/1.0' }
-        }).then(r => r.json());
+        // 1. Coba Photon Komoot (Elasticsearch OSM - sangat cepat & toleran ketikan di Indonesia)
+        const pRes = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q + ' Indonesia')}&limit=1`).then(r => r.json());
+        if (pRes && pRes.features && pRes.features.length > 0) {
+          const [lon, lat] = pRes.features[0].geometry.coordinates;
+          if (leafletMapInstance) {
+            leafletMapInstance.flyTo([lat, lon], 17, { duration: 1.5 });
+          }
+          return;
+        }
 
+        // 2. Fallback ke Nominatim jika Photon tidak menemukan
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ', Indonesia')}&limit=1`).then(r => r.json());
         if (res && res.length > 0) {
           const lat = parseFloat(res[0].lat);
           const lon = parseFloat(res[0].lon);
@@ -2162,7 +2207,7 @@
             leafletMapInstance.flyTo([lat, lon], 17, { duration: 1.5 });
           }
         } else {
-          alert('Lokasi / nama jalan tidak ditemukan. Coba kata kunci yang lebih spesifik.');
+          alert('Lokasi / nama jalan tidak ditemukan. Coba ketik nama daerah atau jalan utama.');
         }
       } catch (err) {
         console.warn('Gagal mencari di peta:', err);
@@ -2176,20 +2221,12 @@
     async function fetchReverseGeocode(lat, lng) {
       const addrEl = document.getElementById('mapSelectedAddress');
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
-          headers: { 'User-Agent': 'KebabAlBewokApp/1.0' }
-        }).then(r => r.json());
-
-        if (res && res.display_name) {
-          mapCurrentAddressText = res.display_name;
-          addrEl.innerText = res.display_name;
-        } else {
-          mapCurrentAddressText = `Koordinat: (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-          addrEl.innerText = mapCurrentAddressText;
-        }
+        const address = await getCleanAddressFromCoords(lat, lng);
+        mapCurrentAddressText = address;
+        if (addrEl) addrEl.innerText = address;
       } catch (err) {
         mapCurrentAddressText = `Koordinat Titik: (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
-        addrEl.innerText = mapCurrentAddressText;
+        if (addrEl) addrEl.innerText = mapCurrentAddressText;
       }
     }
 
