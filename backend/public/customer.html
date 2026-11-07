@@ -2074,10 +2074,11 @@
         // Kontrol zoom di pojok kiri atas
         L.control.zoom({ position: 'topleft' }).addTo(leafletMapInstance);
 
-        // Tile layer CartoDB Voyager yang bersih dan responsif
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        // Tile layer resmi OpenStreetMap murni (100% Gratis, Tanpa Watermark, Tanpa API Key)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
-          attribution: '&copy; OpenStreetMap &copy; CARTO'
+          subdomains: ['a', 'b', 'c'],
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(leafletMapInstance);
 
         // Tampilkan marker cabang Kebab AL Bewok di peta
@@ -3485,8 +3486,10 @@
         attributionControl: false
       }).setView([defaultLat, defaultLng], 14);
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        subdomains: ['a', 'b', 'c'],
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(trackMap);
 
       L.control.zoom({ position: 'bottomright' }).addTo(trackMap);
