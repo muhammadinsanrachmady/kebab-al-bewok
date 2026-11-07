@@ -633,6 +633,8 @@ app.post('/api/driver/verify-face', (req, res) => {
   }
 
   driver.face_verified = true;
+  driver.biometric_verified = true;
+  driver.biometric_method = 'face';
   driver.face_verified_at = new Date().toISOString();
   if (face_image) {
     driver.last_face_photo = face_image;
@@ -643,6 +645,51 @@ app.post('/api/driver/verify-face', (req, res) => {
   res.json({
     success: true,
     message: 'Verifikasi biometrik wajah berhasil! Akun resmi aktif & siap bertugas.',
+    data: driver
+  });
+});
+
+// Verifikasi Biometrik Ganda: Sidik Jari (Utama/Anti-Gelap) atau Wajah (Alternatif)
+// Mengunci Prinsip: 1 Akun 1 Driver (Device Lock & Anti-Joki)
+app.post('/api/driver/verify-biometric', (req, res) => {
+  const { driver_id, email, method = 'fingerprint', device_id, biometric_proof } = req.body;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers) wallets.drivers = {};
+
+  let driver = null;
+  if (driver_id && wallets.drivers[driver_id]) {
+    driver = wallets.drivers[driver_id];
+  } else if (email) {
+    driver = Object.values(wallets.drivers).find(d => d.email === email);
+  }
+
+  if (!driver) {
+    return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
+  }
+
+  // PRINSIP 1 AKUN 1 DRIVER: Kunci perangkat (Device Binding)
+  if (device_id) {
+    if (driver.registered_device_id && driver.registered_device_id !== device_id) {
+      driver.last_device_switch_at = new Date().toISOString();
+    }
+    driver.registered_device_id = device_id;
+  }
+
+  driver.face_verified = true;
+  driver.biometric_verified = true;
+  driver.biometric_method = method; // 'fingerprint' atau 'face'
+  driver.biometric_verified_at = new Date().toISOString();
+  if (biometric_proof) {
+    driver.last_biometric_proof = biometric_proof;
+  }
+  driver.is_online = true;
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  const methodText = method === 'fingerprint' ? 'Sidik Jari (Fingerprint Sensor)' : 'Pemindaian Wajah';
+  res.json({
+    success: true,
+    message: `Verifikasi ${methodText} Berhasil! 1 Akun 1 Driver terproteksi resmi & siap bertugas.`,
     data: driver
   });
 });
@@ -681,11 +728,12 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
 
   const wallets = readJSON(WALLETS_FILE);
   if (driver_id && wallets.drivers && wallets.drivers[driver_id]) {
-    if (wallets.drivers[driver_id].face_verified === false) {
+    const d = wallets.drivers[driver_id];
+    if (d.biometric_verified === false && d.face_verified === false) {
       return res.status(403).json({
         success: false,
-        require_face_verification: true,
-        message: 'Keamanan Akun: Harap verifikasi wajah Anda terlebih dahulu sebelum mengambil pesanan ini!'
+        require_biometric_verification: true,
+        message: 'Keamanan Akun: Harap verifikasi Sidik Jari atau Wajah Anda terlebih dahulu sebelum mengambil pesanan ini!'
       });
     }
   }

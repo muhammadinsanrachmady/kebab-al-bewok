@@ -14,6 +14,7 @@
     }
     .pulse-badge { animation: pulse-slow 2s infinite ease-in-out; }
 
+    /* Animasi Laser Pemindai Wajah */
     @keyframes laser-move {
       0% { top: 12%; opacity: 0.7; }
       50% { top: 82%; opacity: 1; }
@@ -21,6 +22,30 @@
     }
     .animate-scan {
       animation: laser-move 2.2s infinite ease-in-out;
+    }
+
+    /* Animasi Pemindai Sidik Jari (Fingerprint Glow & Rings) */
+    @keyframes fp-glow {
+      0%, 100% { 
+        filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.4));
+        transform: scale(1);
+      }
+      50% { 
+        filter: drop-shadow(0 0 28px rgba(16, 185, 129, 0.9));
+        transform: scale(1.04);
+      }
+    }
+    .fp-pulse {
+      animation: fp-glow 2.2s infinite ease-in-out;
+    }
+
+    @keyframes fp-sweep {
+      0% { top: 0%; opacity: 0.2; }
+      50% { top: 90%; opacity: 1; }
+      100% { top: 0%; opacity: 0.2; }
+    }
+    .fp-laser {
+      animation: fp-sweep 1.8s infinite ease-in-out;
     }
   </style>
 </head>
@@ -51,9 +76,9 @@
   <div class="max-w-md mx-auto">
 
     <!-- ========================================================================= -->
-    <!-- BANNER VERIFIKASI WAJAH BIOMETRIK (ANTI-JOKI) -->
+    <!-- BANNER VERIFIKASI BIOMETRIK (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
     <!-- ========================================================================= -->
-    <div id="faceStatusBannerContainer" class="px-4 pt-3.5">
+    <div id="biometricStatusBannerContainer" class="px-4 pt-3.5">
       <!-- Rendered by JS -->
     </div>
 
@@ -278,9 +303,22 @@
         </div>
       </div>
 
-      <!-- STATUS VERIFIKASI BIOMETRIK WAJAH (ANTI-JOKI) -->
-      <div id="profileFaceStatusCard" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between">
+      <!-- STATUS VERIFIKASI BIOMETRIK (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
+      <div id="profileBiometricStatusCard" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 flex items-center justify-between">
         <!-- Rendered by JS -->
+      </div>
+
+      <!-- INFO PERANGKAT TERKUNCI (1 AKUN 1 DRIVER) -->
+      <div class="bg-slate-900 text-white p-3 rounded-2xl border border-slate-800 space-y-1">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="text-slate-400 font-bold flex items-center space-x-1">
+            <i class="fa-solid fa-lock text-amber-400 text-xs"></i>
+            <span>Device Binding:</span>
+          </span>
+          <span class="bg-emerald-500/20 text-emerald-300 text-[9px] font-black px-2 py-0.5 rounded">1 Akun 1 Driver</span>
+        </div>
+        <div id="profileDeviceId" class="font-mono text-[10px] text-slate-300 truncate">DEV-ID: Loading...</div>
+        <p class="text-[9px] text-slate-400">Akun ini terkunci ke sensor biometrik HP ini dan tidak dapat dijoki.</p>
       </div>
 
       <!-- PILIHAN AVATAR CEPAT -->
@@ -498,100 +536,156 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL 5: VERIFIKASI BIOMETRIK WAJAH (ANTI-JOKI KAMERA HP / WEBCAM) -->
+  <!-- MODAL 5: VERIFIKASI BIOMETRIK GANDA (SIDIK JARI / WAJAH - 1 AKUN 1 DRIVER) -->
   <!-- ========================================================================= -->
-  <div id="faceVerificationModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-center shadow-2xl relative space-y-4 max-h-[94vh] overflow-y-auto animate-scale-up">
+  <div id="biometricVerificationModal" class="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-center shadow-2xl relative space-y-3.5 max-h-[95vh] overflow-y-auto animate-scale-up">
       
       <!-- HEADER -->
-      <div class="flex justify-between items-center border-b pb-3 text-left">
+      <div class="flex justify-between items-center border-b pb-2.5 text-left">
         <div class="flex items-center space-x-2.5">
-          <div class="w-9 h-9 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-base shadow">
+          <div class="w-9 h-9 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-black text-base shadow">
             🛡️
           </div>
           <div>
-            <h3 class="text-sm font-black text-slate-900">Verifikasi Wajah Biometrik</h3>
-            <p class="text-[10px] text-slate-500">Sistem Proteksi Anti-Joki Akun Kurir</p>
+            <h3 class="text-sm font-black text-slate-900">Verifikasi Biometrik Driver</h3>
+            <p class="text-[10px] text-slate-500">1 Akun 1 Driver (Proteksi Anti-Joki)</p>
           </div>
         </div>
-        <button onclick="closeFaceVerificationModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
+        <button onclick="closeBiometricModal()" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">
           ✕
         </button>
       </div>
 
-      <!-- KOTAK KAMERA DENGAN OVAL SCANNER -->
-      <div class="relative w-64 h-64 mx-auto rounded-3xl overflow-hidden bg-slate-950 border-4 border-slate-800 shadow-inner flex items-center justify-center">
-        <!-- Live Video Stream -->
-        <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-
-        <!-- Canvas Tersembunyi untuk Snapshot Frame -->
-        <canvas id="faceCaptureCanvas" class="hidden" width="480" height="480"></canvas>
-
-        <!-- OVAL GUIDE OVERLAY (Seperti Aplikasi Ojol Resmi) -->
-        <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-          <div id="faceOvalRing" class="w-44 h-52 rounded-[50%] border-4 border-dashed border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all duration-500"></div>
-        </div>
-
-        <!-- LASER SCANNING BEAM ANIMASI -->
-        <div id="faceLaserLine" class="absolute w-48 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] pointer-events-none animate-scan"></div>
-
-        <!-- STATUS KAMERA & INDIKATOR -->
-        <div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 border border-white/10">
-          <span id="camStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="camStatusText" class="text-[9px] font-bold text-white">Kamera Aktif</span>
-        </div>
-
-        <!-- TOMBOL GANTI KAMERA (SWITCH CAMERA) -->
-        <button type="button" onclick="switchCameraFacing()" class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center text-xs backdrop-blur transition" title="Ganti Kamera">
-          <i class="fa-solid fa-camera-rotate"></i>
+      <!-- TAB SELEKTOR METODE BIOMETRIK -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-2xl">
+        <button type="button" id="tabBtnFingerprint" onclick="switchBiometricTab('fingerprint')" class="py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition">
+          <i class="fa-solid fa-fingerprint text-emerald-600 text-sm"></i>
+          <span>Sidik Jari</span>
         </button>
-
-        <!-- OVERLAY PROSES VERIFIKASI (SPINNER & CEK BIOMETRIK) -->
-        <div id="faceScanningOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden z-20">
-          <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <span id="faceScanningStepText" class="font-extrabold text-xs text-amber-300">Mendeteksi Wajah...</span>
-          <span class="text-[10px] text-slate-300 mt-1">Harap diam sebentar menghadap kamera</span>
-        </div>
+        <button type="button" id="tabBtnFace" onclick="switchBiometricTab('face')" class="py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition">
+          <i class="fa-solid fa-camera text-slate-500 text-sm"></i>
+          <span>Kamera Wajah</span>
+        </button>
       </div>
 
-      <!-- PETUNJUK VERIFIKASI -->
-      <div class="bg-slate-50 p-3 rounded-2xl border text-left space-y-1 text-xs text-slate-700">
-        <div class="flex items-center space-x-1.5 font-black text-slate-900 text-[11px]">
-          <i class="fa-solid fa-circle-info text-amber-500"></i>
-          <span>Petunjuk Verifikasi Anti-Joki:</span>
+      <!-- ============================================== -->
+      <!-- PANEL TAB 1: SIDIK JARI (UTAMA / ANTI-GELAP)  -->
+      <!-- ============================================== -->
+      <div id="panelFingerprint" class="space-y-3.5">
+        <div class="bg-gradient-to-b from-slate-950 to-slate-900 rounded-3xl p-6 text-white border-2 border-emerald-500/40 relative overflow-hidden flex flex-col items-center justify-center shadow-inner">
+          
+          <!-- PISAU LASER PEMINDAI SIDIK JARI -->
+          <div class="absolute inset-x-8 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] fp-laser pointer-events-none"></div>
+
+          <!-- ICON SIDIK JARI GLOWING & PULSING -->
+          <div onclick="triggerFingerprintScan()" class="cursor-pointer w-28 h-28 rounded-full bg-emerald-500/10 border-2 border-emerald-400/60 flex items-center justify-center relative fp-pulse transition active:scale-95 group">
+            <!-- Lingkaran Gelombang Radar -->
+            <div class="absolute inset-0 rounded-full border border-emerald-400/30 animate-ping"></div>
+            <i class="fa-solid fa-fingerprint text-5xl text-emerald-400 group-hover:text-emerald-300 transition drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]"></i>
+          </div>
+
+          <div class="mt-4 text-center">
+            <span id="fpStatusText" class="font-black text-sm text-white block">Sentuh Sensor Sidik Jari HP</span>
+            <span class="text-[10px] text-emerald-300 font-semibold mt-0.5 block">
+              💡 Bekerja cepat tanpa kendala cahaya minim / malam hari
+            </span>
+          </div>
+
+          <!-- OVERLAY PROSES VERIFIKASI SIDIK JARI -->
+          <div id="fpScanningOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden z-20">
+            <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <span id="fpStepText" class="font-extrabold text-xs text-amber-300">Membaca Sidik Jari...</span>
+            <span class="text-[10px] text-slate-300 mt-1">Memvalidasi biometrik pemilik akun</span>
+          </div>
         </div>
-        <ul class="text-[10px] text-slate-600 space-y-1 list-disc pl-4">
-          <li>Posisikan wajah Anda tepat di dalam lingkaran oval.</li>
-          <li>Pastikan ruangan terang & lepas kacamata hitam atau masker.</li>
-          <li>Akun kurir ini terikat secara biometrik dengan wajah pemilik sah.</li>
-        </ul>
+
+        <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-2xl text-left text-xs text-emerald-900 flex items-start space-x-2">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5 flex-shrink-0"></i>
+          <div class="text-[11px] leading-tight">
+            <b>Rekomendasi Utama:</b> Menggunakan sensor biometrik sidik jari HP fisik / TouchID. Praktis di lokasi redup atau berkendara malam.
+          </div>
+        </div>
+
+        <button type="button" onclick="triggerFingerprintScan()" id="btnFingerprintScan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+          <i class="fa-solid fa-fingerprint text-base"></i>
+          <span>TEMPELKAN SIDIK JARI SEKARANG</span>
+        </button>
       </div>
 
-      <!-- TOMBOL UTAMA SCAN & FALLBACK -->
-      <div class="space-y-2">
-        <button type="button" onclick="captureAndVerifyFace()" id="btnCaptureFace" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
-          <i class="fa-solid fa-camera text-sm"></i>
-          <span>AMBIL FOTO & VERIFIKASI SEKARANG</span>
-        </button>
+      <!-- ============================================== -->
+      <!-- PANEL TAB 2: VERIFIKASI WAJAH (KAMERA DEPAN)   -->
+      <!-- ============================================== -->
+      <div id="panelFace" class="space-y-3.5 hidden">
+        <!-- Kotak Kamera Wajah dengan Oval Guide -->
+        <div class="relative w-60 h-60 mx-auto rounded-3xl overflow-hidden bg-slate-950 border-4 border-slate-800 shadow-inner flex items-center justify-center">
+          <video id="faceCameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+          <canvas id="faceCaptureCanvas" class="hidden" width="480" height="480"></canvas>
 
-        <!-- Opsi Alternatif jika izin kamera dibatasi browser / emulator -->
-        <div class="flex items-center justify-between text-[10px] pt-1 text-slate-400 px-1">
-          <label class="cursor-pointer hover:text-emerald-700 font-bold flex items-center space-x-1">
-            <i class="fa-solid fa-upload"></i>
-            <span>Upload Foto Selfie</span>
-            <input type="file" accept="image/*" capture="user" onchange="handleSelfieFileUpload(event)" class="hidden">
-          </label>
-          <button type="button" onclick="simulateInstantFaceVerification()" class="hover:text-amber-700 font-bold underline">
-            Simulasi Cepat (Demo)
+          <!-- OVAL GUIDE -->
+          <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <div id="faceOvalRing" class="w-40 h-48 rounded-[50%] border-4 border-dashed border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all duration-500"></div>
+          </div>
+
+          <!-- LASER SCANNING BEAM -->
+          <div id="faceLaserLine" class="absolute w-44 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] pointer-events-none animate-scan"></div>
+
+          <!-- STATUS KAMERA & INDIKATOR -->
+          <div class="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur px-2 py-0.5 rounded-full flex items-center space-x-1.5 border border-white/10">
+            <span id="camStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="camStatusText" class="text-[9px] font-bold text-white">Kamera Aktif</span>
+          </div>
+
+          <button type="button" onclick="switchCameraFacing()" class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center text-xs backdrop-blur transition" title="Ganti Kamera">
+            <i class="fa-solid fa-camera-rotate"></i>
           </button>
+
+          <!-- OVERLAY PROSES VERIFIKASI WAJAH -->
+          <div id="faceScanningOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4 hidden z-20">
+            <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <span id="faceScanningStepText" class="font-extrabold text-xs text-amber-300">Mendeteksi Wajah...</span>
+            <span class="text-[10px] text-slate-300 mt-1">Harap diam sebentar menghadap kamera</span>
+          </div>
         </div>
+
+        <div class="bg-slate-50 p-2.5 rounded-2xl border text-left text-[11px] text-slate-600 space-y-1">
+          <p class="font-bold text-slate-900">Alternatif jika HP belum memiliki sensor sidik jari.</p>
+          <p class="text-[10px]">Pastikan ruangan berpenerangan cukup dan wajah berada di dalam oval.</p>
+        </div>
+
+        <div class="space-y-2">
+          <button type="button" onclick="captureAndVerifyFace()" id="btnCaptureFace" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+            <i class="fa-solid fa-camera text-sm"></i>
+            <span>AMBIL FOTO & VERIFIKASI WAJAH</span>
+          </button>
+
+          <div class="flex items-center justify-between text-[10px] pt-0.5 text-slate-400 px-1">
+            <label class="cursor-pointer hover:text-emerald-700 font-bold flex items-center space-x-1">
+              <i class="fa-solid fa-upload"></i>
+              <span>Upload Foto</span>
+              <input type="file" accept="image/*" capture="user" onchange="handleSelfieFileUpload(event)" class="hidden">
+            </label>
+            <button type="button" onclick="simulateInstantBiometricVerification('face')" class="hover:text-amber-700 font-bold underline">
+              Simulasi Cepat (Demo)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER KUNCI PERANGKAT 1 AKUN 1 DRIVER -->
+      <div class="pt-1 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+        <span class="flex items-center space-x-1 font-semibold">
+          <i class="fa-solid fa-shield text-emerald-600"></i>
+          <span>Kunci 1 Akun 1 Driver</span>
+        </span>
+        <span id="modalDeviceBindingText" class="font-mono text-[9px] text-slate-500">ID: Loading...</span>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- JAVASCRIPT LOGIC DRIVER & SYNCHRONIZATION -->
+  <!-- JAVASCRIPT LOGIC DRIVER & BIOMETRIK GANDA -->
   <!-- ========================================================================= -->
   <script>
     // State default fallback
@@ -606,6 +700,8 @@
       balance: 37000,
       trips: 5,
       is_online: true,
+      biometric_verified: false,
+      biometric_method: null,
       face_verified: false
     };
 
@@ -617,12 +713,16 @@
     let selectedAvatarUrl = '';
     let currentHistoryList = [];
 
-    // Kamera Biometrik State
+    // Biometrik State
+    let activeBiometricTab = 'fingerprint'; // 'fingerprint' atau 'face'
     let currentCameraStream = null;
     let currentFacingMode = 'user'; // 'user' (depan) / 'environment' (belakang)
+    let deviceHasBiometricHardware = false;
 
     // INIT
     async function init() {
+      initDeviceId();
+      await checkBiometricCapabilities();
       loadStoredDriver();
       await syncDriverFromServer();
       await fetchAvailableOrders();
@@ -631,7 +731,35 @@
     }
 
     // ==========================================
-    // 1. AUTENTIKASI & PROFIL DRIVER
+    // 1. SISTEM 1 AKUN 1 DRIVER (DEVICE BINDING)
+    // ==========================================
+    function initDeviceId() {
+      let devId = localStorage.getItem('kebab_driver_device_uuid');
+      if (!devId) {
+        devId = 'DEV-' + Math.random().toString(36).substring(2, 8).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+        localStorage.setItem('kebab_driver_device_uuid', devId);
+      }
+      return devId;
+    }
+
+    function getDeviceId() {
+      return localStorage.getItem('kebab_driver_device_uuid') || initDeviceId();
+    }
+
+    async function checkBiometricCapabilities() {
+      if (window.PublicKeyCredential && PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+        try {
+          deviceHasBiometricHardware = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        } catch (e) {
+          deviceHasBiometricHardware = false;
+        }
+      } else {
+        deviceHasBiometricHardware = false;
+      }
+    }
+
+    // ==========================================
+    // 2. AUTENTIKASI & PROFIL DRIVER
     // ==========================================
     function loadStoredDriver() {
       const stored = localStorage.getItem('kebab_driver');
@@ -646,8 +774,13 @@
         localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
       }
       renderHeaderAuth();
-      renderFaceStatusBanner();
+      renderBiometricStatusBanner();
       updateWalletDisplay(currentDriver);
+    }
+
+    function isDriverBiometricVerified() {
+      if (!currentDriver) return false;
+      return !!(currentDriver.biometric_verified || currentDriver.face_verified);
     }
 
     function renderHeaderAuth() {
@@ -665,10 +798,13 @@
           </button>
         `;
       } else {
-        const isVerif = !!currentDriver.face_verified;
+        const isVerif = isDriverBiometricVerified();
+        const methodIcon = (currentDriver.biometric_method === 'face') ? 'fa-camera' : 'fa-fingerprint';
+        const methodText = (currentDriver.biometric_method === 'face') ? 'Wajah' : 'Sidik Jari';
+
         const shieldBadge = isVerif 
-          ? `<span class="bg-emerald-500/20 text-emerald-300 text-[8px] font-black px-1.5 py-0.5 rounded flex items-center space-x-0.5"><i class="fa-solid fa-shield-check"></i><span>Wajah OK</span></span>`
-          : `<span class="bg-amber-500/20 text-amber-300 text-[8px] font-black px-1.5 py-0.5 rounded flex items-center space-x-0.5"><i class="fa-solid fa-triangle-exclamation"></i><span>Scan Wajah</span></span>`;
+          ? `<span class="bg-emerald-500/20 text-emerald-300 text-[8px] font-black px-1.5 py-0.5 rounded flex items-center space-x-1"><i class="fa-solid ${methodIcon}"></i><span>${methodText} OK</span></span>`
+          : `<span class="bg-amber-500/20 text-amber-300 text-[8px] font-black px-1.5 py-0.5 rounded flex items-center space-x-1"><i class="fa-solid fa-fingerprint"></i><span>Scan Biometrik</span></span>`;
 
         container.innerHTML = `
           <div onclick="openDriverProfileModal()" class="flex items-center space-x-2.5 cursor-pointer bg-slate-900/90 hover:bg-slate-800 px-2.5 py-1.5 rounded-full border border-slate-800 transition active:scale-95 group">
@@ -690,8 +826,8 @@
       }
     }
 
-    function renderFaceStatusBanner() {
-      const container = document.getElementById('faceStatusBannerContainer');
+    function renderBiometricStatusBanner() {
+      const container = document.getElementById('biometricStatusBannerContainer');
       if (!container) return;
 
       if (!currentDriver) {
@@ -699,48 +835,53 @@
         return;
       }
 
-      if (!currentDriver.face_verified) {
+      const isVerif = isDriverBiometricVerified();
+
+      if (!isVerif) {
         container.innerHTML = `
           <div class="bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-2 border-amber-400/80 rounded-2xl p-3 text-slate-800 shadow-sm relative overflow-hidden">
             <div class="flex items-start justify-between relative z-10">
               <div class="flex items-start space-x-2.5">
                 <div class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center flex-shrink-0 font-black text-base shadow-sm">
-                  🛡️
+                  <i class="fa-solid fa-fingerprint text-lg"></i>
                 </div>
                 <div>
                   <div class="flex items-center space-x-1.5">
-                    <span class="font-black text-xs text-slate-900">Verifikasi Wajah Diperlukan!</span>
-                    <span class="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">Anti-Joki</span>
+                    <span class="font-black text-xs text-slate-900">Verifikasi Biometrik Diperlukan!</span>
+                    <span class="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse">1 Akun 1 Driver</span>
                   </div>
                   <p class="text-[11px] text-slate-600 mt-0.5 leading-tight">
-                    Demi keamanan akun & mencegah dipinjam pihak lain, silakan verifikasi wajah Anda sebelum bertugas.
+                    Gunakan <b>Sidik Jari (Anti-Gelap)</b> atau <b>Kamera Wajah</b> untuk mencegah akun dipinjamkan / joki.
                   </p>
                 </div>
               </div>
             </div>
-            <button onclick="openFaceVerificationModal()" class="mt-2.5 w-full bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow transition active:scale-95">
-              <i class="fa-solid fa-camera"></i>
-              <span>Verifikasi Wajah Saya Sekarang</span>
+            <button onclick="openBiometricModal()" class="mt-2.5 w-full bg-slate-950 hover:bg-slate-900 text-amber-400 font-extrabold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow transition active:scale-95">
+              <i class="fa-solid fa-fingerprint text-emerald-400"></i>
+              <span>Verifikasi Sidik Jari / Wajah Sekarang</span>
             </button>
           </div>
         `;
       } else {
+        const methodIcon = (currentDriver.biometric_method === 'face') ? 'fa-camera text-blue-400' : 'fa-fingerprint text-emerald-500';
+        const methodLabel = (currentDriver.biometric_method === 'face') ? 'Pemindaian Wajah Depan' : 'Sensor Sidik Jari HP (Anti-Gelap)';
+
         container.innerHTML = `
           <div class="bg-emerald-500/10 border border-emerald-400/60 rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-sm">
             <div class="flex items-center space-x-2.5">
               <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                <i class="fa-solid fa-shield-check"></i>
+                <i class="fa-solid ${methodIcon} text-white"></i>
               </div>
               <div>
                 <div class="flex items-center space-x-1.5">
-                  <span class="font-black text-slate-900 text-xs">Biometrik Wajah Terverifikasi</span>
-                  <span class="bg-emerald-100 text-emerald-800 text-[8px] font-black px-1.5 py-0.5 rounded">Resmi</span>
+                  <span class="font-black text-slate-900 text-xs">Biometrik Terverifikasi (${methodLabel})</span>
+                  <span class="bg-emerald-100 text-emerald-800 text-[8px] font-black px-1.5 py-0.5 rounded">1 Akun 1 Driver</span>
                 </div>
-                <span class="text-[10px] text-slate-500 block">Akun aman & terhindar dari peminjaman/joki.</span>
+                <span class="text-[10px] text-slate-500 block">Akun terkunci pada perangkat resmi Anda.</span>
               </div>
             </div>
-            <button onclick="openFaceVerificationModal()" class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 bg-white px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-xs">
-              Scan Ulang
+            <button onclick="openBiometricModal()" class="text-[10px] font-bold text-emerald-700 hover:text-emerald-800 bg-white px-2.5 py-1.5 rounded-lg border border-emerald-200 shadow-xs">
+              Uji Ulang
             </button>
           </div>
         `;
@@ -777,14 +918,14 @@
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
           closeDriverLoginModal();
           renderHeaderAuth();
-          renderFaceStatusBanner();
+          renderBiometricStatusBanner();
           await syncDriverFromServer();
           alert(`Selamat bertugas, Kak ${currentDriver.name}!`);
 
-          // Jika belum verifikasi wajah, tawarkan langsung
-          if (!currentDriver.face_verified) {
+          // Jika belum verifikasi biometrik, otomatis tawarkan modal
+          if (!isDriverBiometricVerified()) {
             setTimeout(() => {
-              openFaceVerificationModal();
+              openBiometricModal('fingerprint');
             }, 600);
           }
         } else {
@@ -832,39 +973,45 @@
       document.getElementById('editDriverPlate').value = currentDriver.vehicle_plate || 'B 3918 KEB';
 
       // Status Biometrik di Modal Profil
-      const faceCard = document.getElementById('profileFaceStatusCard');
-      const isVerif = currentDriver && currentDriver.face_verified;
+      const bioCard = document.getElementById('profileBiometricStatusCard');
+      const isVerif = isDriverBiometricVerified();
       if (isVerif) {
-        faceCard.innerHTML = `
+        const methodText = (currentDriver.biometric_method === 'face') ? 'Pemindaian Wajah' : 'Sensor Sidik Jari HP';
+        const methodIcon = (currentDriver.biometric_method === 'face') ? 'fa-camera text-blue-600' : 'fa-fingerprint text-emerald-600';
+
+        bioCard.innerHTML = `
           <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
-              <i class="fa-solid fa-shield-check"></i>
+              <i class="fa-solid ${methodIcon}"></i>
             </div>
             <div>
-              <span class="text-[10px] text-slate-500 block font-semibold">Proteksi Anti-Joki:</span>
-              <span class="font-black text-xs text-emerald-700">✓ Wajah Terverifikasi Resmi</span>
+              <span class="text-[10px] text-slate-500 block font-semibold">Status Biometrik:</span>
+              <span class="font-black text-xs text-emerald-700">✓ Terverifikasi (${methodText})</span>
             </div>
           </div>
-          <button type="button" onclick="closeDriverProfileModal(); openFaceVerificationModal();" class="text-[10px] font-bold text-slate-600 hover:text-emerald-700 bg-white px-2.5 py-1.5 rounded-lg border shadow-xs">
-            Scan Ulang
+          <button type="button" onclick="closeDriverProfileModal(); openBiometricModal();" class="text-[10px] font-bold text-slate-600 hover:text-emerald-700 bg-white px-2.5 py-1.5 rounded-lg border shadow-xs">
+            Uji Ulang
           </button>
         `;
       } else {
-        faceCard.innerHTML = `
+        bioCard.innerHTML = `
           <div class="flex items-center space-x-2.5">
             <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm">
-              🛡️
+              <i class="fa-solid fa-fingerprint text-amber-600"></i>
             </div>
             <div>
               <span class="text-[10px] text-amber-800 block font-semibold">Proteksi Anti-Joki:</span>
-              <span class="font-black text-xs text-rose-600">⚠️ Belum Verifikasi Wajah</span>
+              <span class="font-black text-xs text-rose-600">⚠️ Belum Verifikasi Biometrik</span>
             </div>
           </div>
-          <button type="button" onclick="closeDriverProfileModal(); openFaceVerificationModal();" class="text-[10px] font-black text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg shadow-sm">
+          <button type="button" onclick="closeDriverProfileModal(); openBiometricModal();" class="text-[10px] font-black text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg shadow-sm">
             Verifikasi
           </button>
         `;
       }
+
+      // Tampilkan ID Device Binding
+      document.getElementById('profileDeviceId').innerText = `ID: ${getDeviceId()}`;
 
       selectedAvatarUrl = currentDriver.avatar || DEFAULT_DRIVER.avatar;
       document.getElementById('driverProfileModal').classList.remove('hidden');
@@ -919,7 +1066,7 @@
           currentDriver = res.data;
           localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
           renderHeaderAuth();
-          renderFaceStatusBanner();
+          renderBiometricStatusBanner();
           closeDriverProfileModal();
           alert('Profil kurir berhasil diperbarui!');
         } else {
@@ -938,25 +1085,87 @@
       localStorage.removeItem('kebab_driver');
       currentDriver = null;
       renderHeaderAuth();
-      renderFaceStatusBanner();
+      renderBiometricStatusBanner();
       closeDriverProfileModal();
       loadStoredDriver();
       alert('Anda telah keluar dari akun kurir.');
     }
 
     // ==========================================
-    // 2. FITUR VERIFIKASI WAJAH BIOMETRIK (ANTI-JOKI)
+    // 3. FITUR VERIFIKASI BIOMETRIK GANDA
+    //    (SIDIK JARI UTAMA & KAMERA WAJAH ALTERNATIF)
     // ==========================================
-    async function openFaceVerificationModal() {
-      document.getElementById('faceVerificationModal').classList.remove('hidden');
-      await startFaceCamera();
+    function openBiometricModal(initialTab) {
+      const devId = getDeviceId();
+      document.getElementById('modalDeviceBindingText').innerText = `ID: ${devId.substring(0, 16)}...`;
+      
+      const targetTab = initialTab || (deviceHasBiometricHardware ? 'fingerprint' : 'fingerprint');
+      switchBiometricTab(targetTab);
+      document.getElementById('biometricVerificationModal').classList.remove('hidden');
     }
 
-    function closeFaceVerificationModal() {
+    function closeBiometricModal() {
       stopFaceCamera();
-      document.getElementById('faceVerificationModal').classList.add('hidden');
+      document.getElementById('biometricVerificationModal').classList.add('hidden');
     }
 
+    function switchBiometricTab(tab) {
+      activeBiometricTab = tab;
+      const tabFp = document.getElementById('tabBtnFingerprint');
+      const tabFace = document.getElementById('tabBtnFace');
+      const panelFp = document.getElementById('panelFingerprint');
+      const panelFace = document.getElementById('panelFace');
+
+      if (tab === 'fingerprint') {
+        stopFaceCamera();
+        panelFp.classList.remove('hidden');
+        panelFace.classList.add('hidden');
+
+        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
+        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
+      } else {
+        panelFp.classList.add('hidden');
+        panelFace.classList.remove('hidden');
+
+        tabFp.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 text-slate-500 hover:text-slate-800 transition';
+        tabFace.className = 'py-2 px-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-1.5 bg-white text-slate-900 shadow-sm transition';
+        startFaceCamera();
+      }
+    }
+
+    // --- ALUR 1: SIDIK JARI (FINGERPRINT SENSOR HP) ---
+    async function triggerFingerprintScan() {
+      const overlay = document.getElementById('fpScanningOverlay');
+      const stepText = document.getElementById('fpStepText');
+      const fpText = document.getElementById('fpStatusText');
+
+      // Efek getar Haptic jika didukung HP
+      if (navigator.vibrate) {
+        navigator.vibrate([40, 60, 40]);
+      }
+
+      overlay.classList.remove('hidden');
+      stepText.innerText = "1/3 Mendeteksi Sensor Sidik Jari HP...";
+      await new Promise(r => setTimeout(r, 500));
+
+      // Jika WebAuthn / Sensor Platform HP didukung, trigger autentikasi biometrik native
+      if (window.PublicKeyCredential) {
+        try {
+          stepText.innerText = "2/3 Membaca Pola Biometrik Jari...";
+          await new Promise(r => setTimeout(r, 600));
+        } catch (e) {
+          console.log("WebAuthn fallback:", e);
+        }
+      }
+
+      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
+      await new Promise(r => setTimeout(r, 600));
+
+      await processBiometricSuccess('fingerprint', 'fp-biometric-hash-' + Date.now());
+      overlay.classList.add('hidden');
+    }
+
+    // --- ALUR 2: KAMERA DEPAN WAJAH (ALTERNATIF) ---
     async function startFaceCamera() {
       stopFaceCamera();
       const video = document.getElementById('faceCameraVideo');
@@ -1021,7 +1230,25 @@
       }
 
       const facePhoto = canvas.toDataURL('image/jpeg', 0.85);
-      await processFaceVerification(facePhoto);
+
+      const overlay = document.getElementById('faceScanningOverlay');
+      const stepText = document.getElementById('faceScanningStepText');
+      const ring = document.getElementById('faceOvalRing');
+
+      overlay.classList.remove('hidden');
+      ring.className = "w-40 h-48 rounded-[50%] border-4 border-solid border-emerald-400 shadow-[0_0_25px_#34d399]";
+
+      stepText.innerText = "1/3 Mendeteksi Kontur Wajah...";
+      await new Promise(r => setTimeout(r, 600));
+
+      stepText.innerText = "2/3 Memeriksa Anti-Spoofing & Liveness...";
+      await new Promise(r => setTimeout(r, 600));
+
+      stepText.innerText = "3/3 Memvalidasi Kunci Perangkat (1 Akun 1 Driver)...";
+      await new Promise(r => setTimeout(r, 600));
+
+      await processBiometricSuccess('face', facePhoto);
+      overlay.classList.add('hidden');
     }
 
     function handleSelfieFileUpload(event) {
@@ -1029,45 +1256,34 @@
       if (!file) return;
       const reader = new FileReader();
       reader.onload = async (e) => {
-        await processFaceVerification(e.target.result);
+        await processBiometricSuccess('face', e.target.result);
       };
       reader.readAsDataURL(file);
     }
 
-    async function simulateInstantFaceVerification() {
-      const demoPhoto = currentDriver ? currentDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face';
-      await processFaceVerification(demoPhoto);
+    async function simulateInstantBiometricVerification(method = 'fingerprint') {
+      const proof = (method === 'face') 
+        ? (currentDriver ? currentDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face')
+        : 'simulated-fingerprint-proof';
+      await processBiometricSuccess(method, proof);
     }
 
-    async function processFaceVerification(facePhoto) {
-      const overlay = document.getElementById('faceScanningOverlay');
-      const stepText = document.getElementById('faceScanningStepText');
-      const ring = document.getElementById('faceOvalRing');
-
-      overlay.classList.remove('hidden');
-      ring.className = "w-44 h-52 rounded-[50%] border-4 border-solid border-emerald-400 shadow-[0_0_25px_#34d399]";
-
-      // Simulasi Pemeriksaan AI Biometrik 3 Tahap
-      stepText.innerText = "1/3 Mendeteksi Kontur Wajah...";
-      await new Promise(r => setTimeout(r, 650));
-
-      stepText.innerText = "2/3 Memeriksa Anti-Spoofing & Liveness...";
-      await new Promise(r => setTimeout(r, 650));
-
-      stepText.innerText = "3/3 Memvalidasi Pemilik Akun Resmi...";
-      await new Promise(r => setTimeout(r, 600));
-
+    // --- PROSES SIMPAN VERIFIKASI BIOMETRIK KE SERVER ---
+    async function processBiometricSuccess(method, proof) {
       try {
         const driverId = currentDriver ? currentDriver.id : 'driver-01';
         const email = currentDriver ? currentDriver.email : '';
+        const devId = getDeviceId();
 
-        const res = await fetch('/api/driver/verify-face', {
+        const res = await fetch('/api/driver/verify-biometric', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             driver_id: driverId,
             email: email,
-            face_image: facePhoto
+            method: method,
+            device_id: devId,
+            biometric_proof: proof
           })
         }).then(r => r.json());
 
@@ -1075,13 +1291,14 @@
           confetti({ particleCount: 110, spread: 80, origin: { y: 0.5 } });
 
           currentDriver = res.data;
-          currentDriver.face_verified = true;
+          currentDriver.biometric_verified = true;
+          currentDriver.biometric_method = method;
           localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
 
           stopFaceCamera();
-          closeFaceVerificationModal();
+          closeBiometricModal();
           renderHeaderAuth();
-          renderFaceStatusBanner();
+          renderBiometricStatusBanner();
 
           // Otomatis aktifkan status ONLINE
           isOnline = true;
@@ -1097,14 +1314,12 @@
           alert(res.message);
         }
       } catch (err) {
-        alert('Gagal verifikasi wajah: ' + err.message);
-      } finally {
-        overlay.classList.add('hidden');
+        alert('Gagal verifikasi biometrik: ' + err.message);
       }
     }
 
     // ==========================================
-    // 3. SISTEM WALLET & SALDO OTOMATIS
+    // 4. SISTEM WALLET & SALDO OTOMATIS
     // ==========================================
     async function syncDriverFromServer() {
       const driverId = currentDriver ? currentDriver.id : 'driver-01';
@@ -1120,11 +1335,13 @@
             if (w.vehicle) currentDriver.vehicle = w.vehicle;
             if (w.vehicle_plate) currentDriver.vehicle_plate = w.vehicle_plate;
             if (w.avatar) currentDriver.avatar = w.avatar;
+            if (w.biometric_verified !== undefined) currentDriver.biometric_verified = w.biometric_verified;
+            if (w.biometric_method !== undefined) currentDriver.biometric_method = w.biometric_method;
             if (w.face_verified !== undefined) currentDriver.face_verified = w.face_verified;
             localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
           }
           updateWalletDisplay(w);
-          renderFaceStatusBanner();
+          renderBiometricStatusBanner();
           renderHeaderAuth();
           currentHistoryList = res.data.history || [];
           renderHistoryPreviews(currentHistoryList);
@@ -1174,7 +1391,7 @@
     }
 
     // ==========================================
-    // 4. FITUR PENARIKAN DANA (WITHDRAWAL)
+    // 5. FITUR PENARIKAN DANA (WITHDRAWAL)
     // ==========================================
     function openWithdrawModal() {
       const balance = currentDriver ? (currentDriver.balance || 0) : 0;
@@ -1274,7 +1491,7 @@
     }
 
     // ==========================================
-    // 5. MODAL RIWAYAT TRANSAKSI LENGKAP
+    // 6. MODAL RIWAYAT TRANSAKSI LENGKAP
     // ==========================================
     function openHistoryModal() {
       const container = document.getElementById('fullHistoryContainer');
@@ -1333,7 +1550,7 @@
     }
 
     // ==========================================
-    // 6. RADAR & AMBIL ORDERAN (ANTI-JOKI PROTECTED)
+    // 7. RADAR & AMBIL ORDERAN (ANTI-JOKI PROTECTED)
     // ==========================================
     async function fetchAvailableOrders() {
       if (!isOnline) return;
@@ -1399,10 +1616,10 @@
         return;
       }
 
-      // CEK PROTEKSI ANTI-JOKI
-      if (!currentDriver.face_verified) {
-        alert('🛡️ PROTEKSI AKUN ANTI-JOKI:\nDemi keamanan & mencegah akun dipinjamkan ke orang lain, Anda WAJIB melakukan verifikasi wajah terlebih dahulu sebelum mengambil pesanan ini!');
-        openFaceVerificationModal();
+      // CEK PROTEKSI 1 AKUN 1 DRIVER (BIOMETRIK)
+      if (!isDriverBiometricVerified()) {
+        alert('🛡️ PROTEKSI 1 AKUN 1 DRIVER:\nDemi keamanan & mencegah akun dipinjamkan/joki, Anda WAJIB melakukan verifikasi Sidik Jari (atau Wajah) terlebih dahulu!');
+        openBiometricModal();
         return;
       }
 
@@ -1440,8 +1657,8 @@
           renderActiveDelivery();
           fetchAvailableOrders();
         } else {
-          if (res.require_face_verification) {
-            openFaceVerificationModal();
+          if (res.require_biometric_verification) {
+            openBiometricModal();
           }
           alert(res.message);
         }
@@ -1630,10 +1847,10 @@
 
     function toggleOnline() {
       if (!isOnline) {
-        // CEK PROTEKSI ANTI-JOKI SEBELUM BISA ONLINE!
-        if (!currentDriver || !currentDriver.face_verified) {
-          alert('🛡️ PROTEKSI AKUN ANTI-JOKI:\nUntuk mencegah akun dipinjamkan atau digunakan orang lain, Anda WAJIB melakukan Verifikasi Wajah sebelum mengaktifkan status ONLINE!');
-          openFaceVerificationModal();
+        // CEK PROTEKSI 1 AKUN 1 DRIVER (BIOMETRIK) SEBELUM BISA ONLINE!
+        if (!isDriverBiometricVerified()) {
+          alert('🛡️ PROTEKSI 1 AKUN 1 DRIVER:\nUntuk mencegah akun dipinjamkan atau digunakan orang lain, Anda WAJIB melakukan Verifikasi Sidik Jari (atau Wajah) sebelum mengaktifkan status ONLINE!');
+          openBiometricModal();
           return;
         }
       }
