@@ -732,32 +732,143 @@
     </div>
   </div>
 
-  <!-- MODAL STATUS ORDER LIVE TRACKING -->
-  <div id="trackingModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 text-center space-y-4">
-      <div id="statusIcon" class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto text-2xl animate-bounce">
-        <i class="fa-solid fa-receipt"></i>
-      </div>
-      <div>
-        <span id="trackOrderCode" class="text-xs font-mono font-bold bg-gray-100 px-2 py-0.5 rounded text-gray-600">KB-000000</span>
-        <h3 id="trackStatusTitle" class="text-base font-extrabold text-gray-900 mt-2">Menunggu Verifikasi Pembayaran</h3>
-        <p id="trackStatusDesc" class="text-xs text-gray-500 mt-1">Lapak sedang memeriksa mutasi pembayaran Anda.</p>
+  <!-- MODAL STATUS ORDER LIVE TRACKING (REAL-TIME MAP & DRIVER RADAR) -->
+  <div id="trackingModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-scale-up">
+      
+      <!-- HEADER MODAL -->
+      <div class="bg-gradient-to-r from-red-600 via-amber-500 to-amber-600 p-4 text-white flex items-center justify-between shadow-md">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-xl shadow-inner">
+            🛵
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-black text-sm tracking-wide">LIVE TRACKING KEBAB</h3>
+              <span id="trackOrderCode" class="bg-white text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                KB-000000
+              </span>
+            </div>
+            <p class="text-[11px] text-amber-100 flex items-center space-x-1.5 mt-0.5">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+              </span>
+              <span id="trackLiveStatusText">Pembaruan GPS realtime aktif</span>
+            </p>
+          </div>
+        </div>
+        <button onclick="closeTrackingModal()" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 flex items-center justify-center text-white transition active:scale-95">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
 
-      <div class="bg-gray-50 p-3 rounded-2xl text-left text-xs space-y-1.5 border">
-        <div class="flex justify-between">
-          <span class="text-gray-500">Outlet:</span>
-          <span id="trackBranch" class="font-bold text-gray-800">-</span>
+      <!-- MAP CONTAINER DENGAN FLOATING BADGES -->
+      <div class="relative w-full h-64 sm:h-72 bg-slate-100">
+        <div id="trackLiveMap" class="w-full h-full"></div>
+        
+        <!-- FLOATING ETA & RADAR BADGE DI ATAS MAP -->
+        <div class="absolute top-3 left-3 right-3 z-[400] flex items-center justify-between pointer-events-none">
+          <div class="bg-slate-900/90 backdrop-blur text-white px-3 py-1.5 rounded-2xl shadow-lg border border-white/20 flex items-center space-x-2 pointer-events-auto">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <div class="text-[11px] leading-tight">
+              <span class="text-slate-400 block text-[9px] font-bold">ESTIMASI TIBA</span>
+              <span id="trackEtaText" class="font-black text-amber-300">~10 - 15 Menit</span>
+            </div>
+          </div>
+          <button onclick="recenterTrackMap()" class="bg-white/95 hover:bg-white text-slate-800 px-2.5 py-1.5 rounded-2xl shadow-lg border border-gray-200 pointer-events-auto text-xs font-bold flex items-center space-x-1 active:scale-95 transition">
+            <i class="fa-solid fa-location-crosshairs text-red-600 text-xs"></i>
+            <span class="text-[10px]">Fokus Rute</span>
+          </button>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-500">Kurir Pengantar:</span>
-          <span id="trackDriver" class="font-bold text-red-600">Menunggu Dapur Siap</span>
+
+        <!-- FLOATING STATUS BANNER DI BAWAH MAP -->
+        <div class="absolute bottom-3 left-3 right-3 z-[400] bg-white/95 backdrop-blur px-3 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center space-x-2.5 text-xs">
+          <div id="statusIcon" class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-sm shadow-sm">
+            <i class="fa-solid fa-motorcycle"></i>
+          </div>
+          <div class="flex-1 truncate">
+            <div id="trackStatusTitle" class="font-black text-slate-900 text-[11px] truncate">Kurir OTW Menuju Alamatmu 🛵</div>
+            <div id="trackStatusDesc" class="text-[10px] text-slate-500 truncate">Kebab hangatmu sedang dalam perjalanan.</div>
+          </div>
         </div>
       </div>
 
-      <button onclick="closeTrackingModal()" class="w-full bg-gray-200 text-gray-800 font-bold py-2.5 rounded-xl text-xs">
-        Tutup
-      </button>
+      <!-- KONTEN STATUS, STEPPER & DRIVER INFO -->
+      <div class="p-4 space-y-3 overflow-y-auto max-h-[42vh] bg-slate-50/60">
+        
+        <!-- TIMELINE STEPPER GOJEK STYLE -->
+        <div class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+          <div class="grid grid-cols-4 gap-1 text-center relative">
+            <div class="flex flex-col items-center space-y-1">
+              <div id="stepDot1" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shadow-sm">✓</div>
+              <span class="text-[9px] font-bold text-slate-700">Verifikasi</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+              <div id="stepDot2" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black">🍳</div>
+              <span class="text-[9px] font-bold text-slate-500">Dimasak</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+              <div id="stepDot3" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black">🛵</div>
+              <span class="text-[9px] font-bold text-slate-500">Diantar</span>
+            </div>
+            <div class="flex flex-col items-center space-y-1">
+              <div id="stepDot4" class="w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black">🎉</div>
+              <span class="text-[9px] font-bold text-slate-500">Sampai</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRIVER / KURIR CARD -->
+        <div id="trackDriverCard" class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="relative">
+              <img id="trackDriverPhoto" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" class="w-11 h-11 rounded-2xl object-cover border-2 border-amber-400 shadow-sm" alt="Foto Driver" />
+              <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[8px] px-1 py-0.2 rounded-full font-bold">LIVE</span>
+            </div>
+            <div>
+              <div class="flex items-center space-x-1.5">
+                <span id="trackDriverName" class="font-extrabold text-xs text-slate-900">Kurir Kebab</span>
+                <span class="text-amber-500 text-[10px] font-bold">★ 4.9</span>
+              </div>
+              <p id="trackDriverVehicle" class="text-[11px] text-slate-500 font-medium">Honda Beat • B 3918 KEB</p>
+              <p id="trackDriverDistance" class="text-[10px] text-red-600 font-bold mt-0.5">Jarak tersisa: ~1.2 km</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-1.5">
+            <a id="trackDriverWaBtn" href="#" target="_blank" class="w-9 h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-md shadow-emerald-200 active:scale-95 transition" title="Chat WhatsApp Kurir">
+              <i class="fa-brands fa-whatsapp text-lg"></i>
+            </a>
+            <a href="tel:085285841330" class="w-9 h-9 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl flex items-center justify-center active:scale-95 transition" title="Telepon Hotline">
+              <i class="fa-solid fa-phone text-xs"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- INFO OUTLET & ALAMAT PENGIRIMAN -->
+        <div class="bg-white p-3 rounded-2xl border border-gray-100 text-xs space-y-2">
+          <div class="flex items-start space-x-2">
+            <span class="text-red-500 text-xs mt-0.5"><i class="fa-solid fa-store"></i></span>
+            <div class="flex-1">
+              <span class="text-[10px] text-slate-400 font-bold block">OUTLET PENGIRIM</span>
+              <span id="trackBranch" class="font-bold text-slate-800 text-[11px]">Kebab AL Bewok</span>
+            </div>
+          </div>
+          <div class="border-t border-dashed border-gray-200 pt-2 flex items-start space-x-2">
+            <span class="text-blue-500 text-xs mt-0.5"><i class="fa-solid fa-location-dot"></i></span>
+            <div class="flex-1">
+              <span class="text-[10px] text-slate-400 font-bold block">TUJUAN PENGANTARAN</span>
+              <span id="trackCustomerAddress" class="text-slate-700 text-[11px] leading-tight block">Lokasi Pelanggan</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="closeTrackingModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 rounded-2xl text-xs transition">
+          Tutup Panel Lacak
+        </button>
+
+      </div>
     </div>
   </div>
 
@@ -2079,14 +2190,163 @@
       }
     }
 
-    function openTrackingModal(orderCode) {
-      document.getElementById('trackOrderCode').innerText = `#${orderCode}`;
-      document.getElementById('trackBranch').innerText = currentBranch.name;
+    let trackMap = null;
+    let trackDriverMarker = null;
+    let trackCustomerMarker = null;
+    let trackBranchMarker = null;
+    let trackRouteLine = null;
+    let currentTrackingOrder = null;
+
+    function openTrackingModal(orderCode, orderId) {
+      if (orderId) activeOrderId = orderId;
+      else if (!activeOrderId && orderCode) activeOrderId = orderCode;
+
+      document.getElementById('trackOrderCode').innerText = `#${orderCode || (currentTrackingOrder ? currentTrackingOrder.order_code : 'KB-LIVE')}`;
+      if (currentBranch) {
+        document.getElementById('trackBranch').innerText = currentBranch.name;
+      }
       document.getElementById('trackingModal').classList.remove('hidden');
 
+      setTimeout(() => {
+        if (!trackMap) {
+          initTrackMap();
+        } else {
+          trackMap.invalidateSize();
+        }
+      }, 300);
+
       if (trackingInterval) clearInterval(trackingInterval);
-      trackingInterval = setInterval(checkOrderStatus, 2000);
+      trackingInterval = setInterval(checkOrderStatus, 2500);
       checkOrderStatus();
+    }
+
+    function initTrackMap() {
+      const container = document.getElementById('trackLiveMap');
+      if (!container || trackMap) return;
+
+      const defaultLat = userCurrentLat || -6.2088;
+      const defaultLng = userCurrentLng || 106.8456;
+
+      trackMap = L.map('trackLiveMap', {
+        zoomControl: false,
+        attributionControl: false
+      }).setView([defaultLat, defaultLng], 14);
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+      }).addTo(trackMap);
+
+      L.control.zoom({ position: 'bottomright' }).addTo(trackMap);
+      trackMap.invalidateSize();
+    }
+
+    function updateTrackMapUI(order) {
+      currentTrackingOrder = order;
+      if (!trackMap) initTrackMap();
+      if (!trackMap) return;
+
+      const branchLat = parseFloat(order.branch_latitude) || (currentBranch ? currentBranch.latitude : -6.2088);
+      const branchLng = parseFloat(order.branch_longitude) || (currentBranch ? currentBranch.longitude : 106.8456);
+      const custLat = parseFloat(order.customer_latitude) || userCurrentLat || -6.2150;
+      const custLng = parseFloat(order.customer_longitude) || userCurrentLng || 106.8520;
+
+      // Lokasi driver (jika on_delivery ada koordinat driver, jika belum maka masih di branch)
+      const driverLat = parseFloat(order.driver_latitude) || branchLat;
+      const driverLng = parseFloat(order.driver_longitude) || branchLng;
+
+      // Icon Branch (Outlet)
+      const branchIcon = L.divIcon({
+        className: 'custom-track-icon',
+        html: `<div class="w-8 h-8 rounded-full bg-red-600 text-white flex items-center justify-center text-sm shadow-lg border-2 border-white font-black">🍢</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      // Icon Customer (Tujuan Rumah / Titik Jemput)
+      const custIcon = L.divIcon({
+        className: 'custom-track-icon',
+        html: `<div class="relative flex items-center justify-center">
+                 <span class="absolute w-8 h-8 rounded-full bg-blue-500/30 animate-ping"></span>
+                 <div class="relative w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm shadow-lg border-2 border-white font-black">📍</div>
+               </div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      });
+
+      // Icon Driver Motor (Pulsing Radar Gojek Style)
+      const driverIcon = L.divIcon({
+        className: 'custom-track-icon',
+        html: `<div class="relative flex items-center justify-center">
+                 <span class="absolute w-12 h-12 rounded-full bg-amber-400/40 animate-ping"></span>
+                 <div class="relative w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 flex items-center justify-center text-base shadow-xl border-2 border-white font-bold transition-all duration-500">🛵</div>
+               </div>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      // Update / Add Branch Marker
+      if (!trackBranchMarker) {
+        trackBranchMarker = L.marker([branchLat, branchLng], { icon: branchIcon }).addTo(trackMap)
+          .bindPopup(`<b class="text-xs">Lapak: ${order.branch_name || 'Kebab AL Bewok'}</b>`);
+      } else {
+        trackBranchMarker.setLatLng([branchLat, branchLng]);
+      }
+
+      // Update / Add Customer Marker
+      if (!trackCustomerMarker) {
+        trackCustomerMarker = L.marker([custLat, custLng], { icon: custIcon }).addTo(trackMap)
+          .bindPopup(`<b class="text-xs">Tujuan: ${order.customer_name}</b><br><span class="text-[10px] text-gray-500">${order.customer_address}</span>`);
+      } else {
+        trackCustomerMarker.setLatLng([custLat, custLng]);
+      }
+
+      // Update / Add Driver Marker
+      if (!trackDriverMarker) {
+        trackDriverMarker = L.marker([driverLat, driverLng], { icon: driverIcon }).addTo(trackMap)
+          .bindPopup(`<b class="text-xs">Kurir: ${order.driver_name || 'Pengantar Kebab'}</b>`);
+      } else {
+        trackDriverMarker.setLatLng([driverLat, driverLng]);
+      }
+
+      // Route line
+      const routeCoords = [[driverLat, driverLng], [custLat, custLng]];
+      if (!trackRouteLine) {
+        trackRouteLine = L.polyline(routeCoords, {
+          color: '#f59e0b',
+          weight: 4,
+          dashArray: '6, 8',
+          opacity: 0.9
+        }).addTo(trackMap);
+      } else {
+        trackRouteLine.setLatLngs(routeCoords);
+      }
+
+      // Hitung Jarak sisa dan ETA
+      const distRemaining = calculateDistance(driverLat, driverLng, custLat, custLng);
+      const etaMinutes = Math.max(2, Math.round((distRemaining / 20) * 60));
+
+      const etaElem = document.getElementById('trackEtaText');
+      const distElem = document.getElementById('trackDriverDistance');
+      if (etaElem) etaElem.innerText = `~${etaMinutes} Menit (${distRemaining.toFixed(1)} km)`;
+      if (distElem) distElem.innerText = `Jarak kurir ke kamu: ~${distRemaining.toFixed(1)} km`;
+
+      // Auto fit bounds jika pertama kali
+      if (!trackMap._initialFitted) {
+        trackMap.fitBounds([[branchLat, branchLng], [custLat, custLng]], { padding: [50, 50] });
+        trackMap._initialFitted = true;
+      }
+    }
+
+    function recenterTrackMap() {
+      if (!trackMap || !currentTrackingOrder) return;
+      const bLat = parseFloat(currentTrackingOrder.branch_latitude) || -6.2088;
+      const bLng = parseFloat(currentTrackingOrder.branch_longitude) || 106.8456;
+      const cLat = parseFloat(currentTrackingOrder.customer_latitude) || -6.2150;
+      const cLng = parseFloat(currentTrackingOrder.customer_longitude) || 106.8520;
+      const dLat = parseFloat(currentTrackingOrder.driver_latitude) || bLat;
+      const dLng = parseFloat(currentTrackingOrder.driver_longitude) || bLng;
+
+      trackMap.fitBounds([[dLat, dLng], [cLat, cLng]], { padding: [60, 60] });
     }
 
     async function checkOrderStatus() {
@@ -2095,31 +2355,98 @@
         const res = await fetch(`/api/orders/${activeOrderId}`).then(r => r.json());
         if (res.success) {
           const order = res.data;
+          currentTrackingOrder = order;
+
+          document.getElementById('trackOrderCode').innerText = `#${order.order_code}`;
+          document.getElementById('trackBranch').innerText = order.branch_name || (currentBranch ? currentBranch.name : 'Kebab AL Bewok');
+          document.getElementById('trackCustomerAddress').innerText = order.customer_address || 'Alamat Penerima';
+
           const title = document.getElementById('trackStatusTitle');
           const desc = document.getElementById('trackStatusDesc');
-          const driver = document.getElementById('trackDriver');
+          const statusIcon = document.getElementById('statusIcon');
+          const driverCard = document.getElementById('trackDriverCard');
+          const liveStatusText = document.getElementById('trackLiveStatusText');
+
+          // Stepper elements
+          const dot1 = document.getElementById('stepDot1');
+          const dot2 = document.getElementById('stepDot2');
+          const dot3 = document.getElementById('stepDot3');
+          const dot4 = document.getElementById('stepDot4');
+
+          // Reset dots styling
+          const activeClass = "w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shadow-sm";
+          const pendingClass = "w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[10px] font-black";
+          const currentClass = "w-6 h-6 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[10px] font-black shadow-sm animate-pulse";
+
+          dot1.className = activeClass;
+          dot2.className = pendingClass;
+          dot3.className = pendingClass;
+          dot4.className = pendingClass;
+
+          // Update Map
+          updateTrackMapUI(order);
 
           if (order.status === 'pending_payment' || order.status === 'pending_verification') {
-            title.innerText = 'Menunggu Verifikasi Pembayaran';
-            desc.innerText = 'Lapak sedang mencocokkan mutasi QRIS Anda.';
+            title.innerText = 'Menunggu Verifikasi Pembayaran ⏳';
+            desc.innerText = 'Lapak sedang memeriksa mutasi pembayaran QRIS Anda.';
+            statusIcon.className = "w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-sm shadow-sm";
+            statusIcon.innerHTML = `<i class="fa-solid fa-receipt"></i>`;
+            dot1.className = currentClass;
+            liveStatusText.innerText = "Menunggu verifikasi dapur...";
           } else if (order.status === 'cooking') {
             title.innerText = 'Sedang Dimasak di Dapur 🍳';
-            desc.innerText = 'Kebab sedang diracik segar dengan nanas & bombay!';
+            desc.innerText = 'Kebab sedang diracik segar dengan irisan nanas & bombay gurih!';
+            statusIcon.className = "w-8 h-8 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 text-sm shadow-sm";
+            statusIcon.innerHTML = `<i class="fa-solid fa-fire-burner"></i>`;
+            dot1.className = activeClass;
+            dot2.className = currentClass;
+            liveStatusText.innerText = "Pesanan sedang dimasak di dapur";
           } else if (order.status === 'ready_for_pickup') {
             title.innerText = 'Makanan Matang & Siap Antar 🍢';
-            desc.innerText = 'Menunggu kurir freelance mengambil pesanan.';
+            desc.innerText = 'Menunggu kurir freelance mengambil pesanan di lapak.';
+            statusIcon.className = "w-8 h-8 rounded-xl bg-yellow-500 text-slate-900 flex items-center justify-center shrink-0 text-sm shadow-sm";
+            statusIcon.innerHTML = `<i class="fa-solid fa-box"></i>`;
+            dot1.className = activeClass;
+            dot2.className = activeClass;
+            dot3.className = currentClass;
+            liveStatusText.innerText = "Menunggu kurir mengambil pesanan";
           } else if (order.status === 'on_delivery') {
-            title.innerText = 'Kurir Sedang Menuju Rumahmu 🛵';
-            desc.innerText = `Pesanan dibawa oleh ${order.driver_name || 'Kurir'}.`;
-            driver.innerText = order.driver_name || 'Kurir Freelance';
+            title.innerText = 'Kurir OTW Menuju Alamatmu 🛵';
+            desc.innerText = `Pesanan dibawa oleh ${order.driver_name || 'Kurir Kebab'}.`;
+            statusIcon.className = "w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 text-sm shadow-sm animate-bounce";
+            statusIcon.innerHTML = `<i class="fa-solid fa-motorcycle"></i>`;
+            dot1.className = activeClass;
+            dot2.className = activeClass;
+            dot3.className = currentClass;
+            liveStatusText.innerText = "GPS Kurir Bergerak Realtime!";
+
+            // Update info kurir
+            if (driverCard) {
+              driverCard.classList.remove('hidden');
+              document.getElementById('trackDriverName').innerText = order.driver_name || 'Kurir Kebab';
+              document.getElementById('trackDriverVehicle').innerText = order.driver_vehicle || 'Honda Beat • B 3918 KEB';
+              if (order.driver_photo) {
+                document.getElementById('trackDriverPhoto').src = order.driver_photo;
+              }
+              const dPhone = (order.driver_phone || '085285841330').replace(/[^0-9]/g, '');
+              const waLink = `https://wa.me/${dPhone.startsWith('0') ? '62' + dPhone.slice(1) : dPhone}?text=Halo%20Kurir%20Kebab,%20saya%20pemesan%20pesanan%20${order.order_code}`;
+              document.getElementById('trackDriverWaBtn').href = waLink;
+            }
           } else if (order.status === 'completed') {
             title.innerText = 'Pesanan Tiba & Selesai! 🎉';
-            desc.innerText = 'Selamat menikmati Kebab AL Bewok! Terima kasih.';
+            desc.innerText = 'Selamat menikmati Kebab AL Bewok! Terima kasih atas pesanannya.';
+            statusIcon.className = "w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 text-sm shadow-sm";
+            statusIcon.innerHTML = `<i class="fa-solid fa-circle-check"></i>`;
+            dot1.className = activeClass;
+            dot2.className = activeClass;
+            dot3.className = activeClass;
+            dot4.className = activeClass;
+            liveStatusText.innerText = "Pesanan telah selesai diantar";
             clearInterval(trackingInterval);
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error tracking order status:', err);
       }
     }
 

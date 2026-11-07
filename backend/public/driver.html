@@ -198,6 +198,34 @@
       `).join('');
     }
 
+    let driverWatchId = null;
+
+    function startDriverGpsTracking(orderId) {
+      if (!navigator.geolocation) return;
+      if (driverWatchId) navigator.geolocation.clearWatch(driverWatchId);
+
+      driverWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          fetch(`/api/driver/orders/${orderId}/location`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+          }).catch(() => {});
+        },
+        (err) => console.warn('GPS kurir error:', err),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
+      );
+    }
+
+    function stopDriverGpsTracking() {
+      if (driverWatchId) {
+        navigator.geolocation.clearWatch(driverWatchId);
+        driverWatchId = null;
+      }
+    }
+
     async function acceptOrder(orderId) {
       try {
         const res = await fetch(`/api/driver/orders/${orderId}/accept`, {
@@ -208,6 +236,7 @@
 
         if (res.success) {
           activeDelivery = res.data;
+          startDriverGpsTracking(activeDelivery.id);
           renderActiveDelivery();
           fetchAvailableOrders();
         } else {
@@ -227,11 +256,18 @@
         return;
       }
 
+      const destLat = activeDelivery.customer_latitude || -6.2150;
+      const destLng = activeDelivery.customer_longitude || 106.8520;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}`;
+
       sec.classList.remove('hidden');
       card.innerHTML = `
         <div class="flex justify-between items-start">
           <div>
-            <span class="text-[10px] text-slate-400">Sedang Mengantar Order:</span>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-[10px] text-slate-400">Sedang Mengantar Order:</span>
+              <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.2 rounded-full animate-pulse">📡 LIVE GPS</span>
+            </div>
             <h3 class="font-black text-slate-900 text-sm">#${activeDelivery.order_code}</h3>
           </div>
           <span class="font-extrabold text-emerald-600 text-sm">Rp ${activeDelivery.delivery_fee.toLocaleString('id-ID')}</span>
@@ -249,17 +285,17 @@
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <a href="https://maps.google.com" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1">
+          <a href="${mapsUrl}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 shadow-sm transition">
             <i class="fa-solid fa-map-location-dot text-blue-600"></i>
-            <span>Buka Maps</span>
+            <span>Buka Navigasi Maps</span>
           </a>
-          <a href="https://wa.me/${activeDelivery.customer_phone}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1 border border-emerald-200">
+          <a href="https://wa.me/${activeDelivery.customer_phone.replace(/[^0-9]/g, '')}?text=Halo%20Kak%20${encodeURIComponent(activeDelivery.customer_name)},%20saya%20kurir%20Kebab%20AL%20Bewok%20sedang%20menuju%20lokasi." target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold p-2.5 rounded-xl text-center flex items-center justify-center space-x-1.5 border border-emerald-200 transition">
             <i class="fa-brands fa-whatsapp text-emerald-600"></i>
-            <span>Chat WA</span>
+            <span>Chat WA Pemesan</span>
           </a>
         </div>
 
-        <button onclick="completeDelivery('${activeDelivery.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2">
+        <button onclick="completeDelivery('${activeDelivery.id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl text-xs shadow-lg flex items-center justify-center space-x-2 transition active:scale-98">
           <i class="fa-solid fa-circle-check text-base"></i>
           <span>SELESAIKAN PENGANTARAN (KLAIM SALDO)</span>
         </button>
@@ -270,6 +306,7 @@
       if (!confirm('Apakah pesanan sudah diserahkan ke pelanggan?')) return;
 
       try {
+        stopDriverGpsTracking();
         const res = await fetch(`/api/driver/orders/${orderId}/complete`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

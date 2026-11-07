@@ -363,10 +363,14 @@ app.post('/api/orders/checkout', (req, res) => {
     order_code,
     branch_id: branch.id,
     branch_name: branch.name,
+    branch_latitude: branch.latitude || -6.2088,
+    branch_longitude: branch.longitude || 106.8456,
     customer_name: customer_name || 'Pelanggan Kebab',
     customer_email: customer_email || null,
     customer_phone: customer_phone || '081234567890',
     customer_address: customer_address || 'Jl. Mawar No. 10',
+    customer_latitude: parseFloat(req.body.customer_latitude || req.body.latitude) || -6.2150,
+    customer_longitude: parseFloat(req.body.customer_longitude || req.body.longitude) || 106.8520,
     destination_type,
     delivery_distance_km,
     items,
@@ -379,6 +383,11 @@ app.post('/api/orders/checkout', (req, res) => {
     created_at: new Date().toISOString(),
     driver_id: null,
     driver_name: null,
+    driver_phone: null,
+    driver_vehicle: null,
+    driver_photo: null,
+    driver_latitude: null,
+    driver_longitude: null,
     delivery_proof: null
   };
 
@@ -416,7 +425,7 @@ app.post('/api/orders/:id/payment-proof', (req, res) => {
   res.json({ success: true, message: 'Bukti pembayaran terkirim! Menunggu verifikasi dapur.', data: orders[orderIndex] });
 });
 
-// Lacak Status Pesanan
+// Lacak Status Pesanan & Lokasi Driver Real-time
 app.get('/api/orders/:id', (req, res) => {
   const { id } = req.params;
   const orders = readJSON(ORDERS_FILE);
@@ -426,7 +435,45 @@ app.get('/api/orders/:id', (req, res) => {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
 
+  // Jika sedang diantar dan driver belum mengirim manual GPS, simulasikan pergerakan dinamis menuju customer
+  if (order.status === 'on_delivery' && order.driver_accepted_at) {
+    const elapsedSec = (Date.now() - new Date(order.driver_accepted_at).getTime()) / 1000;
+    const totalDurationSec = 75; // Durasi perjalanan simulasi
+    const progress = Math.min(0.96, elapsedSec / totalDurationSec);
+
+    const startLat = order.branch_latitude || -6.2088;
+    const startLng = order.branch_longitude || 106.8456;
+    const endLat = order.customer_latitude || -6.2150;
+    const endLng = order.customer_longitude || 106.8520;
+
+    if (!order.manual_gps) {
+      order.driver_latitude = startLat + (endLat - startLat) * progress;
+      order.driver_longitude = startLng + (endLng - startLng) * progress;
+    }
+  }
+
   res.json({ success: true, data: order });
+});
+
+// Update Live GPS Lokasi Kurir saat Mengantar
+app.post('/api/driver/orders/:id/location', (req, res) => {
+  const { id } = req.params;
+  const { latitude, longitude } = req.body;
+
+  const orders = readJSON(ORDERS_FILE);
+  const orderIndex = orders.findIndex(o => o.id === id || o.order_code === id);
+
+  if (orderIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+  }
+
+  orders[orderIndex].driver_latitude = parseFloat(latitude);
+  orders[orderIndex].driver_longitude = parseFloat(longitude);
+  orders[orderIndex].manual_gps = true;
+  orders[orderIndex].last_location_update = new Date().toISOString();
+  writeJSON(ORDERS_FILE, orders);
+
+  res.json({ success: true, message: 'Lokasi kurir terkirim', data: { latitude, longitude } });
 });
 
 // ==========================================
@@ -501,10 +548,18 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
     return res.status(400).json({ success: false, message: 'Maaf, pesanan ini sudah diambil kurir lain!' });
   }
 
+  const branches = readJSON(BRANCHES_FILE);
+  const branch = branches.find(b => b.id === orders[orderIndex].branch_id) || branches[0];
+
   orders[orderIndex].driver_id = driver_id;
-  orders[orderIndex].driver_name = driver_name;
+  orders[orderIndex].driver_name = driver_name || 'Budi Santoso';
+  orders[orderIndex].driver_phone = '0852-8584-1330';
+  orders[orderIndex].driver_vehicle = 'Honda Beat (B 3918 KEB)';
+  orders[orderIndex].driver_photo = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face';
   orders[orderIndex].status = 'on_delivery';
   orders[orderIndex].driver_accepted_at = new Date().toISOString();
+  orders[orderIndex].driver_latitude = branch.latitude || -6.2088;
+  orders[orderIndex].driver_longitude = branch.longitude || 106.8456;
   writeJSON(ORDERS_FILE, orders);
 
   res.json({ success: true, message: 'Berhasil mengambil orderan! Selamat mengantar.', data: orders[orderIndex] });
