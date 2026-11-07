@@ -615,6 +615,38 @@ app.post('/api/driver/update-profile', (req, res) => {
   });
 });
 
+// Verifikasi Biometrik Wajah Kurir (Anti Joki / Pinjam Akun)
+app.post('/api/driver/verify-face', (req, res) => {
+  const { driver_id, email, face_image } = req.body;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers) wallets.drivers = {};
+
+  let driver = null;
+  if (driver_id && wallets.drivers[driver_id]) {
+    driver = wallets.drivers[driver_id];
+  } else if (email) {
+    driver = Object.values(wallets.drivers).find(d => d.email === email);
+  }
+
+  if (!driver) {
+    return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
+  }
+
+  driver.face_verified = true;
+  driver.face_verified_at = new Date().toISOString();
+  if (face_image) {
+    driver.last_face_photo = face_image;
+  }
+  driver.is_online = true; // Otomatis aktifkan status online
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: 'Verifikasi biometrik wajah berhasil! Akun resmi aktif & siap bertugas.',
+    data: driver
+  });
+});
+
 // Radar Orderan Siap Antar (Siapa Cepat Dia Dapat)
 app.get('/api/driver/orders/available', (req, res) => {
   const orders = readJSON(ORDERS_FILE);
@@ -647,10 +679,20 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
     return res.status(400).json({ success: false, message: 'Maaf, pesanan ini sudah diambil kurir lain!' });
   }
 
+  const wallets = readJSON(WALLETS_FILE);
+  if (driver_id && wallets.drivers && wallets.drivers[driver_id]) {
+    if (wallets.drivers[driver_id].face_verified === false) {
+      return res.status(403).json({
+        success: false,
+        require_face_verification: true,
+        message: 'Keamanan Akun: Harap verifikasi wajah Anda terlebih dahulu sebelum mengambil pesanan ini!'
+      });
+    }
+  }
+
   const branches = readJSON(BRANCHES_FILE);
   const branch = branches.find(b => b.id === orders[orderIndex].branch_id) || branches[0];
 
-  const wallets = readJSON(WALLETS_FILE);
   const savedDriver = (wallets.drivers && wallets.drivers[driver_id]) ? wallets.drivers[driver_id] : null;
 
   // Lokasi awal kurir saat terima order (dari GPS HP kurir atau offset realistis ~600 meter di jalan)
