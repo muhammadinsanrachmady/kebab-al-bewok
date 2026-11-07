@@ -27,27 +27,35 @@ const BRANCHES_FILE = path.join(DATA_DIR, 'branches.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 
-// Helper untuk membaca file JSON
+// Helper untuk membaca & menulis file JSON (dengan In-Memory Fallback untuk Serverless Cloud seperti Vercel/Render)
+const memoryCache = {};
+
 function readJSON(filePath, defaultData = []) {
+  if (memoryCache[filePath]) {
+    return JSON.parse(JSON.stringify(memoryCache[filePath]));
+  }
   try {
     if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2));
+      try { fs.writeFileSync(filePath, JSON.stringify(defaultData, null, 2)); } catch (e) {}
+      memoryCache[filePath] = defaultData;
       return defaultData;
     }
     const raw = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    memoryCache[filePath] = parsed;
+    return parsed;
   } catch (err) {
     console.error(`Gagal membaca ${filePath}:`, err);
-    return defaultData;
+    return memoryCache[filePath] || defaultData;
   }
 }
 
-// Helper untuk menulis file JSON
 function writeJSON(filePath, data) {
+  memoryCache[filePath] = JSON.parse(JSON.stringify(data));
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   } catch (err) {
-    console.error(`Gagal menulis ${filePath}:`, err);
+    // Pada serverless seperti Vercel filesystem read-only, data tetap aman tersimpan di memoryCache selama instance hidup
   }
 }
 
