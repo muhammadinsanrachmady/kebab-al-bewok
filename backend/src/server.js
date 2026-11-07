@@ -742,3 +742,5 @@ app.listen(PORT, () => {
   console.log(`👉 API Cabang: http://localhost:${PORT}/api/branches`);
   console.log(`===================================================`);
 });
+
+module.exports = app;

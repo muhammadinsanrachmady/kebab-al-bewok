@@ -1,0 +1,19 @@
+{
+  "name": "kebab-al-bewok-cloud",
+  "version": "1.0.0",
+  "description": "Ekosistem Aplikasi Kebab AL Bewok (Customer, Driver, Admin Lapak, Owner)",
+  "main": "backend/src/server.js",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "build": "cd backend && npm install",
+    "install:all": "npm install && cd backend && npm install"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1",
+    "multer": "^1.4.5-lts.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
