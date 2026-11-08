@@ -311,7 +311,6 @@
     <button onclick="filterCategory('cat-original')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Original</button>
     <button onclick="filterCategory('cat-cheesy')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Cheesy 🧀</button>
     <button onclick="filterCategory('cat-signature')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Signature ⭐</button>
-    <button onclick="filterCategory('cat-addon')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Menu Tambahan 🍳</button>
   </div>
 
   <!-- DAFTAR MENU CONTAINER -->
@@ -2887,10 +2886,8 @@
       const item = cat.items.find(i => i.id === itemId);
       currentCustomizingItem = { ...item, catName: cat.name };
 
-      const isAddon = (catId === 'cat-addon') || item.id.startsWith('top-') || item.id.startsWith('drink-') || item.id.startsWith('addon-');
-
       const titleEl = document.getElementById('modalCustomTitle');
-      if (titleEl) titleEl.innerText = isAddon ? 'Pesan Menu Tambahan' : 'Pilih Racikan Kebab';
+      if (titleEl) titleEl.innerText = 'Pilih Racikan Kebab';
       document.getElementById('modalMenuName').innerText = item.name;
       document.getElementById('modalMenuDesc').innerText = cat.description;
 
@@ -2938,17 +2935,10 @@
       const secSpice = document.getElementById('sectionCustomSpice');
       const secVeg = document.getElementById('sectionCustomVeg');
 
-      if (isAddon) {
-        if (secSize) secSize.classList.add('hidden');
-        if (secTopping) secTopping.classList.add('hidden');
-        if (secSpice) secSpice.classList.add('hidden');
-        if (secVeg) secVeg.classList.add('hidden');
-      } else {
-        if (secSize) secSize.classList.remove('hidden');
-        if (secTopping) secTopping.classList.remove('hidden');
-        if (secSpice) secSpice.classList.remove('hidden');
-        if (secVeg) secVeg.classList.remove('hidden');
-      }
+      if (secSize) secSize.classList.remove('hidden');
+      if (secTopping) secTopping.classList.remove('hidden');
+      if (secSpice) secSpice.classList.remove('hidden');
+      if (secVeg) secVeg.classList.remove('hidden');
 
       // Render sizes
       const sizeContainer = document.getElementById('sizeOptions');
