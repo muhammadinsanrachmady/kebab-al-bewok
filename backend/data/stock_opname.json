@@ -1,0 +1,26 @@
+[
+  {
+    "id": "opname-1794124118984",
+    "branch_id": "cabang-01",
+    "branch_name": "Kebab AL Bewok - Cabang Pasar Baru",
+    "staff_name": "Rian Kasir",
+    "date": "2026-11-08",
+    "created_at": "2026-11-08T07:48:38.984Z",
+    "stock_items": {
+      "beef_sapi": {
+        "name": "Daging Sapi (Beef)",
+        "unit": "Porsi",
+        "system_sold": 2,
+        "physical_count": 28
+      },
+      "egg_telur": {
+        "name": "Telur Ayam",
+        "unit": "Butir",
+        "system_sold": 2,
+        "physical_count": 18
+      }
+    },
+    "notes": "Bahan aman, sisa telur 18 butir.",
+    "is_bypass": true
+  }
+]

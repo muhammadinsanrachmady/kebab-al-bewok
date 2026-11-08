@@ -38,6 +38,7 @@ const DATA_DIR = path.join(__dirname, '../data');
 const MENU_FILE = path.join(DATA_DIR, 'menu.json');
 const BRANCHES_FILE = path.join(DATA_DIR, 'branches.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
+const STOCK_OPNAME_FILE = path.join(DATA_DIR, 'stock_opname.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 
@@ -78,6 +79,7 @@ const otpStore = new Map();
 
 // Inisialisasi file data jika belum ada
 if (!fs.existsSync(ORDERS_FILE)) writeJSON(ORDERS_FILE, []);
+if (!fs.existsSync(STOCK_OPNAME_FILE)) writeJSON(STOCK_OPNAME_FILE, []);
 if (!fs.existsSync(WALLETS_FILE)) {
   writeJSON(WALLETS_FILE, {
     drivers: {
@@ -851,6 +853,121 @@ app.post('/api/admin/orders/:id/ready', (req, res) => {
   writeJSON(ORDERS_FILE, orders);
 
   res.json({ success: true, message: 'Pesanan siap! Notifikasi disiarkan ke kurir terdekat.', data: orders[orderIndex] });
+});
+
+// Input Pesanan Kasir Manual Lapak (POS Offline: Walk-in / Dine-in / Takeaway)
+app.post('/api/admin/orders/offline', (req, res) => {
+  const {
+    branch_id,
+    customer_name = 'Pelanggan Langsung',
+    items,
+    payment_method = 'cash', // 'cash' | 'qris_offline'
+    cash_tendered = 0,
+    cash_change = 0,
+    order_notes = ''
+  } = req.body;
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ success: false, message: 'Item pesanan kasir tidak boleh kosong' });
+  }
+
+  const branches = readJSON(BRANCHES_FILE);
+  const targetBranch = branches.find(b => b.id === branch_id) || branches[0];
+
+  const food_subtotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+  const total_payment = food_subtotal;
+
+  const orders = readJSON(ORDERS_FILE);
+  const orderId = `ord-pos-${Date.now()}`;
+  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const orderCode = `KB-OFF-${randomSuffix}`;
+
+  const newOrder = {
+    id: orderId,
+    order_code: orderCode,
+    branch_id: targetBranch.id,
+    branch_name: targetBranch.name,
+    branch_latitude: targetBranch.latitude,
+    branch_longitude: targetBranch.longitude,
+    customer_name: (customer_name && customer_name.trim()) ? customer_name.trim() : 'Pelanggan Langsung',
+    customer_email: null,
+    customer_phone: '-',
+    customer_address: 'Makan di Tempat / Bawa Pulang (Walk-in)',
+    customer_latitude: targetBranch.latitude,
+    customer_longitude: targetBranch.longitude,
+    destination_type: 'offline_store',
+    delivery_distance_km: 0,
+    items,
+    food_subtotal,
+    delivery_fee: 0,
+    total_payment,
+    payment_method, // 'cash' atau 'qris_offline'
+    cash_tendered: Number(cash_tendered) || total_payment,
+    cash_change: Number(cash_change) || 0,
+    order_type: 'offline', // Pembeda jelas dari online
+    order_notes,
+    payment_proof: payment_method === 'qris_offline' ? (targetBranch.qris_image || 'https://placehold.co/300x300/png?text=QRIS+Lapak') : null,
+    status: 'completed', // Pesanan offline kasir selesai langsung saat bayar
+    completed_at: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  };
+
+  orders.unshift(newOrder);
+  writeJSON(ORDERS_FILE, orders);
+
+  res.json({
+    success: true,
+    message: 'Pesanan kasir offline berhasil dicatat & masuk ke pengkasian!',
+    data: newOrder
+  });
+});
+
+// Ambil Riwayat Laporan Stock Opname Lapak
+app.get('/api/admin/stock-opname', (req, res) => {
+  const { branch_id } = req.query;
+  const list = readJSON(STOCK_OPNAME_FILE);
+  if (branch_id) {
+    return res.json({ success: true, data: list.filter(op => op.branch_id === branch_id) });
+  }
+  res.json({ success: true, data: list });
+});
+
+// Simpan Laporan Stock Opname Harian (22:30 WIB)
+app.post('/api/admin/stock-opname', (req, res) => {
+  const {
+    branch_id,
+    branch_name,
+    staff_name,
+    stock_items,
+    notes,
+    is_bypass = false
+  } = req.body;
+
+  if (!branch_id || !stock_items) {
+    return res.status(400).json({ success: false, message: 'Data stock opname tidak lengkap' });
+  }
+
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const newOpname = {
+    id: `opname-${Date.now()}`,
+    branch_id,
+    branch_name: branch_name || 'Kebab AL Bewok',
+    staff_name: staff_name || 'Kasir Lapak',
+    date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString(),
+    stock_items,
+    notes: notes || '',
+    is_bypass: Boolean(is_bypass)
+  };
+
+  list.unshift(newOpname);
+  writeJSON(STOCK_OPNAME_FILE, list);
+
+  res.json({
+    success: true,
+    message: 'Laporan Stock Opname 22:30 berhasil disimpan ke database!',
+    data: newOpname
+  });
 });
 
 // ==========================================

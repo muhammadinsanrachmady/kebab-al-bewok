@@ -504,157 +504,668 @@
   </header>
 
   <!-- ========================================================================= -->
-  <!-- BAR KATEGORI NAVIGASI & KONTROL TAMPILAN DAPUR (BIAR TAMPILAN TIDAK PANJANG)-->
+  <!-- 1. TAB VIEW: BERANDA (RINGKASAN PENGKASIAN ONLINE & OFFLINE)              -->
   <!-- ========================================================================= -->
-  <div class="bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs px-4 py-2.5">
-    <div class="flex items-center justify-between gap-3 overflow-x-auto hide-scrollbar">
-      
-      <!-- PILLS KATEGORI ANTAR KOLOM / MENU -->
-      <div class="flex items-center space-x-1.5 shrink-0">
-        <!-- 1. Semua -->
-        <button type="button" onclick="setKitchenCategory('all')" id="btnCatAll" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-black transition flex items-center space-x-1.5 bg-slate-900 text-white shadow-sm">
-          <i class="fa-solid fa-layer-group text-[11px]"></i>
-          <span>Semua</span>
-          <span id="badgeCatAll" class="bg-slate-700 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
-        </button>
+  <div id="tabViewBeranda" class="space-y-4 max-w-5xl mx-auto p-4 pb-24">
+    <!-- BANNER RINGKASAN SHIFT & KASIR -->
+    <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-slate-950 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+      <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span class="bg-black/20 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider inline-block mb-1">
+            <i class="fa-solid fa-calculator mr-1"></i> Ringkasan Pengkasian Lapak
+          </span>
+          <h2 class="text-xl sm:text-2xl font-black text-white" id="berandaBranchTitle">Kebab AL Bewok</h2>
+          <p class="text-xs text-amber-100 font-semibold mt-0.5">
+            <i class="fa-regular fa-calendar mr-1"></i> <span id="berandaTodayDate">-</span> • Kasir: <span id="berandaCashierName" class="font-bold underline text-white">-</span>
+          </p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="printShiftSummary()" class="bg-slate-950 hover:bg-slate-900 text-amber-300 font-black px-3.5 py-2 rounded-2xl text-xs flex items-center space-x-1.5 shadow transition active:scale-95">
+            <i class="fa-solid fa-print"></i>
+            <span>Cetak Rekap Kas</span>
+          </button>
+        </div>
+      </div>
+      <div class="absolute -right-6 -bottom-8 text-white/10 text-8xl font-black pointer-events-none">
+        <i class="fa-solid fa-cash-register"></i>
+      </div>
+    </div>
 
-        <!-- 2. 1. QRIS -->
-        <button type="button" onclick="setKitchenCategory('pending')" id="btnCatPending" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-yellow-100 text-slate-700 border border-slate-200">
-          <span class="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
-          <span>1. QRIS</span>
-          <span id="badgeCatPending" class="bg-yellow-400 text-yellow-950 text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
-        </button>
+    <!-- 4 KARTU KPI KEUANGAN -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <!-- 1. KAS TUNAI DI LACI -->
+      <div class="bg-white rounded-2xl p-4 border border-emerald-200 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-black uppercase text-emerald-800 tracking-wider">Kas di Laci (Cash)</span>
+          <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </div>
+        </div>
+        <div class="text-lg sm:text-xl font-black text-emerald-600" id="kpiCashInDrawer">Rp 0</div>
+        <span class="text-[10px] text-slate-500 font-semibold block mt-1">Uang fisik dari transaksi offline</span>
+      </div>
 
-        <!-- 3. 2. Dimasak -->
-        <button type="button" onclick="setKitchenCategory('cooking')" id="btnCatCooking" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200">
-          <span>🍳</span>
-          <span>2. Dimasak</span>
-          <span id="badgeCatCooking" class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
-        </button>
+      <!-- 2. TOTAL MASUK QRIS -->
+      <div class="bg-white rounded-2xl p-4 border border-blue-200 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-black uppercase text-blue-800 tracking-wider">Total QRIS Masuk</span>
+          <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-qrcode"></i>
+          </div>
+        </div>
+        <div class="text-lg sm:text-xl font-black text-blue-600" id="kpiTotalQris">Rp 0</div>
+        <span class="text-[10px] text-slate-500 font-semibold block mt-1">Online & QRIS Lapak langsung</span>
+      </div>
 
-        <!-- 4. 3. Kurir -->
-        <button type="button" onclick="setKitchenCategory('ready')" id="btnCatReady" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200">
-          <span>🛵</span>
-          <span>3. Kurir</span>
-          <span id="badgeCatReady" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
-        </button>
+      <!-- 3. TOTAL OMSET PENJUALAN -->
+      <div class="bg-white rounded-2xl p-4 border border-amber-300 bg-amber-50/30 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-black uppercase text-amber-900 tracking-wider">Total Omset Lapak</span>
+          <div class="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="text-lg sm:text-xl font-black text-amber-700" id="kpiTotalRevenue">Rp 0</div>
+        <span class="text-[10px] text-slate-500 font-semibold block mt-1">Gabungan Online & Offline</span>
+      </div>
 
-        <!-- 5. 4. Selesai -->
-        <button type="button" onclick="setKitchenCategory('completed')" id="btnCatCompleted" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 border border-slate-200">
-          <span>✅</span>
-          <span>4. Selesai</span>
-          <span id="badgeCatCompleted" class="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
-        </button>
+      <!-- 4. TITIPAN ONGKIR DRIVER -->
+      <div class="bg-white rounded-2xl p-4 border border-red-200 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[11px] font-black uppercase text-red-800 tracking-wider">Titipan Ongkir</span>
+          <div class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-motorcycle"></i>
+          </div>
+        </div>
+        <div class="text-lg sm:text-xl font-black text-red-600" id="kpiDeliveryFees">Rp 0</div>
+        <span class="text-[10px] text-slate-500 font-semibold block mt-1">Hak kurir (bukan omset toko)</span>
+      </div>
+    </div>
 
-        <!-- 6. Stok Menu Lapak -->
-        <button type="button" onclick="setKitchenCategory('menu_stock')" id="btnCatMenuStock" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-orange-100 text-slate-700 border border-slate-200">
-          <span>🍢</span>
-          <span>Stok Menu</span>
+    <!-- RINCIAN BREAKDOWN KOMPARASI ONLINE VS OFFLINE -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- KOTAK ONLINE (QRIS) -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div class="flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-xl bg-yellow-100 text-yellow-800 flex items-center justify-center text-sm font-black">📱</span>
+            <div>
+              <h3 class="font-black text-sm text-slate-900">Pesanan Online (Pelanggan)</h3>
+              <p class="text-[10px] text-slate-500">Transaksi masuk via QRIS Statis Customer</p>
+            </div>
+          </div>
+          <span class="text-xs bg-yellow-100 text-yellow-900 font-black px-2 py-0.5 rounded-full" id="berandaOnlineOrderCount">0 Pesanan</span>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-dashed border-slate-100">
+            <span class="text-slate-600">Total Nilai Makanan Kebab:</span>
+            <span class="font-extrabold text-slate-900" id="berandaOnlineFoodTotal">Rp 0</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-dashed border-slate-100">
+            <span class="text-slate-600">Total Titipan Ongkir Kurir:</span>
+            <span class="font-extrabold text-red-600" id="berandaOnlineDeliveryTotal">Rp 0</span>
+          </div>
+          <div class="flex justify-between py-1.5 bg-slate-50 px-2 rounded-xl">
+            <span class="font-bold text-slate-700">Total Uang Masuk Rekening QRIS:</span>
+            <span class="font-black text-blue-700" id="berandaOnlineGrandTotal">Rp 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KOTAK OFFLINE (KASIR POS LAPAK) -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <div class="flex items-center space-x-2">
+            <span class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-sm font-black">🧾</span>
+            <div>
+              <h3 class="font-black text-sm text-slate-900">Pesanan Offline (Walk-in Kasir)</h3>
+              <p class="text-[10px] text-slate-500">Pembeli datang langsung ke gerai lapak</p>
+            </div>
+          </div>
+          <span class="text-xs bg-emerald-100 text-emerald-900 font-black px-2 py-0.5 rounded-full" id="berandaOfflineOrderCount">0 Pesanan</span>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between py-1 border-b border-dashed border-slate-100">
+            <span class="text-slate-600">💵 Dibayar Tunai (Cash di Laci):</span>
+            <span class="font-extrabold text-emerald-700" id="berandaOfflineCashTotal">Rp 0</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-dashed border-slate-100">
+            <span class="text-slate-600">📱 Dibayar QRIS Lapak Meja:</span>
+            <span class="font-extrabold text-blue-700" id="berandaOfflineQrisTotal">Rp 0</span>
+          </div>
+          <div class="flex justify-between py-1.5 bg-slate-50 px-2 rounded-xl">
+            <span class="font-bold text-slate-700">Total Omset Kasir Offline:</span>
+            <span class="font-black text-slate-900" id="berandaOfflineGrandTotal">Rp 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIWAYAT TRANSAKSI HARI INI -->
+    <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-b pb-2.5">
+        <div>
+          <h3 class="font-black text-sm text-slate-900">Riwayat Transaksi Masuk Hari Ini</h3>
+          <p class="text-[11px] text-slate-500">Daftar transaksi Online (QRIS) dan Offline (Cash / QRIS Lapak)</p>
+        </div>
+        <button type="button" onclick="fetchOrders()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-xl transition">
+          <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh
         </button>
       </div>
 
-      <!-- PENCARIAN CEPAT & TOGGLE MODE RINGKAS (COMPACT) -->
-      <div class="flex items-center space-x-2 shrink-0">
-        <!-- Input Search -->
-        <div class="flex items-center bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-xs">
-          <i class="fa-solid fa-magnifying-glass text-slate-400 text-[10px] mr-1.5"></i>
-          <input type="text" id="kitchenSearchInput" oninput="renderKanban()" placeholder="Cari order # / nama..." class="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-28 sm:w-36 font-semibold">
+      <div id="berandaRecentTransactionsList" class="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. TAB VIEW: ONLINE (ALUR DAPUR PESANAN ONLINE CUSTOMER)                   -->
+  <!-- ========================================================================= -->
+  <div id="tabViewOnline" class="hidden pb-24">
+    <!-- BAR KATEGORI NAVIGASI & KONTROL TAMPILAN DAPUR -->
+    <div class="bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs px-4 py-2.5">
+      <div class="flex items-center justify-between gap-3 overflow-x-auto hide-scrollbar">
+        <!-- PILLS KATEGORI ANTAR KOLOM / MENU -->
+        <div class="flex items-center space-x-1.5 shrink-0">
+          <button type="button" onclick="setKitchenCategory('all')" id="btnCatAll" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-black transition flex items-center space-x-1.5 bg-slate-900 text-white shadow-sm">
+            <i class="fa-solid fa-layer-group text-[11px]"></i>
+            <span>Semua</span>
+            <span id="badgeCatAll" class="bg-slate-700 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+
+          <button type="button" onclick="setKitchenCategory('pending')" id="btnCatPending" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-yellow-100 text-slate-700 border border-slate-200">
+            <span class="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
+            <span>1. QRIS</span>
+            <span id="badgeCatPending" class="bg-yellow-400 text-yellow-950 text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+
+          <button type="button" onclick="setKitchenCategory('cooking')" id="btnCatCooking" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200">
+            <span>🍳</span>
+            <span>2. Dimasak</span>
+            <span id="badgeCatCooking" class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+
+          <button type="button" onclick="setKitchenCategory('ready')" id="btnCatReady" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200">
+            <span>🛵</span>
+            <span>3. Kurir</span>
+            <span id="badgeCatReady" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+
+          <button type="button" onclick="setKitchenCategory('completed')" id="btnCatCompleted" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 border border-slate-200">
+            <span>✅</span>
+            <span>4. Selesai</span>
+            <span id="badgeCatCompleted" class="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+          </button>
+
+          <button type="button" onclick="setKitchenCategory('menu_stock')" id="btnCatMenuStock" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-orange-100 text-slate-700 border border-slate-200">
+            <span>🍢</span>
+            <span>Stok Menu</span>
+          </button>
         </div>
 
-        <!-- Mode Ringkas Toggle -->
-        <button type="button" onclick="toggleCompactMode()" id="btnToggleCompact" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1 shadow-xs transition" title="Alihkan Tampilan Ringkas / Detail">
-          <i id="compactIcon" class="fa-solid fa-compress text-xs text-amber-600"></i>
-          <span id="compactText" class="hidden sm:inline">Ringkas</span>
-        </button>
+        <!-- PENCARIAN CEPAT & TOGGLE MODE RINGKAS -->
+        <div class="flex items-center space-x-2 shrink-0">
+          <div class="flex items-center bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-xs">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 text-[10px] mr-1.5"></i>
+            <input type="text" id="kitchenSearchInput" oninput="renderKanban()" placeholder="Cari order # / nama..." class="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-28 sm:w-36 font-semibold">
+          </div>
+
+          <button type="button" onclick="toggleCompactMode()" id="btnToggleCompact" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1 shadow-xs transition" title="Alihkan Tampilan Ringkas / Detail">
+            <i id="compactIcon" class="fa-solid fa-compress text-xs text-amber-600"></i>
+            <span id="compactText" class="hidden sm:inline">Ringkas</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KITCHEN DISPLAY KANBAN BOARD -->
+    <main class="p-4">
+      <div id="kanbanGridContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+        <!-- 1. VERIFIKASI QRIS -->
+        <div id="cardColPending" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-300">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 bg-yellow-500 rounded-full animate-ping"></span>
+              <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">1. Verifikasi QRIS</h2>
+            </div>
+            <span id="countPending" class="bg-yellow-400 text-yellow-950 text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="colPending" class="space-y-3 min-h-[120px]"></div>
+        </div>
+
+        <!-- 2. SEDANG DIMASAK -->
+        <div id="cardColCooking" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-300">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">🍳</span>
+              <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">2. Sedang Dimasak</h2>
+            </div>
+            <span id="countCooking" class="bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="colCooking" class="space-y-3 min-h-[120px]"></div>
+        </div>
+
+        <!-- 3. MATANG & KURIR -->
+        <div id="cardColReady" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-300">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">🛵</span>
+              <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">3. Cari / Antar Kurir</h2>
+            </div>
+            <span id="countReady" class="bg-blue-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="colReady" class="space-y-3 min-h-[120px]"></div>
+        </div>
+
+        <!-- 4. SELESAI -->
+        <div id="cardColCompleted" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
+          <div class="flex items-center justify-between pb-1 border-b border-slate-300">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">✅</span>
+              <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">4. Pesanan Selesai</h2>
+            </div>
+            <span id="countCompleted" class="bg-emerald-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
+          </div>
+          <div id="colCompleted" class="space-y-3 min-h-[120px]"></div>
+        </div>
+      </div>
+
+      <!-- BAGIAN KELOLA STOK MENU -->
+      <div id="sectionMenuStock" class="hidden max-w-4xl mx-auto space-y-4">
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-3xl shadow-md flex items-center justify-between">
+          <div>
+            <h2 class="font-black text-sm uppercase tracking-wide">Ketersediaan Stok Menu Lapak</h2>
+            <p class="text-xs text-amber-100 mt-0.5">Atur menu yang sedang habis sementara di cabang ini</p>
+          </div>
+          <span class="text-2xl">🍢</span>
+        </div>
+        <div id="menuStockCategoriesContainer" class="space-y-4"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 3. TAB VIEW: KASIR (INPUT MANUAL PESANAN OFFLINE / WALK-IN POS)           -->
+  <!-- ========================================================================= -->
+  <div id="tabViewKasir" class="hidden space-y-4 max-w-6xl mx-auto p-4 pb-24">
+    <div class="flex flex-col lg:flex-row gap-4 items-start">
+      
+      <!-- SISI KIRI: KATALOG MENU KEBAB RESMI -->
+      <div class="w-full lg:w-2/3 space-y-3">
+        
+        <!-- HEADER KASIR & FILTER KATEGORI -->
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🍢</span>
+            <div>
+              <h2 class="font-black text-sm text-slate-900">Menu Kebab AL Bewok (Kasir Lapak)</h2>
+              <p class="text-[10px] text-slate-500">Pilih menu untuk pelanggan datang langsung</p>
+            </div>
+          </div>
+          
+          <!-- FILTER PILLS KATEGORI -->
+          <div class="flex space-x-1 overflow-x-auto hide-scrollbar">
+            <button type="button" onclick="filterPosCategory('all')" id="posCatAll" class="pos-cat-btn px-3 py-1 rounded-full text-xs font-black bg-slate-900 text-white shadow-xs">Semua</button>
+            <button type="button" onclick="filterPosCategory('cat-original')" id="posCatOriginal" class="pos-cat-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Original</button>
+            <button type="button" onclick="filterPosCategory('cat-cheesy')" id="posCatCheesy" class="pos-cat-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Cheesy 🧀</button>
+            <button type="button" onclick="filterPosCategory('cat-signature')" id="posCatSignature" class="pos-cat-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Signature ⭐</button>
+          </div>
+        </div>
+
+        <!-- GRID KARTU MENU KEBAB KASIR -->
+        <div id="posMenuCatalogGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <!-- Rendered via JS -->
+        </div>
+
+      </div>
+
+      <!-- SISI KANAN: PANEL KERANJANG KASIR & PEMBAYARAN -->
+      <div class="w-full lg:w-1/3 space-y-3 lg:sticky lg:top-20">
+        <div class="bg-white rounded-3xl p-4 border border-slate-200 shadow-md space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div class="flex items-center space-x-1.5">
+              <i class="fa-solid fa-basket-shopping text-amber-600"></i>
+              <h3 class="font-black text-sm text-slate-900">Keranjang Kasir</h3>
+            </div>
+            <button type="button" onclick="clearPosCart()" class="text-[10px] text-red-600 hover:text-red-700 font-bold">
+              Kosongkan
+            </button>
+          </div>
+
+          <!-- INPUT INFORMASI PEMBELI -->
+          <div class="space-y-2 text-xs">
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-0.5">Nama Pembeli:</label>
+              <input type="text" id="posCustomerName" placeholder="Contoh: Mas Budi / Pelanggan Langsung" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 outline-none focus:border-amber-500">
+            </div>
+            
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-0.5">Tipe Pesanan:</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="setPosOrderType('takeaway')" id="btnPosTakeaway" class="py-1.5 rounded-xl text-xs font-extrabold border bg-amber-500 text-slate-950 border-amber-500 transition shadow-xs">
+                  🛍️ Bungkus
+                </button>
+                <button type="button" onclick="setPosOrderType('dinein')" id="btnPosDinein" class="py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
+                  🍽️ Makan Sini
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DAFTAR ITEM KERANJANG KASIR -->
+          <div id="posCartItemsList" class="space-y-2 max-h-56 overflow-y-auto divide-y divide-slate-100 pr-1">
+            <div class="text-center py-6 text-slate-400 text-xs">
+              <i class="fa-solid fa-cart-arrow-down text-2xl text-slate-300 mb-1"></i>
+              <p>Keranjang kasir masih kosong</p>
+              <p class="text-[10px]">Klik menu di sebelah kiri untuk menambah</p>
+            </div>
+          </div>
+
+          <!-- TOTAL & PEMBAYARAN -->
+          <div class="border-t pt-3 space-y-3">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-bold text-slate-600">Total Tagihan:</span>
+              <span class="text-lg font-black text-amber-600" id="posTotalPaymentDisplay">Rp 0</span>
+            </div>
+
+            <!-- PILIHAN METODE BAYAR: CASH ATAU QRIS -->
+            <div>
+              <label class="text-[10px] font-bold text-slate-600 block mb-1">Pilih Pembayaran:</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="setPosPaymentMethod('cash')" id="btnPosPayCash" class="py-2 rounded-xl text-xs font-black border bg-emerald-600 text-white border-emerald-600 shadow-sm transition">
+                  💵 Tunai (Cash)
+                </button>
+                <button type="button" onclick="setPosPaymentMethod('qris_offline')" id="btnPosPayQris" class="py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition">
+                  📱 QRIS Lapak
+                </button>
+              </div>
+            </div>
+
+            <!-- INPUT TUNAI (CASH) JIKA METODE CASH -->
+            <div id="secPosCashInput" class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <label class="text-[10px] font-bold text-slate-700 block">Uang Diterima dari Pembeli:</label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+                <input type="number" id="posCashTenderedInput" oninput="calculatePosChange()" placeholder="0" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-emerald-500 font-mono">
+              </div>
+
+              <!-- TOMBOL NOMINAL CEPAT -->
+              <div class="grid grid-cols-4 gap-1 pt-1">
+                <button type="button" onclick="setQuickCash('pas')" class="bg-white border text-[10px] font-bold py-1 rounded-lg hover:bg-slate-100">Uang Pas</button>
+                <button type="button" onclick="setQuickCash(20000)" class="bg-white border text-[10px] font-bold py-1 rounded-lg hover:bg-slate-100">20k</button>
+                <button type="button" onclick="setQuickCash(50000)" class="bg-white border text-[10px] font-bold py-1 rounded-lg hover:bg-slate-100">50k</button>
+                <button type="button" onclick="setQuickCash(100000)" class="bg-white border text-[10px] font-bold py-1 rounded-lg hover:bg-slate-100">100k</button>
+              </div>
+
+              <div class="flex justify-between items-center pt-1 text-xs">
+                <span class="font-bold text-slate-600">Kembalian:</span>
+                <span class="font-black text-emerald-700 text-sm" id="posCashChangeDisplay">Rp 0</span>
+              </div>
+            </div>
+
+            <!-- PREVIEW QRIS LAPAK JIKA METODE QRIS -->
+            <div id="secPosQrisPreview" class="hidden text-center bg-amber-50 p-3 rounded-2xl border border-amber-200 space-y-2">
+              <span class="text-[10px] font-black text-amber-900 uppercase block">Arahkan Pembeli Scan Barcode QRIS Lapak:</span>
+              <img id="posQrisImageTag" src="" alt="QRIS Lapak" class="w-36 h-36 mx-auto object-contain bg-white rounded-xl border p-1 shadow-xs">
+              <span class="text-[10px] text-slate-600 font-semibold block" id="posBankInfoDisplay">-</span>
+            </div>
+
+            <!-- TOMBOL PROSES BAYAR -->
+            <button type="button" onclick="submitPosOrder()" id="btnSubmitPosOrder" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+              <i class="fa-solid fa-check"></i>
+              <span>SELESAIKAN & CETAK STRUK</span>
+            </button>
+          </div>
+
+        </div>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- KITCHEN DISPLAY KANBAN BOARD                                              -->
+  <!-- 4. TAB VIEW: STOCK OPNAME (HANYA BISA DIBUKA JAM 22:30 WIB)                -->
   <!-- ========================================================================= -->
-  <main class="p-4">
+  <div id="tabViewOpname" class="hidden space-y-4 max-w-4xl mx-auto p-4 pb-24">
     
-    <!-- GRID CONTAINER KANBAN -->
-    <div id="kanbanGridContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-
-      <!-- KOLOM 1: MENUNGGU VERIFIKASI PEMBAYARAN -->
-      <div id="cardColPending" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-300">
-          <div class="flex items-center space-x-2">
-            <span class="w-3 h-3 bg-yellow-500 rounded-full animate-ping"></span>
-            <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">1. Verifikasi QRIS</h2>
-          </div>
-          <span id="countPending" class="bg-yellow-400 text-yellow-950 text-xs font-black px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="colPending" class="space-y-3 min-h-[120px]">
-          <!-- Render via JS -->
-        </div>
+    <!-- LAYAR TERKUNCI JIKA BELUM JAM 22:30 -->
+    <div id="opnameLockedView" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md text-center space-y-4 max-w-md mx-auto">
+      <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-3xl flex items-center justify-center text-3xl mx-auto shadow-inner animate-bounce">
+        🔒
+      </div>
+      <div>
+        <h2 class="text-lg font-black text-slate-900">Stock Opname Terkunci</h2>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          Fitur Stock Opname hanya dapat dibuka mulai pukul <b>22:30 WIB</b> menjelang penutupan gerai untuk memastikan seluruh transaksi hari ini telah selesai dihitung.
+        </p>
       </div>
 
-      <!-- KOLOM 2: SEDANG DIMASAK DI DAPUR -->
-      <div id="cardColCooking" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-300">
-          <div class="flex items-center space-x-2">
-            <span class="text-base">🍳</span>
-            <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">2. Sedang Dimasak</h2>
-          </div>
-          <span id="countCooking" class="bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="colCooking" class="space-y-3 min-h-[120px]">
-          <!-- Render via JS -->
-        </div>
+      <!-- COUNTDOWN TIMER KE JAM 22:30 -->
+      <div class="bg-slate-950 text-amber-400 p-4 rounded-2xl font-mono text-center space-y-1">
+        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Hitung Mundur ke 22:30 WIB:</span>
+        <div class="text-2xl font-black tracking-widest" id="opnameCountdownText">-- Jam : -- Menit : -- Detik</div>
       </div>
 
-      <!-- KOLOM 3: MATANG & PANGGIL KURIR -->
-      <div id="cardColReady" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-300">
-          <div class="flex items-center space-x-2">
-            <span class="text-base">🛵</span>
-            <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">3. Cari / Antar Kurir</h2>
-          </div>
-          <span id="countReady" class="bg-blue-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="colReady" class="space-y-3 min-h-[120px]">
-          <!-- Render via JS -->
-        </div>
+      <!-- TOMBOL BYPASS SUPERVISOR / TESTING -->
+      <div class="border-t pt-3">
+        <button type="button" onclick="promptOpnameBypass()" class="text-xs text-amber-700 hover:text-amber-800 font-extrabold flex items-center justify-center space-x-1 mx-auto bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition">
+          <i class="fa-solid fa-key"></i>
+          <span>Buka Pengujian / Bypass Supervisor (PIN 1234)</span>
+        </button>
       </div>
-
-      <!-- KOLOM 4: SELESAI -->
-      <div id="cardColCompleted" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
-        <div class="flex items-center justify-between pb-1 border-b border-slate-300">
-          <div class="flex items-center space-x-2">
-            <span class="text-base">✅</span>
-            <h2 class="font-extrabold text-xs uppercase tracking-wider text-slate-700">4. Pesanan Selesai</h2>
-          </div>
-          <span id="countCompleted" class="bg-emerald-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="colCompleted" class="space-y-3 min-h-[120px]">
-          <!-- Render via JS -->
-        </div>
-      </div>
-
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- BAGIAN KELOLA STOK MENU PER KATEGORI (HANYA MUNCUL PADA TAB STOK MENU)    -->
-    <!-- ========================================================================= -->
-    <div id="sectionMenuStock" class="hidden max-w-4xl mx-auto space-y-4">
-      <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-3xl shadow-md flex items-center justify-between">
+    <!-- FORMULIR STOCK OPNAME (MUNCUL JIKA >= 22:30 ATAU DI-BYPASS) -->
+    <div id="opnameUnlockedView" class="hidden space-y-4">
+      
+      <!-- HEADER FORM OPNAME -->
+      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-3xl shadow-md flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 class="font-black text-sm uppercase tracking-wide">Ketersediaan Stok Menu Lapak</h2>
-          <p class="text-xs text-amber-100 mt-0.5">Atur menu yang sedang habis sementara di cabang ini</p>
+          <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1">
+            <i class="fa-solid fa-lock-open mr-1"></i> Sesi Audit Terbuka (22:30)
+          </span>
+          <h2 class="text-lg sm:text-xl font-black">Stock Opname & Cek Fisik Bahan Baku</h2>
+          <p class="text-xs text-slate-300 mt-0.5">
+            Lapak: <b id="opnameBranchName" class="text-amber-400">-</b> • Tanggal: <span id="opnameDateDisplay">-</span>
+          </p>
         </div>
-        <span class="text-2xl">🍢</span>
+        <div class="text-right">
+          <span class="text-[10px] text-slate-400 block font-semibold">Petugas Kasir:</span>
+          <span class="font-bold text-amber-300 text-xs" id="opnameStaffName">-</span>
+        </div>
       </div>
 
-      <div id="menuStockCategoriesContainer" class="space-y-4">
-        <!-- Render via JS -->
+      <!-- TABEL DAFTAR BAHAN BAKU -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+        <div class="flex items-center justify-between border-b pb-2">
+          <div>
+            <h3 class="font-black text-sm text-slate-900">Hitung Fisik Sisa Bahan Baku di Lapak</h3>
+            <p class="text-[11px] text-slate-500">Hitung sisa fisik sebenarnya di gerai dan masukkan angkanya</p>
+          </div>
+          <span class="text-xs bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full">13 Bahan</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1" id="opnameItemsContainer">
+          <!-- Dynamically populated via JS -->
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-700 block mb-1">
+            <i class="fa-solid fa-comment-dots mr-1"></i> Catatan Khusus / Bahan Rusak / Basi:
+          </label>
+          <textarea id="opnameNotesInput" rows="2" placeholder="Contoh: 1 lembar kulit sobek, 1 butir telur pecah saat buka box..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="border-t pt-3 flex justify-end">
+          <button type="button" onclick="submitStockOpname()" id="btnSubmitStockOpname" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-2.5 rounded-2xl text-xs flex items-center space-x-2 shadow-lg transition active:scale-95">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>SIMPAN LAPORAN STOCK OPNAME</span>
+          </button>
+        </div>
       </div>
+
+      <!-- RIWAYAT LAPORAN OPNAME SEBELUMNYA -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+        <h3 class="font-black text-sm text-slate-900 border-b pb-2">Riwayat Laporan Stock Opname Lapak</h3>
+        <div id="opnameHistoryList" class="space-y-2 max-h-60 overflow-y-auto">
+          <!-- Loaded via GET /api/admin/stock-opname -->
+        </div>
+      </div>
+
     </div>
 
-  </main>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL CUSTOMIZE MENU KEBAB UNTUK KASIR LAPAK                              -->
+  <!-- ========================================================================= -->
+  <div id="posCustomizeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-md w-full rounded-3xl p-5 text-left shadow-2xl relative space-y-4 max-h-[90vh] overflow-y-auto animate-scale-up">
+      <div class="flex justify-between items-start border-b pb-2">
+        <div>
+          <span class="text-[10px] bg-amber-100 text-amber-800 font-black px-2 py-0.5 rounded-full uppercase" id="posModalCatBadge">Kebab</span>
+          <h3 class="font-black text-base text-slate-900 mt-1" id="posModalItemName">Kebab</h3>
+          <p class="text-[11px] text-slate-500" id="posModalItemMeat">Beef Klasik</p>
+        </div>
+        <button onclick="closePosCustomizeModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- 1. PILIH UKURAN -->
+      <div>
+        <label class="font-extrabold text-slate-800 block mb-1 text-xs">1. Pilih Ukuran Kebab:</label>
+        <div class="grid grid-cols-3 gap-2" id="posSizeOptions">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- 2. PILIH LEVEL PEDAS -->
+      <div>
+        <label class="font-extrabold text-slate-800 block mb-1 text-xs">2. Level Pedas:</label>
+        <select id="posSpiceSelect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-amber-500">
+          <option value="Level 0 - Tidak Pedas (Tomat)">Level 0 - Tidak Pedas (Tomat)</option>
+          <option value="Level 1 - Sedang" selected>Level 1 - Sedang (Rekomendasi)</option>
+          <option value="Level 2 - Pedas Mantap">Level 2 - Pedas Mantap</option>
+          <option value="Level 3 - Super Pedas">Level 3 - Super Pedas 🔥</option>
+        </select>
+      </div>
+
+      <!-- 3. TOPPING TAMBAHAN (RESMI) -->
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="font-extrabold text-slate-800 text-xs">3. Topping Tambahan (Resmi):</label>
+          <span class="text-[9px] text-slate-400">Bisa pilih lebih dari satu</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2" id="posToppingOptions">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- 4. SAYURAN SESUAI SELERA -->
+      <div>
+        <label class="font-extrabold text-slate-800 block mb-1 text-xs">4. Sayuran & Selera:</label>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <label class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="posNoPineapple" class="rounded text-amber-600">
+            <span id="posLabelNoPineapple">Tanpa Nanas</span>
+          </label>
+          <label class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="posNoOnion" class="rounded text-amber-600">
+            <span id="posLabelNoOnion">Tanpa Bombay</span>
+          </label>
+          <label class="flex items-center space-x-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer">
+            <input type="checkbox" id="posNoLettuce" class="rounded text-amber-600">
+            <span id="posLabelNoLettuce">Tanpa Sayur</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 5. JUMLAH PORSI -->
+      <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 flex items-center justify-between">
+        <span class="text-xs font-black text-slate-900">Jumlah Porsi:</span>
+        <div class="flex items-center space-x-2">
+          <button type="button" onclick="adjustPosModalQty(-1)" class="w-7 h-7 bg-white rounded-lg font-bold border text-slate-700">-</button>
+          <span id="posModalQtyDisplay" class="font-black text-sm w-6 text-center">1</span>
+          <button type="button" onclick="adjustPosModalQty(1)" class="w-7 h-7 bg-amber-500 rounded-lg font-bold text-slate-950 shadow-xs">+</button>
+        </div>
+      </div>
+
+      <!-- TOMBOL CONFIRM -->
+      <button type="button" onclick="confirmAddPosItemToCart()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-2xl text-xs flex items-center justify-center space-x-2 shadow-lg transition active:scale-95">
+        <i class="fa-solid fa-plus"></i>
+        <span>TAMBAH KE KERANJANG KASIR</span>
+        <span id="posModalSubtotalDisplay" class="ml-1 bg-slate-950 text-amber-300 px-2 py-0.5 rounded-lg font-bold text-[11px]">Rp 0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL STRUK CETAK KASIR KEBAB AL BEWOK                                    -->
+  <!-- ========================================================================= -->
+  <div id="posReceiptModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-sm w-full rounded-3xl p-5 text-left shadow-2xl relative space-y-4 max-h-[92vh] overflow-y-auto animate-scale-up">
+      <div class="flex justify-between items-center border-b pb-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">🧾</span>
+          <h3 class="font-black text-sm text-slate-900">Struk Pembayaran Kasir</h3>
+        </div>
+        <button onclick="closePosReceiptModal()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- TAMPILAN KERTAS STRUK THERMAL 58mm/80mm -->
+      <div id="printableThermalReceipt" class="bg-slate-50 border border-slate-200 rounded-2xl p-4 font-mono text-[11px] text-slate-800 space-y-2.5 shadow-inner">
+        <!-- Rendered via JS formatReceipt() -->
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button type="button" onclick="window.print()" class="bg-slate-900 hover:bg-slate-800 text-amber-300 font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow transition">
+          <i class="fa-solid fa-print"></i>
+          <span>Cetak Struk</span>
+        </button>
+        <button type="button" onclick="closePosReceiptModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 shadow transition">
+          <i class="fa-solid fa-check"></i>
+          <span>Selesai</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- BOTTOM NAVIGATION BAR (KATEGORI DI BAWAH)                                 -->
+  <!-- ========================================================================= -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 z-40 px-2 py-1.5 shadow-2xl">
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-1 text-center">
+      <!-- 1. BERANDA -->
+      <button type="button" onclick="switchMainTab('beranda')" id="navBtnBeranda" class="bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-amber-400 font-black">
+        <i class="fa-solid fa-house-chimney text-base mb-0.5"></i>
+        <span class="text-[10px] tracking-tight">Beranda</span>
+      </button>
+
+      <!-- 2. ONLINE -->
+      <button type="button" onclick="switchMainTab('online')" id="navBtnOnline" class="bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 font-bold relative">
+        <i class="fa-solid fa-mobile-screen-button text-base mb-0.5"></i>
+        <span class="text-[10px] tracking-tight">Online</span>
+        <span id="navBadgeOnlineCount" class="absolute top-1 right-3 bg-red-600 text-white font-black text-[9px] px-1 rounded-full hidden">0</span>
+      </button>
+
+      <!-- 3. KASIR OFFLINE -->
+      <button type="button" onclick="switchMainTab('kasir')" id="navBtnKasir" class="bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 font-bold">
+        <i class="fa-solid fa-cash-register text-base mb-0.5"></i>
+        <span class="text-[10px] tracking-tight">Kasir</span>
+      </button>
+
+      <!-- 4. STOCK OPNAME -->
+      <button type="button" onclick="switchMainTab('opname')" id="navBtnOpname" class="bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 font-bold relative">
+        <i class="fa-solid fa-boxes-stacked text-base mb-0.5"></i>
+        <span class="text-[10px] tracking-tight">Opname</span>
+        <span class="absolute top-1 right-2 text-[8px] bg-amber-500 text-slate-950 font-black px-1 rounded">22:30</span>
+      </button>
+    </div>
+  </nav>
 
   <!-- MODAL LIHAT STRUK BUKTI PEMBAYARAN -->
   <div id="proofModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
@@ -706,7 +1217,9 @@
       initGoogleIdentityServices();
       checkKitchenPipeline();
       await fetchOrders();
+      switchMainTab('beranda');
       setInterval(fetchOrders, 3000);
+      setInterval(updateOpnameCountdown, 1000);
     }
 
     // =========================================================================
@@ -1545,6 +2058,7 @@
           allOrders = res.data;
           renderKanban();
           calculateStats();
+          if (typeof renderBerandaSummary === 'function') renderBerandaSummary();
         }
       } catch (err) {
         console.error(err);
@@ -1556,6 +2070,9 @@
       localStorage.setItem('activeKitchenBranchId', currentBranchId);
       renderKanban();
       calculateStats();
+      if (typeof renderBerandaSummary === 'function') renderBerandaSummary();
+      if (typeof renderPosCatalog === 'function') renderPosCatalog();
+      if (typeof initOpnameView === 'function') initOpnameView();
     }
 
     function getFilteredOrders() {
@@ -1863,6 +2380,997 @@
 
     function closeProofModal() {
       document.getElementById('proofModal').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 8. BOTTOM NAVIGATION BAR SWITCHER (BERANDA, ONLINE, KASIR, OPNAME)
+    // =========================================================================
+    let currentMainTab = 'beranda';
+    let isOpnameBypassed = false;
+
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+
+      const navButtons = [
+        { id: 'navBtnBeranda', tab: 'beranda' },
+        { id: 'navBtnOnline', tab: 'online' },
+        { id: 'navBtnKasir', tab: 'kasir' },
+        { id: 'navBtnOpname', tab: 'opname' }
+      ];
+
+      navButtons.forEach(btn => {
+        const el = document.getElementById(btn.id);
+        if (!el) return;
+        if (btn.tab === tab) {
+          el.className = "bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-amber-400 font-black shadow-inner scale-105";
+        } else {
+          el.className = "bottom-nav-btn py-1.5 rounded-2xl transition flex flex-col items-center justify-center text-slate-400 hover:text-slate-200 font-bold";
+        }
+      });
+
+      const vBeranda = document.getElementById('tabViewBeranda');
+      const vOnline = document.getElementById('tabViewOnline');
+      const vKasir = document.getElementById('tabViewKasir');
+      const vOpname = document.getElementById('tabViewOpname');
+
+      if (vBeranda) vBeranda.classList.toggle('hidden', tab !== 'beranda');
+      if (vOnline) vOnline.classList.toggle('hidden', tab !== 'online');
+      if (vKasir) vKasir.classList.toggle('hidden', tab !== 'kasir');
+      if (vOpname) vOpname.classList.toggle('hidden', tab !== 'opname');
+
+      if (tab === 'beranda') {
+        renderBerandaSummary();
+      } else if (tab === 'online') {
+        renderKanban();
+      } else if (tab === 'kasir') {
+        renderPosCatalog();
+        renderPosCart();
+      } else if (tab === 'opname') {
+        initOpnameView();
+      }
+    }
+
+    // =========================================================================
+    // 9. LOGIKA BERANDA (RINGKASAN PENGKASIAN ONLINE & OFFLINE)
+    // =========================================================================
+    function renderBerandaSummary() {
+      const branchTitle = document.getElementById('berandaBranchTitle');
+      if (branchTitle) branchTitle.innerText = getBranchName(currentBranchId);
+
+      const cashierNameEl = document.getElementById('berandaCashierName');
+      if (cashierNameEl) {
+        cashierNameEl.innerText = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir Lapak') : 'Kasir Bertugas';
+      }
+
+      const todayDateEl = document.getElementById('berandaTodayDate');
+      if (todayDateEl) {
+        todayDateEl.innerText = new Date().toLocaleDateString('id-ID', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+      }
+
+      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayOrders = branchOrders.filter(o => (o.created_at || '').startsWith(todayStr));
+      const activeOrders = todayOrders.length > 0 ? todayOrders : branchOrders;
+
+      const onlineOrders = activeOrders.filter(o => o.order_type !== 'offline');
+      const offlineOrders = activeOrders.filter(o => o.order_type === 'offline');
+
+      const offlineCashOrders = offlineOrders.filter(o => o.payment_method === 'cash');
+      const offlineQrisOrders = offlineOrders.filter(o => o.payment_method === 'qris_offline');
+
+      const cashInDrawer = offlineCashOrders.reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const qrisOnline = onlineOrders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const qrisOffline = offlineQrisOrders.reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const totalQris = qrisOnline + qrisOffline;
+      const totalRevenue = cashInDrawer + totalQris;
+      const deliveryFees = onlineOrders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (Number(o.delivery_fee) || 0), 0);
+
+      const elCash = document.getElementById('kpiCashInDrawer');
+      const elQris = document.getElementById('kpiTotalQris');
+      const elRev = document.getElementById('kpiTotalRevenue');
+      const elDeliv = document.getElementById('kpiDeliveryFees');
+
+      if (elCash) elCash.innerText = `Rp ${cashInDrawer.toLocaleString('id-ID')}`;
+      if (elQris) elQris.innerText = `Rp ${totalQris.toLocaleString('id-ID')}`;
+      if (elRev) elRev.innerText = `Rp ${totalRevenue.toLocaleString('id-ID')}`;
+      if (elDeliv) elDeliv.innerText = `Rp ${deliveryFees.toLocaleString('id-ID')}`;
+
+      const elOnlineCount = document.getElementById('berandaOnlineOrderCount');
+      const elOnlineFood = document.getElementById('berandaOnlineFoodTotal');
+      const elOnlineDeliv = document.getElementById('berandaOnlineDeliveryTotal');
+      const elOnlineGrand = document.getElementById('berandaOnlineGrandTotal');
+
+      if (elOnlineCount) elOnlineCount.innerText = `${onlineOrders.length} Pesanan`;
+      if (elOnlineFood) elOnlineFood.innerText = `Rp ${qrisOnline.toLocaleString('id-ID')}`;
+      if (elOnlineDeliv) elOnlineDeliv.innerText = `Rp ${deliveryFees.toLocaleString('id-ID')}`;
+      if (elOnlineGrand) elOnlineGrand.innerText = `Rp ${(qrisOnline + deliveryFees).toLocaleString('id-ID')}`;
+
+      const elOfflineCount = document.getElementById('berandaOfflineOrderCount');
+      const elOfflineCash = document.getElementById('berandaOfflineCashTotal');
+      const elOfflineQris = document.getElementById('berandaOfflineQrisTotal');
+      const elOfflineGrand = document.getElementById('berandaOfflineGrandTotal');
+
+      if (elOfflineCount) elOfflineCount.innerText = `${offlineOrders.length} Pesanan`;
+      if (elOfflineCash) elOfflineCash.innerText = `Rp ${cashInDrawer.toLocaleString('id-ID')}`;
+      if (elOfflineQris) elOfflineQris.innerText = `Rp ${qrisOffline.toLocaleString('id-ID')}`;
+      if (elOfflineGrand) elOfflineGrand.innerText = `Rp ${(cashInDrawer + qrisOffline).toLocaleString('id-ID')}`;
+
+      const activeOnlineCount = onlineOrders.filter(o => ['pending_verification', 'cooking', 'ready_for_pickup', 'on_delivery'].includes(o.status)).length;
+      const navBadge = document.getElementById('navBadgeOnlineCount');
+      if (navBadge) {
+        if (activeOnlineCount > 0) {
+          navBadge.classList.remove('hidden');
+          navBadge.innerText = activeOnlineCount;
+        } else {
+          navBadge.classList.add('hidden');
+        }
+      }
+
+      const txContainer = document.getElementById('berandaRecentTransactionsList');
+      if (txContainer) {
+        if (activeOrders.length === 0) {
+          txContainer.innerHTML = `
+            <div class="text-center py-8 text-slate-400 text-xs">
+              <i class="fa-solid fa-receipt text-3xl mb-1 text-slate-300"></i>
+              <p>Belum ada transaksi hari ini di ${getBranchName(currentBranchId)}</p>
+            </div>
+          `;
+        } else {
+          txContainer.innerHTML = activeOrders.map(o => {
+            const isOff = o.order_type === 'offline';
+            const payText = isOff ? (o.payment_method === 'cash' ? `💵 Tunai (Cash)` : `📱 QRIS Lapak`) : `📱 QRIS Online`;
+            const badgeClass = isOff ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-blue-100 text-blue-800 border-blue-300';
+            const badgeLabel = isOff ? 'OFFLINE POS' : 'ONLINE';
+            const timeStr = o.created_at ? new Date(o.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-';
+
+            return `
+              <div class="p-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+                <div class="space-y-1">
+                  <div class="flex items-center space-x-2">
+                    <span class="text-xs font-black text-slate-900">#${o.order_code}</span>
+                    <span class="text-[9px] font-black px-2 py-0.5 rounded-full border ${badgeClass}">${badgeLabel}</span>
+                    <span class="text-[10px] text-slate-400 font-semibold">• ${timeStr}</span>
+                  </div>
+                  <div class="text-xs font-bold text-slate-700">${o.customer_name || 'Pelanggan'}</div>
+                  <div class="text-[11px] text-slate-500 truncate max-w-md">
+                    ${(o.items || []).map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between sm:justify-end space-x-3 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                  <div class="text-right">
+                    <span class="text-xs font-black text-amber-700 block">Rp ${(o.total_payment || 0).toLocaleString('id-ID')}</span>
+                    <span class="text-[10px] font-semibold text-slate-500 block">${payText}</span>
+                  </div>
+                  <button type="button" onclick="printThermalReceipt('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold px-3 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1 shadow-2xs transition active:scale-95">
+                    <i class="fa-solid fa-print text-amber-600"></i>
+                    <span>Struk</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function printShiftSummary() {
+      const branchName = getBranchName(currentBranchId);
+      const staffName = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Bertugas';
+      const todayDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      const timeNow = new Date().toLocaleTimeString('id-ID');
+
+      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayOrders = branchOrders.filter(o => (o.created_at || '').startsWith(todayStr));
+      const activeOrders = todayOrders.length > 0 ? todayOrders : branchOrders;
+
+      const onlineOrders = activeOrders.filter(o => o.order_type !== 'offline');
+      const offlineOrders = activeOrders.filter(o => o.order_type === 'offline');
+      const offlineCashOrders = offlineOrders.filter(o => o.payment_method === 'cash');
+      const offlineQrisOrders = offlineOrders.filter(o => o.payment_method === 'qris_offline');
+
+      const cashInDrawer = offlineCashOrders.reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const qrisOnline = onlineOrders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const qrisOffline = offlineQrisOrders.reduce((sum, o) => sum + (Number(o.food_subtotal) || 0), 0);
+      const totalQris = qrisOnline + qrisOffline;
+      const totalRevenue = cashInDrawer + totalQris;
+      const deliveryFees = onlineOrders.filter(o => o.status !== 'cancelled').reduce((sum, o) => sum + (Number(o.delivery_fee) || 0), 0);
+
+      const printWindow = window.open('', '_blank', 'width=380,height=600');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Rekap Pengkasian Lapak - ${branchName}</title>
+          <style>
+            @page { margin: 0; size: 58mm auto; }
+            body { font-family: 'Courier New', monospace; width: 58mm; margin: 0; padding: 4mm; font-size: 11px; line-height: 1.3; }
+            .text-center { text-align: center; }
+            .text-right { text-align: right; }
+            .bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 5px 0; }
+            .double-divider { border-top: 2px dashed #000; margin: 6px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="text-center bold" style="font-size: 13px;">KEBAB AL BEWOK</div>
+          <div class="text-center" style="font-size: 10px;">${branchName}</div>
+          <div class="text-center bold" style="font-size: 11px; margin-top: 3px;">LAPORAN PENGKASIAN SHIFT</div>
+          <div class="double-divider"></div>
+          <div>Tanggal : ${todayDate}</div>
+          <div>Waktu   : ${timeNow} WIB</div>
+          <div>Kasir   : <span class="bold">${staffName}</span></div>
+          <div class="divider"></div>
+          <div class="bold">1. TRANSAKSI ONLINE (QRIS):</div>
+          <div>Pesanan : ${onlineOrders.length} order</div>
+          <div>Makanan : Rp ${qrisOnline.toLocaleString('id-ID')}</div>
+          <div>Ongkir  : Rp ${deliveryFees.toLocaleString('id-ID')}</div>
+          <div class="divider"></div>
+          <div class="bold">2. TRANSAKSI OFFLINE (KASIR):</div>
+          <div>Pesanan : ${offlineOrders.length} order</div>
+          <div>• Tunai (Cash): Rp ${cashInDrawer.toLocaleString('id-ID')}</div>
+          <div>• QRIS Lapak  : Rp ${qrisOffline.toLocaleString('id-ID')}</div>
+          <div class="double-divider"></div>
+          <table style="width: 100%; font-size: 11px;">
+            <tr class="bold"><td>KAS LACI (CASH)</td><td class="text-right">Rp ${cashInDrawer.toLocaleString('id-ID')}</td></tr>
+            <tr class="bold"><td>TOTAL MASUK QRIS</td><td class="text-right">Rp ${totalQris.toLocaleString('id-ID')}</td></tr>
+            <tr class="bold"><td>TOTAL OMSET TOKO</td><td class="text-right">Rp ${totalRevenue.toLocaleString('id-ID')}</td></tr>
+            <tr><td>Titipan Ongkir</td><td class="text-right">Rp ${deliveryFees.toLocaleString('id-ID')}</td></tr>
+          </table>
+          <div class="divider"></div>
+          <div class="text-center bold">[ STATUS REKAP SELESAI ]</div>
+          <br/><br/>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 500);
+    }
+
+    // =========================================================================
+    // 10. LOGIKA KASIR POS OFFLINE (INPUT MANUAL PESANAN WALK-IN)
+    // =========================================================================
+    let posCart = [];
+    let currentPosCustomizingItem = null;
+    let selectedPosSize = 'reguler';
+    let selectedPosToppings = [];
+    let posModalQty = 1;
+    let posOrderType = 'takeaway';
+    let posPaymentMethod = 'cash';
+    let currentPosCatFilter = 'all';
+
+    function filterPosCategory(catId) {
+      currentPosCatFilter = catId;
+      const btns = [
+        { id: 'posCatAll', cat: 'all' },
+        { id: 'posCatOriginal', cat: 'cat-original' },
+        { id: 'posCatCheesy', cat: 'cat-cheesy' },
+        { id: 'posCatSignature', cat: 'cat-signature' }
+      ];
+
+      btns.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (!el) return;
+        if (b.cat === catId) {
+          el.className = "pos-cat-btn px-3 py-1 rounded-full text-xs font-black bg-slate-900 text-white shadow-xs";
+        } else {
+          el.className = "pos-cat-btn px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200";
+        }
+      });
+
+      renderPosCatalog(catId);
+    }
+
+    function renderPosCatalog(filter = currentPosCatFilter) {
+      const container = document.getElementById('posMenuCatalogGrid');
+      if (!container || !globalMenu) return;
+
+      const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+      const branchOutStock = (branch && Array.isArray(branch.out_of_stock)) ? branch.out_of_stock : [];
+
+      let html = '';
+      globalMenu.categories.forEach(cat => {
+        if (filter !== 'all' && cat.id !== filter) return;
+
+        cat.items.forEach(item => {
+          const isOut = branchOutStock.includes(item.id);
+          const priceDisplay = item.prices ? (item.prices.small || item.prices.reguler) : 15000;
+
+          html += `
+            <div class="bg-white p-3 rounded-2xl border ${isOut ? 'border-slate-200 opacity-60' : 'border-slate-200 hover:border-amber-400'} shadow-xs flex flex-col justify-between transition">
+              <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">${cat.name.replace('Kebab ', '')}</span>
+                  ${item.is_favorite ? '<span class="text-[9px] bg-red-100 text-red-600 font-extrabold px-1 rounded">⭐ Favorit</span>' : ''}
+                </div>
+                <h4 class="font-extrabold text-xs text-slate-900 leading-tight">${item.name}</h4>
+                <p class="text-[10px] text-slate-500">${item.meat_type}</p>
+                <div class="text-xs font-black text-amber-600 pt-1">
+                  Mulai Rp ${priceDisplay.toLocaleString('id-ID')}
+                </div>
+              </div>
+
+              <div class="pt-2">
+                ${isOut ? `
+                  <button type="button" disabled class="w-full bg-slate-200 text-slate-500 font-bold py-1.5 rounded-xl text-xs cursor-not-allowed">
+                    Habis di Lapak
+                  </button>
+                ` : `
+                  <button type="button" onclick="openPosCustomizeModal('${item.id}', '${cat.id}')" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-xs transition active:scale-95">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>PILIH RACIKAN</span>
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      container.innerHTML = html;
+    }
+
+    function openPosCustomizeModal(itemId, catId) {
+      const cat = globalMenu.categories.find(c => c.id === catId);
+      const item = cat.items.find(i => i.id === itemId);
+      currentPosCustomizingItem = { ...item, catName: cat.name };
+
+      document.getElementById('posModalCatBadge').innerText = cat.name;
+      document.getElementById('posModalItemName').innerText = item.name;
+      document.getElementById('posModalItemMeat').innerText = `${item.meat_type} • Komposisi: daging, lettuce, nanas & bombay`;
+
+      selectedPosSize = 'reguler';
+      selectedPosToppings = [];
+      posModalQty = 1;
+      document.getElementById('posModalQtyDisplay').innerText = 1;
+      document.getElementById('posSpiceSelect').value = 'Level 1 - Sedang';
+
+      const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+      const branchOutStock = (branch && Array.isArray(branch.out_of_stock)) ? branch.out_of_stock : [];
+
+      const nanasOut = branchOutStock.includes('veg-nanas');
+      const bombayOut = branchOutStock.includes('veg-bombay');
+      const lettuceOut = branchOutStock.includes('veg-lettuce');
+
+      const noPineapple = document.getElementById('posNoPineapple');
+      const noOnion = document.getElementById('posNoOnion');
+      const noLettuce = document.getElementById('posNoLettuce');
+
+      noPineapple.checked = nanasOut;
+      noPineapple.disabled = nanasOut;
+      document.getElementById('posLabelNoPineapple').innerHTML = `Tanpa Nanas ${nanasOut ? '<span class="text-red-600 font-bold text-[9px]">(Habis)</span>' : ''}`;
+
+      noOnion.checked = bombayOut;
+      noOnion.disabled = bombayOut;
+      document.getElementById('posLabelNoOnion').innerHTML = `Tanpa Bombay ${bombayOut ? '<span class="text-red-600 font-bold text-[9px]">(Habis)</span>' : ''}`;
+
+      noLettuce.checked = lettuceOut;
+      noLettuce.disabled = lettuceOut;
+      document.getElementById('posLabelNoLettuce').innerHTML = `Tanpa Sayur ${lettuceOut ? '<span class="text-red-600 font-bold text-[9px]">(Habis)</span>' : ''}`;
+
+      const sizeContainer = document.getElementById('posSizeOptions');
+      sizeContainer.innerHTML = Object.entries(item.prices).map(([sizeKey, price]) => `
+        <button type="button" onclick="selectPosSize('${sizeKey}')" id="pos-size-${sizeKey}" class="pos-size-btn border rounded-xl p-2 text-center transition ${sizeKey === 'reguler' ? 'border-amber-500 bg-amber-50 text-amber-950 font-black' : 'border-slate-200 bg-white'}">
+          <div class="uppercase text-[10px] text-slate-500">${sizeKey}</div>
+          <div class="text-xs font-black">Rp ${price.toLocaleString('id-ID')}</div>
+        </button>
+      `).join('');
+
+      const toppingContainer = document.getElementById('posToppingOptions');
+      toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => {
+        const isOut = branchOutStock.includes(t.id);
+        if (isOut) {
+          return `
+            <div class="flex items-center justify-between border border-dashed rounded-xl p-2 bg-slate-100/80 opacity-60 cursor-not-allowed">
+              <span class="text-slate-400 line-through text-xs">${t.icon} ${t.name}</span>
+              <span class="text-[9px] bg-red-100 text-red-600 font-bold px-1 rounded">Habis</span>
+            </div>
+          `;
+        }
+        return `
+          <label class="flex items-center justify-between border rounded-xl p-2 bg-slate-50 hover:bg-amber-50 cursor-pointer transition text-xs">
+            <div class="flex items-center space-x-1.5">
+              <input type="checkbox" onchange="togglePosTopping('${t.id}')" class="rounded text-amber-600">
+              <span class="font-bold text-slate-800">${t.icon} ${t.name}</span>
+            </div>
+            <span class="font-black text-amber-700 text-[10px]">+${t.price / 1000}k</span>
+          </label>
+        `;
+      }).join('');
+
+      updatePosModalPrice();
+      document.getElementById('posCustomizeModal').classList.remove('hidden');
+    }
+
+    function closePosCustomizeModal() {
+      document.getElementById('posCustomizeModal').classList.add('hidden');
+    }
+
+    function selectPosSize(sizeKey) {
+      selectedPosSize = sizeKey;
+      document.querySelectorAll('.pos-size-btn').forEach(b => {
+        b.className = 'pos-size-btn border rounded-xl p-2 text-center transition border-slate-200 bg-white';
+      });
+      const el = document.getElementById(`pos-size-${sizeKey}`);
+      if (el) el.className = 'pos-size-btn border rounded-xl p-2 text-center transition border-amber-500 bg-amber-50 text-amber-950 font-black';
+      updatePosModalPrice();
+    }
+
+    function togglePosTopping(toppingId) {
+      const top = globalMenu.extra_toppings.find(t => t.id === toppingId);
+      const idx = selectedPosToppings.findIndex(t => t.id === toppingId);
+      if (idx > -1) {
+        selectedPosToppings.splice(idx, 1);
+      } else if (top) {
+        selectedPosToppings.push(top);
+      }
+      updatePosModalPrice();
+    }
+
+    function adjustPosModalQty(delta) {
+      posModalQty = Math.max(1, posModalQty + delta);
+      document.getElementById('posModalQtyDisplay').innerText = posModalQty;
+      updatePosModalPrice();
+    }
+
+    function updatePosModalPrice() {
+      if (!currentPosCustomizingItem) return;
+      const basePrice = currentPosCustomizingItem.prices[selectedPosSize] || Object.values(currentPosCustomizingItem.prices)[0] || 0;
+      let toppingSum = 0;
+      selectedPosToppings.forEach(t => toppingSum += t.price);
+      const unitPrice = basePrice + toppingSum;
+      const subtotal = unitPrice * posModalQty;
+
+      const el = document.getElementById('posModalSubtotalDisplay');
+      if (el) el.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+    }
+
+    function confirmAddPosItemToCart() {
+      if (!currentPosCustomizingItem) return;
+
+      const basePrice = currentPosCustomizingItem.prices[selectedPosSize] || Object.values(currentPosCustomizingItem.prices)[0] || 0;
+      let toppingSum = 0;
+      selectedPosToppings.forEach(t => toppingSum += t.price);
+      const unitPrice = basePrice + toppingSum;
+
+      const notes = [];
+      if (document.getElementById('posNoPineapple').checked) notes.push('Tanpa Nanas');
+      if (document.getElementById('posNoOnion').checked) notes.push('Tanpa Bombay');
+      if (document.getElementById('posNoLettuce').checked) notes.push('Tanpa Sayur');
+
+      const cartItem = {
+        id: currentPosCustomizingItem.id,
+        name: `${currentPosCustomizingItem.name} (${selectedPosSize.toUpperCase()})`,
+        price: unitPrice,
+        base_price: basePrice,
+        size: selectedPosSize,
+        quantity: posModalQty,
+        spice: document.getElementById('posSpiceSelect').value,
+        toppings: [...selectedPosToppings],
+        notes: notes.join(', ')
+      };
+
+      posCart.push(cartItem);
+      closePosCustomizeModal();
+      renderPosCart();
+    }
+
+    function renderPosCart() {
+      const container = document.getElementById('posCartItemsList');
+      if (!container) return;
+
+      if (posCart.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs">
+            <i class="fa-solid fa-cart-arrow-down text-2xl text-slate-300 mb-1"></i>
+            <p>Keranjang kasir masih kosong</p>
+            <p class="text-[10px]">Klik menu di sebelah kiri untuk menambah</p>
+          </div>
+        `;
+        document.getElementById('posTotalPaymentDisplay').innerText = 'Rp 0';
+        calculatePosChange();
+        return;
+      }
+
+      let grandTotal = 0;
+      container.innerHTML = posCart.map((item, idx) => {
+        const itemTotal = item.price * item.quantity;
+        grandTotal += itemTotal;
+        return `
+          <div class="py-2 flex items-start justify-between text-xs">
+            <div class="truncate mr-2">
+              <span class="font-extrabold text-slate-900 block truncate">${item.quantity}x ${item.name}</span>
+              <span class="text-[10px] text-slate-500 block truncate">• ${item.spice}</span>
+              ${item.toppings && item.toppings.length ? `<span class="text-[10px] text-emerald-700 block truncate">• Top: ${item.toppings.map(t => t.name).join(', ')}</span>` : ''}
+              ${item.notes ? `<span class="text-[9px] text-red-600 block truncate">• Note: ${item.notes}</span>` : ''}
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-black text-amber-700 block">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+              <button type="button" onclick="removePosCartItem(${idx})" class="text-[10px] text-red-500 hover:text-red-700 font-bold">Hapus</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('posTotalPaymentDisplay').innerText = `Rp ${grandTotal.toLocaleString('id-ID')}`;
+      calculatePosChange();
+    }
+
+    function removePosCartItem(idx) {
+      posCart.splice(idx, 1);
+      renderPosCart();
+    }
+
+    function clearPosCart() {
+      if (posCart.length === 0) return;
+      if (confirm('Kosongkan semua pesanan di keranjang kasir?')) {
+        posCart = [];
+        renderPosCart();
+      }
+    }
+
+    function setPosOrderType(type) {
+      posOrderType = type;
+      const bTake = document.getElementById('btnPosTakeaway');
+      const bDine = document.getElementById('btnPosDinein');
+      if (type === 'takeaway') {
+        bTake.className = "py-1.5 rounded-xl text-xs font-extrabold border bg-amber-500 text-slate-950 border-amber-500 transition shadow-xs";
+        bDine.className = "py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition";
+      } else {
+        bTake.className = "py-1.5 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition";
+        bDine.className = "py-1.5 rounded-xl text-xs font-extrabold border bg-amber-500 text-slate-950 border-amber-500 transition shadow-xs";
+      }
+    }
+
+    function setPosPaymentMethod(method) {
+      posPaymentMethod = method;
+      const bCash = document.getElementById('btnPosPayCash');
+      const bQris = document.getElementById('btnPosPayQris');
+      const secCash = document.getElementById('secPosCashInput');
+      const secQris = document.getElementById('secPosQrisPreview');
+
+      if (method === 'cash') {
+        bCash.className = "py-2 rounded-xl text-xs font-black border bg-emerald-600 text-white border-emerald-600 shadow-sm transition";
+        bQris.className = "py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition";
+        secCash.classList.remove('hidden');
+        secQris.classList.add('hidden');
+      } else {
+        bCash.className = "py-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-700 transition";
+        bQris.className = "py-2 rounded-xl text-xs font-black border bg-blue-600 text-white border-blue-600 shadow-sm transition";
+        secCash.classList.add('hidden');
+        secQris.classList.remove('hidden');
+
+        const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+        if (branch) {
+          document.getElementById('posQrisImageTag').src = branch.qris_image || 'https://placehold.co/300x300/png?text=QRIS+Lapak';
+          document.getElementById('posBankInfoDisplay').innerText = branch.bank_info || 'Rekening Lapak Kebab AL Bewok';
+        }
+      }
+    }
+
+    function setQuickCash(amount) {
+      const grandTotal = posCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const input = document.getElementById('posCashTenderedInput');
+      if (amount === 'pas') {
+        input.value = grandTotal;
+      } else {
+        input.value = amount;
+      }
+      calculatePosChange();
+    }
+
+    function calculatePosChange() {
+      const grandTotal = posCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const input = document.getElementById('posCashTenderedInput');
+      const changeEl = document.getElementById('posCashChangeDisplay');
+      if (!input || !changeEl) return;
+
+      const tendered = Number(input.value) || 0;
+      const change = tendered - grandTotal;
+
+      if (tendered === 0) {
+        changeEl.innerText = 'Rp 0';
+        changeEl.className = 'font-black text-slate-500 text-sm';
+      } else if (change >= 0) {
+        changeEl.innerText = `Rp ${change.toLocaleString('id-ID')}`;
+        changeEl.className = 'font-black text-emerald-700 text-sm';
+      } else {
+        changeEl.innerText = `Kurang Rp ${Math.abs(change).toLocaleString('id-ID')}`;
+        changeEl.className = 'font-black text-red-600 text-sm';
+      }
+    }
+
+    async function submitPosOrder() {
+      if (posCart.length === 0) {
+        alert('Keranjang kasir masih kosong. Silakan pilih menu terlebih dahulu.');
+        return;
+      }
+
+      const grandTotal = posCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const tenderedInput = document.getElementById('posCashTenderedInput');
+      const tendered = Number(tenderedInput.value) || grandTotal;
+
+      if (posPaymentMethod === 'cash' && tendered < grandTotal) {
+        alert(`Uang tunai yang diterima (Rp ${tendered.toLocaleString('id-ID')}) kurang dari total tagihan (Rp ${grandTotal.toLocaleString('id-ID')}).`);
+        return;
+      }
+
+      const custName = document.getElementById('posCustomerName').value.trim() || 'Pelanggan Langsung';
+      const change = Math.max(0, tendered - grandTotal);
+
+      const btn = document.getElementById('btnSubmitPosOrder');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Pesanan...`;
+
+      try {
+        const payload = {
+          branch_id: currentBranchId,
+          customer_name: `${custName} (${posOrderType === 'takeaway' ? 'Bungkus' : 'Dine-in'})`,
+          items: posCart,
+          payment_method: posPaymentMethod,
+          cash_tendered: posPaymentMethod === 'cash' ? tendered : grandTotal,
+          cash_change: posPaymentMethod === 'cash' ? change : 0,
+          order_notes: `Pesanan Kasir POS • ${posOrderType.toUpperCase()}`
+        };
+
+        const res = await fetch('/api/admin/orders/offline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success && res.data) {
+          const createdOrder = res.data;
+          posCart = [];
+          document.getElementById('posCustomerName').value = '';
+          document.getElementById('posCashTenderedInput').value = '';
+          renderPosCart();
+          await fetchOrders();
+          showPosReceipt(createdOrder);
+        } else {
+          alert('Gagal menyimpan pesanan: ' + (res.message || 'Kesalahan server'));
+        }
+      } catch (err) {
+        console.error('POS order error:', err);
+        alert('Gagal menghubungi server.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>SELESAIKAN & CETAK STRUK</span>`;
+      }
+    }
+
+    function showPosReceipt(order) {
+      const container = document.getElementById('printableThermalReceipt');
+      if (!container) return;
+
+      const dateStr = new Date(order.created_at || Date.now()).toLocaleString('id-ID');
+      const staffName = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Bertugas';
+      const isCash = order.payment_method === 'cash';
+
+      container.innerHTML = `
+        <div class="text-center font-bold text-sm tracking-wider">KEBAB AL BEWOK</div>
+        <div class="text-center text-[10px] text-slate-500">${order.branch_name}</div>
+        <div class="text-center text-[9px] text-slate-400">Hotline: 0852-8584-1330</div>
+        
+        <div class="border-t border-dashed border-slate-400 my-2"></div>
+        
+        <div class="flex justify-between"><span>No. Nota</span><span class="font-bold">#${order.order_code}</span></div>
+        <div class="flex justify-between"><span>Waktu</span><span>${dateStr}</span></div>
+        <div class="flex justify-between"><span>Kasir</span><span>${staffName}</span></div>
+        <div class="flex justify-between"><span>Pelanggan</span><span class="font-bold">${order.customer_name}</span></div>
+
+        <div class="border-t border-dashed border-slate-400 my-2"></div>
+
+        <div class="space-y-1.5">
+          ${(order.items || []).map(item => `
+            <div>
+              <div class="flex justify-between font-bold">
+                <span>${item.quantity}x ${item.name}</span>
+                <span>Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 pl-2">• ${item.spice}</div>
+              ${item.toppings && item.toppings.length ? `<div class="text-[10px] text-emerald-700 pl-2">• Top: ${item.toppings.map(t => t.name).join(', ')}</div>` : ''}
+              ${item.notes ? `<div class="text-[9px] text-slate-500 italic pl-2">• ${item.notes}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="border-t border-dashed border-slate-400 my-2"></div>
+
+        <div class="flex justify-between font-extrabold text-xs">
+          <span>TOTAL BAYAR</span>
+          <span>Rp ${(order.total_payment || 0).toLocaleString('id-ID')}</span>
+        </div>
+
+        ${isCash ? `
+          <div class="flex justify-between text-[10px] pt-1">
+            <span>Uang Tunai (Cash)</span>
+            <span>Rp ${(order.cash_tendered || 0).toLocaleString('id-ID')}</span>
+          </div>
+          <div class="flex justify-between text-[10px]">
+            <span>Kembalian</span>
+            <span class="font-bold">Rp ${(order.cash_change || 0).toLocaleString('id-ID')}</span>
+          </div>
+        ` : `
+          <div class="flex justify-between text-[10px] pt-1">
+            <span>Metode Bayar</span>
+            <span class="font-bold text-blue-700">[ LUNAS QRIS LAPAK ]</span>
+          </div>
+        `}
+
+        <div class="border-t border-dashed border-slate-400 my-2"></div>
+        <div class="text-center font-bold text-[10px]">Rasa Nikmat, Harga Bersahabat!</div>
+        <div class="text-center text-[9px] text-slate-400">Terima kasih atas kunjungan Anda</div>
+      `;
+
+      document.getElementById('posReceiptModal').classList.remove('hidden');
+    }
+
+    function closePosReceiptModal() {
+      document.getElementById('posReceiptModal').classList.add('hidden');
+    }
+
+    // =========================================================================
+    // 11. LOGIKA STOCK OPNAME (HANYA BISA DIBUKA JAM 22:30 WIB)
+    // =========================================================================
+    const OPNAME_INGREDIENTS = [
+      { id: 'beef_sapi', name: 'Daging Sapi Panggang (Beef)', unit: 'Porsi', key_count: 'beef' },
+      { id: 'chicken_ayam', name: 'Daging Ayam Rempah (Chicken)', unit: 'Porsi', key_count: 'chicken' },
+      { id: 'tortilla_small', name: 'Kulit Tortilla Small', unit: 'Lembar', key_count: 'tortilla_small' },
+      { id: 'tortilla_reguler', name: 'Kulit Tortilla Reguler', unit: 'Lembar', key_count: 'tortilla_reguler' },
+      { id: 'tortilla_jumbo', name: 'Kulit Tortilla Jumbo', unit: 'Lembar', key_count: 'tortilla_jumbo' },
+      { id: 'egg_telur', name: 'Telur Ayam Segar', unit: 'Butir', key_count: 'egg' },
+      { id: 'cheese_keju', name: 'Keju Cheddar Slice', unit: 'Lembar', key_count: 'cheese' },
+      { id: 'nanas', name: 'Nanas Segar', unit: 'Porsi / Wadah', key_count: null },
+      { id: 'bombay', name: 'Bawang Bombay', unit: 'Porsi / Wadah', key_count: null },
+      { id: 'lettuce', name: 'Sayur Lettuce Segar', unit: 'Pack / Porsi', key_count: null },
+      { id: 'sauce_chili_tomato', name: 'Saus Sambal & Tomat', unit: 'Botol', key_count: null },
+      { id: 'mayo_cheese_sauce', name: 'Mayonaise & Saus Keju', unit: 'Botol / Pack', key_count: null },
+      { id: 'paper_wrap_plastic', name: 'Kertas Kebab & Kresek', unit: 'Lembar / Pack', key_count: null }
+    ];
+
+    function isCurrentTimeOpnameUnlocked() {
+      if (isOpnameBypassed) return true;
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const currentMinutes = hours * 60 + minutes;
+      const unlockMinutes = 22 * 60 + 30; // 22:30 WIB = 1350 menit
+
+      if (currentMinutes >= unlockMinutes || hours < 4) {
+        return true;
+      }
+      return false;
+    }
+
+    function updateOpnameCountdown() {
+      const countdownEl = document.getElementById('opnameCountdownText');
+      if (!countdownEl) return;
+
+      if (isCurrentTimeOpnameUnlocked()) {
+        countdownEl.innerText = "SESI OPNAME DIBUKA!";
+        return;
+      }
+
+      const now = new Date();
+      const target = new Date();
+      target.setHours(22, 30, 0, 0);
+
+      const diffMs = target.getTime() - now.getTime();
+      if (diffMs <= 0) {
+        countdownEl.innerText = "SESI OPNAME DIBUKA!";
+        return;
+      }
+
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+      const hStr = String(hours).padStart(2, '0');
+      const mStr = String(minutes).padStart(2, '0');
+      const sStr = String(seconds).padStart(2, '0');
+
+      countdownEl.innerText = `${hStr} Jam : ${mStr} Menit : ${sStr} Detik`;
+    }
+
+    function promptOpnameBypass() {
+      const pin = prompt('Masukkan PIN Supervisor / Kasir untuk membuka sesi uji coba Stock Opname (default: 1234):');
+      if (pin === '1234') {
+        isOpnameBypassed = true;
+        alert('✅ Akses Stock Opname berhasil dibuka dalam mode Supervisor/Testing!');
+        initOpnameView();
+      } else if (pin !== null) {
+        alert('❌ PIN salah.');
+      }
+    }
+
+    function initOpnameView() {
+      const isUnlocked = isCurrentTimeOpnameUnlocked();
+      const lockedView = document.getElementById('opnameLockedView');
+      const unlockedView = document.getElementById('opnameUnlockedView');
+
+      if (!isUnlocked) {
+        if (lockedView) lockedView.classList.remove('hidden');
+        if (unlockedView) unlockedView.classList.add('hidden');
+        updateOpnameCountdown();
+        return;
+      }
+
+      if (lockedView) lockedView.classList.add('hidden');
+      if (unlockedView) unlockedView.classList.remove('hidden');
+
+      document.getElementById('opnameBranchName').innerText = getBranchName(currentBranchId);
+      document.getElementById('opnameStaffName').innerText = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak';
+      document.getElementById('opnameDateDisplay').innerText = new Date().toLocaleDateString('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+
+      renderOpnameForm();
+      fetchOpnameHistory();
+    }
+
+    function calculateSystemSoldIngredients() {
+      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayOrders = branchOrders.filter(o => (o.created_at || '').startsWith(todayStr));
+      const activeOrders = todayOrders.length > 0 ? todayOrders : branchOrders;
+
+      let sold = {
+        beef: 0,
+        chicken: 0,
+        tortilla_small: 0,
+        tortilla_reguler: 0,
+        tortilla_jumbo: 0,
+        egg: 0,
+        cheese: 0
+      };
+
+      activeOrders.forEach(o => {
+        if (o.status === 'cancelled') return;
+        (o.items || []).forEach(item => {
+          const qty = Number(item.quantity) || 1;
+          const nameLower = (item.name || '').toLowerCase();
+          const sizeLower = (item.size || '').toLowerCase();
+
+          if (nameLower.includes('beef')) sold.beef += qty;
+          if (nameLower.includes('chicken')) sold.chicken += qty;
+
+          if (sizeLower.includes('small') || nameLower.includes('small')) sold.tortilla_small += qty;
+          else if (sizeLower.includes('jumbo') || nameLower.includes('jumbo')) sold.tortilla_jumbo += qty;
+          else sold.tortilla_reguler += qty;
+
+          (item.toppings || []).forEach(top => {
+            if (top.id === 'top-egg' || (top.name || '').toLowerCase().includes('telur')) sold.egg += qty;
+            if (top.id === 'top-cheese' || (top.name || '').toLowerCase().includes('keju')) sold.cheese += qty;
+            if (top.id === 'top-beef') sold.beef += qty;
+            if (top.id === 'top-chicken') sold.chicken += qty;
+          });
+        });
+      });
+
+      return sold;
+    }
+
+    function renderOpnameForm() {
+      const container = document.getElementById('opnameItemsContainer');
+      if (!container) return;
+
+      const sold = calculateSystemSoldIngredients();
+
+      container.innerHTML = OPNAME_INGREDIENTS.map(item => {
+        const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
+        return `
+          <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs text-slate-900">${item.name}</span>
+              <span class="text-[10px] text-slate-500 font-semibold">${item.unit}</span>
+            </div>
+
+            ${sysSold !== null ? `
+              <div class="text-[10px] text-amber-900 font-bold bg-amber-100/70 px-2 py-0.5 rounded-lg flex justify-between">
+                <span>Terjual Sistem Hari Ini:</span>
+                <span class="font-black">${sysSold} ${item.unit}</span>
+              </div>
+            ` : ''}
+
+            <div class="flex items-center space-x-2 pt-0.5">
+              <span class="text-[10px] text-slate-500 font-bold shrink-0">Sisa Fisik:</span>
+              <input type="number" id="input_opname_${item.id}" placeholder="0" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function submitStockOpname() {
+      const btn = document.getElementById('btnSubmitStockOpname');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Opname...`;
+
+      try {
+        const sold = calculateSystemSoldIngredients();
+        const stockItems = {};
+
+        OPNAME_INGREDIENTS.forEach(item => {
+          const inputEl = document.getElementById(`input_opname_${item.id}`);
+          const count = inputEl ? Number(inputEl.value) || 0 : 0;
+          const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
+
+          stockItems[item.id] = {
+            name: item.name,
+            unit: item.unit,
+            system_sold: sysSold,
+            physical_count: count
+          };
+        });
+
+        const notes = document.getElementById('opnameNotesInput').value.trim();
+
+        const payload = {
+          branch_id: currentBranchId,
+          branch_name: getBranchName(currentBranchId),
+          staff_name: currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak',
+          stock_items: stockItems,
+          notes,
+          is_bypass: isOpnameBypassed
+        };
+
+        const res = await fetch('/api/admin/stock-opname', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          alert('✅ Laporan Stock Opname 22:30 WIB berhasil disimpan!');
+          document.getElementById('opnameNotesInput').value = '';
+          fetchOpnameHistory();
+        } else {
+          alert('Gagal menyimpan: ' + (res.message || 'Kesalahan server'));
+        }
+      } catch (err) {
+        console.error('Opname error:', err);
+        alert('Gagal menghubungi server.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN LAPORAN STOCK OPNAME</span>`;
+      }
+    }
+
+    async function fetchOpnameHistory() {
+      const container = document.getElementById('opnameHistoryList');
+      if (!container) return;
+
+      try {
+        const res = await fetch(`/api/admin/stock-opname?branch_id=${currentBranchId}`).then(r => r.json());
+        if (res.success && res.data && res.data.length > 0) {
+          container.innerHTML = res.data.map(op => `
+            <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs space-y-1">
+              <div class="flex justify-between items-center font-bold">
+                <span class="text-slate-900">${op.date} • ${new Date(op.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                <span class="text-emerald-700 font-extrabold text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full">Tersimpan</span>
+              </div>
+              <div class="text-[11px] text-slate-600">Petugas: <b>${op.staff_name}</b> ${op.notes ? `• Note: <i>${op.notes}</i>` : ''}</div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `<p class="text-center text-slate-400 py-4 text-xs">Belum ada riwayat stock opname untuk cabang ini.</p>`;
+        }
+      } catch (err) {
+        console.warn('Gagal memuat riwayat opname:', err);
+      }
     }
 
     init();
