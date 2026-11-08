@@ -9,7 +9,8 @@
     "qris_image": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_STATIS_AL_BEWOK_CABANG_01",
     "bank_info": "BCA 8830192831 a/n Kebab AL Bewok Pasar Baru",
     "is_open": true,
-    "open_hours": "15:00 - 23:00"
+    "open_hours": "15:00 - 23:00",
+    "staff_pin": "1234"
   },
   {
     "id": "cabang-02",
@@ -21,6 +22,7 @@
     "qris_image": "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_STATIS_AL_BEWOK_CABANG_02",
     "bank_info": "BRI 0192019283712 a/n Kebab AL Bewok Alun-Alun",
     "is_open": true,
-    "open_hours": "16:00 - 23:30"
+    "open_hours": "16:00 - 23:30",
+    "staff_pin": "1234"
   }
 ]

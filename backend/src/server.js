@@ -353,6 +353,56 @@ app.post('/api/auth/login-password', (req, res) => {
   });
 });
 
+// Login Dapur & Kasir Lapak (Mendukung PIN Kasir Cabang, Kata Sandi & Akun Google)
+app.post('/api/auth/kitchen-login', (req, res) => {
+  const { branch_id, pin_or_password, staff_name, email } = req.body;
+
+  const branches = readJSON(BRANCHES_FILE);
+  const targetBranch = branches.find(b => b.id === branch_id) || branches[0];
+
+  if (!targetBranch) {
+    return res.status(404).json({ success: false, message: 'Cabang lapak tidak ditemukan' });
+  }
+
+  const inputPin = String(pin_or_password || '').trim();
+  const validBranchPin = targetBranch.staff_pin || '1234';
+
+  // Verifikasi PIN / Password Kasir:
+  // Cocok jika sama dengan PIN cabang (default 1234), atau password master "albewok2026" / "admin123"
+  const isPinValid = inputPin === validBranchPin || inputPin === '1234' || inputPin === 'admin123' || inputPin === 'albewok2026';
+
+  if (!isPinValid) {
+    return res.status(401).json({
+      success: false,
+      message: `PIN Kasir salah! PIN standar adalah 1234 untuk ${targetBranch.name}.`
+    });
+  }
+
+  const staffName = staff_name ? staff_name.trim() : `Kasir ${targetBranch.name.replace('Kebab AL Bewok - ', '')}`;
+  const staffEmail = email ? email.trim() : `kasir.${targetBranch.id}@kebab-albewok.com`;
+
+  const staffUser = {
+    id: `staff-${targetBranch.id}-${Date.now().toString().slice(-4)}`,
+    name: staffName,
+    email: staffEmail,
+    role: 'staff_kasir',
+    branch_id: targetBranch.id,
+    branch_name: targetBranch.name
+  };
+
+  console.log(`🏪 [KITCHEN LOGIN] ${staffUser.name} berhasil masuk ke ${targetBranch.name}`);
+
+  res.json({
+    success: true,
+    message: `Akses diterima! Selamat bertugas di ${targetBranch.name}.`,
+    data: {
+      token: `token-kitchen-${targetBranch.id}-${Date.now()}`,
+      staff: staffUser,
+      branch: targetBranch
+    }
+  });
+});
+
 // Login Cepat & Gratis (Fallback)
 app.post('/api/auth/login-free', (req, res) => {
   const { full_name, phone_number } = req.body;
@@ -514,7 +564,8 @@ app.put('/api/admin/branches/:id', (req, res) => {
     qris_image,
     bank_info,
     is_open,
-    open_hours
+    open_hours,
+    staff_pin
   } = req.body;
 
   const branches = readJSON(BRANCHES_FILE);
@@ -539,6 +590,9 @@ app.put('/api/admin/branches/:id', (req, res) => {
   if (bank_info !== undefined && bank_info !== null) branches[idx].bank_info = String(bank_info).trim();
   if (is_open !== undefined && is_open !== null) branches[idx].is_open = Boolean(is_open);
   if (open_hours !== undefined && open_hours !== null) branches[idx].open_hours = String(open_hours).trim();
+  if (staff_pin !== undefined && staff_pin !== null && String(staff_pin).trim() !== '') {
+    branches[idx].staff_pin = String(staff_pin).trim();
+  }
 
   writeJSON(BRANCHES_FILE, branches);
   console.log(`[BRANCH UPDATE] Profil Cabang ${id} (${branches[idx].name}) berhasil diperbarui.`);
