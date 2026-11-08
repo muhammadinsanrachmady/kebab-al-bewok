@@ -492,6 +492,102 @@ app.get('/api/branches', (req, res) => {
   res.json({ success: true, data: branches });
 });
 
+// Ambil Detail Satu Cabang
+app.get('/api/branches/:id', (req, res) => {
+  const branches = readJSON(BRANCHES_FILE);
+  const branch = branches.find(b => b.id === req.params.id);
+  if (!branch) {
+    return res.status(404).json({ success: false, message: 'Cabang tidak ditemukan' });
+  }
+  res.json({ success: true, data: branch });
+});
+
+// Update Profil Lapak: Nama, Lokasi (Alamat, Lat, Lng), Nomor Telepon & QRIS Lapak
+app.put('/api/admin/branches/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    name,
+    address,
+    phone,
+    latitude,
+    longitude,
+    qris_image,
+    bank_info,
+    is_open,
+    open_hours
+  } = req.body;
+
+  const branches = readJSON(BRANCHES_FILE);
+  const idx = branches.findIndex(b => b.id === id);
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Cabang lapak tidak ditemukan' });
+  }
+
+  if (name !== undefined && name !== null) branches[idx].name = String(name).trim();
+  if (address !== undefined && address !== null) branches[idx].address = String(address).trim();
+  if (phone !== undefined && phone !== null) branches[idx].phone = String(phone).trim();
+  if (latitude !== undefined && latitude !== null && !isNaN(Number(latitude))) {
+    branches[idx].latitude = parseFloat(latitude);
+  }
+  if (longitude !== undefined && longitude !== null && !isNaN(Number(longitude))) {
+    branches[idx].longitude = parseFloat(longitude);
+  }
+  if (qris_image !== undefined && qris_image !== null && String(qris_image).trim() !== '') {
+    branches[idx].qris_image = String(qris_image).trim();
+  }
+  if (bank_info !== undefined && bank_info !== null) branches[idx].bank_info = String(bank_info).trim();
+  if (is_open !== undefined && is_open !== null) branches[idx].is_open = Boolean(is_open);
+  if (open_hours !== undefined && open_hours !== null) branches[idx].open_hours = String(open_hours).trim();
+
+  writeJSON(BRANCHES_FILE, branches);
+  console.log(`[BRANCH UPDATE] Profil Cabang ${id} (${branches[idx].name}) berhasil diperbarui.`);
+  res.json({
+    success: true,
+    message: 'Profil lapak dan QRIS berhasil diperbarui',
+    data: branches[idx]
+  });
+});
+
+// Tambah Cabang Baru
+app.post('/api/admin/branches', (req, res) => {
+  const {
+    name,
+    address,
+    phone,
+    latitude,
+    longitude,
+    qris_image,
+    bank_info,
+    open_hours = '15:00 - 23:00'
+  } = req.body;
+
+  if (!name || !address) {
+    return res.status(400).json({ success: false, message: 'Nama dan alamat cabang wajib diisi' });
+  }
+
+  const branches = readJSON(BRANCHES_FILE);
+  const newNum = branches.length + 1;
+  const newId = `cabang-0${newNum}`;
+  const newBranch = {
+    id: newId,
+    name: name.trim(),
+    address: address.trim(),
+    phone: phone ? phone.trim() : '0852-8584-1330',
+    latitude: latitude ? parseFloat(latitude) : -6.2088,
+    longitude: longitude ? parseFloat(longitude) : 106.8456,
+    qris_image: qris_image || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_${newId}`,
+    bank_info: bank_info ? bank_info.trim() : 'BCA a/n Kebab AL Bewok',
+    is_open: true,
+    open_hours: open_hours.trim()
+  };
+
+  branches.push(newBranch);
+  writeJSON(BRANCHES_FILE, branches);
+  console.log(`[BRANCH CREATE] Cabang baru ditambahkan: ${newBranch.name} (${newId})`);
+  res.status(201).json({ success: true, message: 'Cabang baru berhasil ditambahkan', data: newBranch });
+});
+
 // Checkout Pesanan Baru
 app.post('/api/orders/checkout', (req, res) => {
   const {
