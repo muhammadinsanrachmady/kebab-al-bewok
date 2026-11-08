@@ -565,7 +565,8 @@ app.put('/api/admin/branches/:id', (req, res) => {
     bank_info,
     is_open,
     open_hours,
-    staff_pin
+    staff_pin,
+    out_of_stock
   } = req.body;
 
   const branches = readJSON(BRANCHES_FILE);
@@ -592,6 +593,9 @@ app.put('/api/admin/branches/:id', (req, res) => {
   if (open_hours !== undefined && open_hours !== null) branches[idx].open_hours = String(open_hours).trim();
   if (staff_pin !== undefined && staff_pin !== null && String(staff_pin).trim() !== '') {
     branches[idx].staff_pin = String(staff_pin).trim();
+  }
+  if (Array.isArray(out_of_stock)) {
+    branches[idx].out_of_stock = out_of_stock;
   }
 
   writeJSON(BRANCHES_FILE, branches);

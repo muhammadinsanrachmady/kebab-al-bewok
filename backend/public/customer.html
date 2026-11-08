@@ -2833,12 +2833,15 @@
             <span class="bg-amber-100 text-amber-800 font-bold text-[10px] px-2 py-0.5 rounded-full">${cat.badge}</span>
           </div>
           <div class="grid grid-cols-1 gap-2.5">
-            ${cat.items.map(item => `
-              <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-yellow-400 transition">
+            ${cat.items.map(item => {
+              const isItemOutOfStock = currentBranch && Array.isArray(currentBranch.out_of_stock) && currentBranch.out_of_stock.includes(item.id);
+              return `
+              <div class="bg-white p-3 rounded-2xl shadow-sm border ${isItemOutOfStock ? 'border-gray-200 opacity-60' : 'border-gray-100 hover:border-yellow-400'} flex items-center justify-between transition">
                 <div>
                   <div class="flex items-center space-x-1.5">
-                    <span class="font-bold text-xs text-gray-900">${item.name}</span>
-                    ${item.is_favorite ? '<span class="text-[10px] bg-red-100 text-red-600 font-extrabold px-1.5 rounded">FAVORIT</span>' : ''}
+                    <span class="font-bold text-xs ${isItemOutOfStock ? 'text-gray-500 line-through' : 'text-gray-900'}">${item.name}</span>
+                    ${item.is_favorite && !isItemOutOfStock ? '<span class="text-[10px] bg-red-100 text-red-600 font-extrabold px-1.5 rounded">FAVORIT</span>' : ''}
+                    ${isItemOutOfStock ? '<span class="text-[9px] bg-red-100 text-red-600 font-black px-1.5 py-0.2 rounded">HABIS</span>' : ''}
                   </div>
                   <p class="text-[11px] text-gray-500 mt-0.5">Daging: ${item.meat_type}</p>
                   <div class="mt-1 flex items-baseline space-x-1">
@@ -2846,11 +2849,17 @@
                     <span class="text-[10px] text-gray-400">(Reguler)</span>
                   </div>
                 </div>
-                <button onclick="openCustomizeModal('${item.id}', '${cat.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center space-x-1">
-                  <span>+ PESAN</span>
-                </button>
+                ${isItemOutOfStock ? `
+                  <span class="bg-gray-200 text-gray-500 font-bold px-3 py-1.5 rounded-xl text-xs cursor-not-allowed">
+                    Habis
+                  </span>
+                ` : `
+                  <button onclick="openCustomizeModal('${item.id}', '${cat.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center space-x-1 transition active:scale-95">
+                    <span>+ PESAN</span>
+                  </button>
+                `}
               </div>
-            `).join('')}
+            `;}).join('')}
           </div>
         `;
         container.appendChild(catBlock);

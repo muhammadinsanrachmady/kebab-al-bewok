@@ -10,7 +10,8 @@
     "bank_info": "BCA 8830192831 a/n Kebab AL Bewok Pasar Baru",
     "is_open": true,
     "open_hours": "15:00 - 23:00",
-    "staff_pin": "1234"
+    "staff_pin": "1234",
+    "out_of_stock": []
   },
   {
     "id": "cabang-02",
@@ -23,6 +24,7 @@
     "bank_info": "BRI 0192019283712 a/n Kebab AL Bewok Alun-Alun",
     "is_open": true,
     "open_hours": "16:00 - 23:30",
-    "staff_pin": "1234"
+    "staff_pin": "1234",
+    "out_of_stock": []
   }
 ]

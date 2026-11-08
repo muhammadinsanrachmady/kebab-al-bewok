@@ -21,7 +21,7 @@
     #branchMap { height: 200px; width: 100%; border-radius: 1rem; z-index: 10; }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800">
+<body class="bg-slate-100 min-h-screen text-slate-800 pb-16">
 
   <!-- ========================================================================= -->
   <!-- PIPELINE DAPUR - STEP 1: COVER HALAMAN DEPAN & AKSES LOGIN KASIR / STAFF   -->
@@ -66,7 +66,7 @@
         <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 font-bold flex items-center justify-center text-[11px] shrink-0 border border-slate-700">3</span>
         <div>
           <span class="font-bold text-slate-300 block">Kitchen Display & Cetak Struk</span>
-          <span class="text-[10px] text-slate-400">Verifikasi QRIS pembeli, masak kebab & panggil kurir</span>
+          <span class="text-[10px] text-slate-400">Kelola pesanan per kategori, masak & panggil kurir</span>
         </div>
       </div>
     </div>
@@ -88,20 +88,16 @@
 
       <!-- 1. KONTEN TAB: LOGIN PIN / KATA SANDI KASIR LAPAK -->
       <div id="sectionKitchenPin" class="bg-slate-900/90 border border-amber-400/30 p-3.5 rounded-2xl text-left space-y-3 shadow-lg">
-        
-        <!-- PILIH CABANG LAPAK -->
         <div>
           <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
             <i class="fa-solid fa-store text-amber-400 mr-1"></i> Cabang yang Anda Jaga:
           </label>
           <select id="coverBranchSelect" onchange="onCoverBranchChange()" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-amber-400 cursor-pointer">
-            <!-- Diisi otomatis dari API /api/branches -->
             <option value="cabang-01">Cabang Pasar Baru</option>
             <option value="cabang-02">Cabang Alun-Alun</option>
           </select>
         </div>
 
-        <!-- INPUT PIN / KATA SANDI KASIR -->
         <div>
           <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
             <i class="fa-solid fa-lock text-amber-400 mr-1"></i> Masukkan PIN / Sandi Kasir:
@@ -118,7 +114,6 @@
           </span>
         </div>
 
-        <!-- NAMA KASIR (OPSIONAL) -->
         <div>
           <label class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
             <i class="fa-solid fa-user-tag text-amber-400 mr-1"></i> Nama Kasir Bertugas (Opsional):
@@ -126,18 +121,14 @@
           <input type="text" id="inputKitchenStaffName" placeholder="Contoh: Budi (Shift Siang)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none font-bold focus:border-amber-400">
         </div>
 
-        <!-- TOMBOL MASUK DENGAN PIN -->
         <button onclick="submitKitchenPinLogin()" id="btnSubmitKitchenPin" class="w-full bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg active:scale-95 transition">
           <i class="fa-solid fa-arrow-right-to-bracket text-sm"></i>
           <span>MASUK KE DAPUR & KASIR</span>
         </button>
-
       </div>
 
       <!-- 2. KONTEN TAB: LOGIN AKUN GOOGLE RESMI / FAST STAFF GOOGLE -->
       <div id="sectionKitchenGoogle" class="hidden space-y-2.5 text-left">
-        
-        <!-- RESMI: GOOGLE IDENTITY SERVICES -->
         <div class="bg-slate-900/90 border border-amber-400/30 p-3 rounded-2xl text-center space-y-2 shadow-lg">
           <div class="flex items-center justify-between">
             <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider flex items-center space-x-1.5">
@@ -150,7 +141,6 @@
             </button>
           </div>
 
-          <!-- Wadah Tombol Asli Google -->
           <div id="gsiButtonKitchenCover" class="flex justify-center min-h-[44px] items-center">
             <div class="text-[10px] text-slate-400 animate-pulse">Menghubungkan ke Google Identity...</div>
           </div>
@@ -165,7 +155,6 @@
             <div class="flex-grow border-t border-slate-700"></div>
           </div>
 
-          <!-- 1-Click Fast Kasir Pasar Baru -->
           <button onclick="loginKitchenGoogleFast('kasir.pasarbaru@kebab-albewok.com', 'Kasir Pasar Baru', 'cabang-01')" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-2 px-3 rounded-xl flex items-center justify-between text-xs shadow transition active:scale-95 group">
             <div class="flex items-center space-x-2 truncate">
               <span class="text-base">🏪</span>
@@ -177,7 +166,6 @@
             <span class="bg-amber-100 text-amber-800 text-[8px] font-black px-1.5 py-0.5 rounded ml-1 shrink-0">1-KLIK</span>
           </button>
 
-          <!-- 1-Click Fast Kasir Alun-Alun -->
           <button onclick="loginKitchenGoogleFast('kasir.alunalun@kebab-albewok.com', 'Kasir Alun-Alun', 'cabang-02')" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-black py-2 px-3 rounded-xl flex items-center justify-between text-xs shadow transition active:scale-95 group">
             <div class="flex items-center space-x-2 truncate">
               <span class="text-base">🏪</span>
@@ -189,7 +177,6 @@
             <span class="bg-amber-100 text-amber-800 text-[8px] font-black px-1.5 py-0.5 rounded ml-1 shrink-0">1-KLIK</span>
           </button>
 
-          <!-- 1-Click Fast Owner -->
           <button onclick="loginKitchenGoogleFast('muhammadinsanrachmady@gmail.com', 'Muhammad Insan Rachmady (Owner)', 'cabang-01')" class="w-full bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black py-2 px-3 rounded-xl flex items-center justify-between text-xs shadow transition active:scale-95 group">
             <div class="flex items-center space-x-2 truncate">
               <span class="text-base">👑</span>
@@ -202,7 +189,6 @@
           </button>
         </div>
 
-        <!-- Form Gmail Kasir Lainnya -->
         <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-2xl text-left space-y-1.5">
           <span class="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Atau Masuk Gmail Staff Lain:</span>
           <input type="text" id="coverKitchenStaffName" placeholder="Nama Kasir / Staff" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-amber-400 font-bold">
@@ -212,7 +198,6 @@
             <span>Masuk dengan Google</span>
           </button>
         </div>
-
       </div>
 
       <!-- KARTU RINGKASAN CABANG LAPAK TERPILIH -->
@@ -234,7 +219,6 @@
           <span id="coverBranchQrisStatus" class="truncate font-mono">QRIS & Rekening Terpasang</span>
         </div>
       </div>
-
     </div>
 
     <!-- FOOTER INFO -->
@@ -269,16 +253,12 @@
 
       <!-- FORM PROFIL LAPAK -->
       <div class="space-y-3.5 text-xs">
-        
-        <!-- PILIH CABANG YANG DIEDIT -->
         <div>
           <label class="text-[11px] font-bold text-slate-700 block mb-1">Pilih Cabang Lapak:</label>
           <select id="modalBranchSelect" onchange="onModalBranchSelectChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-800 outline-none focus:border-amber-500 cursor-pointer">
-            <!-- Diisi otomatis -->
           </select>
         </div>
 
-        <!-- 1. NAMA LAPAK -->
         <div>
           <label class="text-[11px] font-bold text-slate-700 block mb-1">
             <i class="fa-solid fa-store text-amber-500 mr-1"></i> Nama Lapak / Cabang:
@@ -286,7 +266,6 @@
           <input type="text" id="inputBranchName" placeholder="Contoh: Kebab AL Bewok - Cabang Pasar Baru" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-semibold text-slate-800 outline-none focus:border-amber-500">
         </div>
 
-        <!-- 2. NOMOR TELEPON LAPAK & JAM OPERASIONAL -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1">
@@ -302,7 +281,6 @@
           </div>
         </div>
 
-        <!-- 3. PIN KASIR CABANG & STATUS BUKA -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1">
@@ -321,7 +299,6 @@
           </div>
         </div>
 
-        <!-- 4. LOKASI LAPAK: ALAMAT LENGKAP & PETA GPS INTERAKTIF -->
         <div class="space-y-2">
           <label class="text-[11px] font-bold text-slate-700 block">
             <i class="fa-solid fa-location-dot text-red-500 mr-1"></i> Alamat Lengkap Lapak:
@@ -330,7 +307,7 @@
           
           <div class="flex items-center justify-between">
             <span class="text-[10px] text-slate-500 font-bold">
-              Titik Koordinat GPS Lapak (Geser pin di peta di bawah):
+              Titik Koordinat GPS Lapak:
             </span>
             <button type="button" onclick="detectCurrentBranchGPS(event)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-300 flex items-center space-x-1 shadow-sm transition">
               <i class="fa-solid fa-crosshairs text-red-600"></i>
@@ -338,7 +315,6 @@
             </button>
           </div>
 
-          <!-- PETA INTERAKTIF OPENSTREETMAP (LEAFLET) -->
           <div class="border-2 border-amber-300 rounded-2xl overflow-hidden shadow-sm relative">
             <div id="branchMap"></div>
             <div class="bg-amber-50 px-3 py-1.5 border-t border-amber-200 flex justify-between items-center text-[10px] font-mono text-slate-600">
@@ -348,7 +324,7 @@
           </div>
         </div>
 
-        <!-- 5. QRIS LAPAK & REKENING BANK KASIR -->
+        <!-- QRIS LAPAK & REKENING BANK -->
         <div class="bg-gradient-to-br from-yellow-50 to-amber-50 border border-yellow-300 p-3.5 rounded-2xl space-y-3">
           <div class="flex items-center justify-between">
             <span class="text-xs font-black text-slate-900 flex items-center space-x-1.5">
@@ -359,18 +335,15 @@
           </div>
 
           <div class="flex flex-col sm:flex-row items-center gap-3">
-            <!-- PREVIEW GAMBAR QRIS -->
             <div class="w-32 h-32 bg-white border-2 border-amber-300 rounded-xl overflow-hidden shadow-md flex items-center justify-center p-1 shrink-0 relative group">
               <img id="previewQrisImg" src="" alt="QRIS Lapak" class="w-full h-full object-contain">
             </div>
 
-            <!-- KONTROL UPLOAD GAMBAR QRIS -->
             <div class="flex-1 space-y-2 w-full">
               <label class="text-[10px] font-bold text-slate-600 block">
                 Unggah Foto Barcode QRIS Toko (dari Galeri atau Kamera HP):
               </label>
 
-              <!-- Hidden File Input -->
               <input type="file" id="qrisFileInput" accept="image/*" onchange="handleQrisFileUpload(event)" class="hidden">
               
               <button type="button" onclick="document.getElementById('qrisFileInput').click()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-2 px-3 rounded-xl text-xs flex items-center justify-center space-x-2 shadow transition active:scale-95">
@@ -382,14 +355,12 @@
                 Format: JPG, PNG, atau WebP. Gambar QRIS ini langsung tampil saat pembeli checkout memilih lapak ini.
               </div>
 
-              <!-- Input Alternatif URL QRIS -->
               <div>
                 <input type="text" id="inputBranchQrisUrl" onchange="updateQrisFromUrl()" placeholder="Atau tempel URL gambar QRIS..." class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-700 outline-none focus:border-amber-500">
               </div>
             </div>
           </div>
 
-          <!-- REKENING BANK & E-WALLET LAPAK -->
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1">
               <i class="fa-solid fa-building-columns text-slate-700 mr-1"></i> Nama Bank & Rekening / E-Wallet Lapak:
@@ -417,9 +388,7 @@
     </div>
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- MODAL ATUR GOOGLE CLIENT ID RESMI                                         -->
-  <!-- ========================================================================= -->
+  <!-- MODAL ATUR GOOGLE CLIENT ID RESMI -->
   <div id="googleConfigModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-sm">
     <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-left shadow-2xl relative space-y-3">
       <div class="flex justify-between items-center border-b pb-2">
@@ -454,7 +423,7 @@
   <!-- ========================================================================= -->
 
   <!-- TOP HEADER ADMIN -->
-  <header class="bg-amber-500 text-slate-900 p-4 sticky top-0 z-20 shadow-md flex flex-wrap items-center justify-between gap-3">
+  <header class="bg-amber-500 text-slate-900 p-3 sm:p-4 sticky top-0 z-30 shadow-md flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center space-x-3">
       <span class="text-3xl">🏪</span>
       <div>
@@ -463,7 +432,6 @@
           <span>Kebab AL Bewok</span>
           <span>•</span>
           <select id="adminBranchSelect" onchange="filterBranchOrders()" class="bg-amber-400 font-bold px-2 py-0.5 rounded outline-none cursor-pointer">
-            <!-- Diisi dari branches.json -->
           </select>
         </div>
       </div>
@@ -512,12 +480,84 @@
     </div>
   </header>
 
-  <!-- KITCHEN DISPLAY KANBAN BOARD -->
+  <!-- ========================================================================= -->
+  <!-- BAR KATEGORI NAVIGASI & KONTROL TAMPILAN DAPUR (BIAR TAMPILAN TIDAK PANJANG)-->
+  <!-- ========================================================================= -->
+  <div class="bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs px-4 py-2.5">
+    <div class="flex items-center justify-between gap-3 overflow-x-auto hide-scrollbar">
+      
+      <!-- PILLS KATEGORI ANTAR KOLOM / MENU -->
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <!-- 1. Semua -->
+        <button type="button" onclick="setKitchenCategory('all')" id="btnCatAll" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-black transition flex items-center space-x-1.5 bg-slate-900 text-white shadow-sm">
+          <i class="fa-solid fa-layer-group text-[11px]"></i>
+          <span>Semua</span>
+          <span id="badgeCatAll" class="bg-slate-700 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <!-- 2. 1. QRIS -->
+        <button type="button" onclick="setKitchenCategory('pending')" id="btnCatPending" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-yellow-100 text-slate-700 border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-yellow-500 animate-ping"></span>
+          <span>1. QRIS</span>
+          <span id="badgeCatPending" class="bg-yellow-400 text-yellow-950 text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <!-- 3. 2. Dimasak -->
+        <button type="button" onclick="setKitchenCategory('cooking')" id="btnCatCooking" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-amber-100 text-slate-700 border border-slate-200">
+          <span>🍳</span>
+          <span>2. Dimasak</span>
+          <span id="badgeCatCooking" class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <!-- 4. 3. Kurir -->
+        <button type="button" onclick="setKitchenCategory('ready')" id="btnCatReady" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200">
+          <span>🛵</span>
+          <span>3. Kurir</span>
+          <span id="badgeCatReady" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <!-- 5. 4. Selesai -->
+        <button type="button" onclick="setKitchenCategory('completed')" id="btnCatCompleted" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-emerald-100 text-slate-700 border border-slate-200">
+          <span>✅</span>
+          <span>4. Selesai</span>
+          <span id="badgeCatCompleted" class="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full">0</span>
+        </button>
+
+        <!-- 6. Stok Menu Lapak -->
+        <button type="button" onclick="setKitchenCategory('menu_stock')" id="btnCatMenuStock" class="kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-orange-100 text-slate-700 border border-slate-200">
+          <span>🍢</span>
+          <span>Stok Menu</span>
+        </button>
+      </div>
+
+      <!-- PENCARIAN CEPAT & TOGGLE MODE RINGKAS (COMPACT) -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <!-- Input Search -->
+        <div class="flex items-center bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-xs">
+          <i class="fa-solid fa-magnifying-glass text-slate-400 text-[10px] mr-1.5"></i>
+          <input type="text" id="kitchenSearchInput" oninput="renderKanban()" placeholder="Cari order # / nama..." class="bg-transparent text-xs text-slate-800 placeholder-slate-400 outline-none w-28 sm:w-36 font-semibold">
+        </div>
+
+        <!-- Mode Ringkas Toggle -->
+        <button type="button" onclick="toggleCompactMode()" id="btnToggleCompact" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1 shadow-xs transition" title="Alihkan Tampilan Ringkas / Detail">
+          <i id="compactIcon" class="fa-solid fa-compress text-xs text-amber-600"></i>
+          <span id="compactText" class="hidden sm:inline">Ringkas</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- KITCHEN DISPLAY KANBAN BOARD                                              -->
+  <!-- ========================================================================= -->
   <main class="p-4">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+    
+    <!-- GRID CONTAINER KANBAN -->
+    <div id="kanbanGridContainer" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
 
       <!-- KOLOM 1: MENUNGGU VERIFIKASI PEMBAYARAN -->
-      <div class="bg-slate-200/70 rounded-2xl p-3 space-y-3">
+      <div id="cardColPending" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
         <div class="flex items-center justify-between pb-1 border-b border-slate-300">
           <div class="flex items-center space-x-2">
             <span class="w-3 h-3 bg-yellow-500 rounded-full animate-ping"></span>
@@ -525,13 +565,13 @@
           </div>
           <span id="countPending" class="bg-yellow-400 text-yellow-950 text-xs font-black px-2 py-0.5 rounded-full">0</span>
         </div>
-        <div id="colPending" class="space-y-3 min-h-[300px]">
+        <div id="colPending" class="space-y-3 min-h-[120px]">
           <!-- Render via JS -->
         </div>
       </div>
 
       <!-- KOLOM 2: SEDANG DIMASAK DI DAPUR -->
-      <div class="bg-slate-200/70 rounded-2xl p-3 space-y-3">
+      <div id="cardColCooking" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
         <div class="flex items-center justify-between pb-1 border-b border-slate-300">
           <div class="flex items-center space-x-2">
             <span class="text-base">🍳</span>
@@ -539,13 +579,13 @@
           </div>
           <span id="countCooking" class="bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
         </div>
-        <div id="colCooking" class="space-y-3 min-h-[300px]">
+        <div id="colCooking" class="space-y-3 min-h-[120px]">
           <!-- Render via JS -->
         </div>
       </div>
 
       <!-- KOLOM 3: MATANG & PANGGIL KURIR -->
-      <div class="bg-slate-200/70 rounded-2xl p-3 space-y-3">
+      <div id="cardColReady" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
         <div class="flex items-center justify-between pb-1 border-b border-slate-300">
           <div class="flex items-center space-x-2">
             <span class="text-base">🛵</span>
@@ -553,13 +593,13 @@
           </div>
           <span id="countReady" class="bg-blue-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
         </div>
-        <div id="colReady" class="space-y-3 min-h-[300px]">
+        <div id="colReady" class="space-y-3 min-h-[120px]">
           <!-- Render via JS -->
         </div>
       </div>
 
       <!-- KOLOM 4: SELESAI -->
-      <div class="bg-slate-200/70 rounded-2xl p-3 space-y-3">
+      <div id="cardColCompleted" class="bg-slate-200/70 rounded-2xl p-3 space-y-3 transition">
         <div class="flex items-center justify-between pb-1 border-b border-slate-300">
           <div class="flex items-center space-x-2">
             <span class="text-base">✅</span>
@@ -567,12 +607,30 @@
           </div>
           <span id="countCompleted" class="bg-emerald-600 text-white text-xs font-black px-2 py-0.5 rounded-full">0</span>
         </div>
-        <div id="colCompleted" class="space-y-3 min-h-[300px]">
+        <div id="colCompleted" class="space-y-3 min-h-[120px]">
           <!-- Render via JS -->
         </div>
       </div>
 
     </div>
+
+    <!-- ========================================================================= -->
+    <!-- BAGIAN KELOLA STOK MENU PER KATEGORI (HANYA MUNCUL PADA TAB STOK MENU)    -->
+    <!-- ========================================================================= -->
+    <div id="sectionMenuStock" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-3xl shadow-md flex items-center justify-between">
+        <div>
+          <h2 class="font-black text-sm uppercase tracking-wide">Ketersediaan Stok Menu Lapak</h2>
+          <p class="text-xs text-amber-100 mt-0.5">Atur menu yang sedang habis sementara di cabang ini</p>
+        </div>
+        <span class="text-2xl">🍢</span>
+      </div>
+
+      <div id="menuStockCategoriesContainer" class="space-y-4">
+        <!-- Render via JS -->
+      </div>
+    </div>
+
   </main>
 
   <!-- MODAL LIHAT STRUK BUKTI PEMBAYARAN -->
@@ -593,6 +651,12 @@
     let allBranches = [];
     let currentBranchId = localStorage.getItem('activeKitchenBranchId') || 'cabang-01';
     let currentBranchData = null;
+    let globalMenu = null;
+
+    // Kategori tampilan dapur: 'all', 'pending', 'cooking', 'ready', 'completed', 'menu_stock'
+    let currentKitchenCategory = 'all';
+    // Mode Ringkas (Compact): false = detail, true = ringkas hemat layar
+    let isCompactMode = false;
 
     // Staff session
     let currentKitchenStaff = null;
@@ -615,6 +679,7 @@
     async function init() {
       await loadBranches();
       await fetchGoogleConfig();
+      await fetchMenuData();
       initGoogleIdentityServices();
       checkKitchenPipeline();
       await fetchOrders();
@@ -628,11 +693,9 @@
       const cover = document.getElementById('dapurCoverScreen');
       
       if (!currentKitchenStaff) {
-        // Belum login -> Tampilkan Cover Screen & Formulir Login
         cover.classList.remove('hidden');
         renderCoverBranchSummary();
       } else {
-        // Sudah login -> Sembunyikan Cover Screen & Perbarui Header Staff
         cover.classList.add('hidden');
         updateStaffHeaderUI();
       }
@@ -687,7 +750,89 @@
     }
 
     // =========================================================================
-    // 2. AKSI LOGIN KASIR (PIN vs GOOGLE)
+    // 2. KONTROL KATEGORI TAMPILAN DAPUR & MODE RINGKAS
+    // =========================================================================
+    function setKitchenCategory(cat) {
+      currentKitchenCategory = cat;
+
+      // Update styling tombol kategori
+      const catBtns = [
+        { id: 'btnCatAll', cat: 'all', activeBg: 'bg-slate-900 text-white' },
+        { id: 'btnCatPending', cat: 'pending', activeBg: 'bg-yellow-500 text-slate-950' },
+        { id: 'btnCatCooking', cat: 'cooking', activeBg: 'bg-amber-500 text-slate-950' },
+        { id: 'btnCatReady', cat: 'ready', activeBg: 'bg-blue-600 text-white' },
+        { id: 'btnCatCompleted', cat: 'completed', activeBg: 'bg-emerald-600 text-white' },
+        { id: 'btnCatMenuStock', cat: 'menu_stock', activeBg: 'bg-orange-600 text-white' }
+      ];
+
+      catBtns.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (!el) return;
+        if (b.cat === cat) {
+          el.className = `kit-cat-btn px-3 py-1.5 rounded-full text-xs font-black transition flex items-center space-x-1.5 ${b.activeBg} shadow-md`;
+        } else {
+          el.className = "kit-cat-btn px-3 py-1.5 rounded-full text-xs font-extrabold transition flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200";
+        }
+      });
+
+      // Tampilkan atau sembunyikan Kolom Kanban / Bagian Stok Menu
+      const kanbanGrid = document.getElementById('kanbanGridContainer');
+      const menuStockSection = document.getElementById('sectionMenuStock');
+      const colPending = document.getElementById('cardColPending');
+      const colCooking = document.getElementById('cardColCooking');
+      const colReady = document.getElementById('cardColReady');
+      const colCompleted = document.getElementById('cardColCompleted');
+
+      if (cat === 'menu_stock') {
+        kanbanGrid.classList.add('hidden');
+        menuStockSection.classList.remove('hidden');
+        renderMenuStock();
+        return;
+      } else {
+        kanbanGrid.classList.remove('hidden');
+        menuStockSection.classList.add('hidden');
+      }
+
+      // Atur visibilitas kolom agar tampilan TIDAK PANJANG
+      if (cat === 'all') {
+        kanbanGrid.className = "grid grid-cols-1 md:grid-cols-4 gap-4 items-start";
+        colPending.classList.remove('hidden');
+        colCooking.classList.remove('hidden');
+        colReady.classList.remove('hidden');
+        colCompleted.classList.remove('hidden');
+      } else {
+        // Tampilkan hanya kategori yang dipilih (Single focused column, no long scrolling!)
+        kanbanGrid.className = "max-w-3xl mx-auto w-full transition";
+        colPending.classList.toggle('hidden', cat !== 'pending');
+        colCooking.classList.toggle('hidden', cat !== 'cooking');
+        colReady.classList.toggle('hidden', cat !== 'ready');
+        colCompleted.classList.toggle('hidden', cat !== 'completed');
+      }
+
+      renderKanban();
+    }
+
+    function toggleCompactMode() {
+      isCompactMode = !isCompactMode;
+      const btn = document.getElementById('btnToggleCompact');
+      const icon = document.getElementById('compactIcon');
+      const text = document.getElementById('compactText');
+
+      if (isCompactMode) {
+        btn.className = "bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1.5 rounded-xl border border-amber-600 flex items-center space-x-1 shadow-sm transition";
+        icon.className = "fa-solid fa-expand text-xs";
+        text.innerText = "Detail";
+      } else {
+        btn.className = "bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 flex items-center space-x-1 shadow-xs transition";
+        icon.className = "fa-solid fa-compress text-xs text-amber-600";
+        text.innerText = "Ringkas";
+      }
+
+      renderKanban();
+    }
+
+    // =========================================================================
+    // 3. AKSI LOGIN KASIR (PIN vs GOOGLE)
     // =========================================================================
     async function submitKitchenPinLogin() {
       const branchId = document.getElementById('coverBranchSelect').value;
@@ -867,7 +1012,7 @@
     }
 
     // =========================================================================
-    // 3. DATA CABANG & SYNCHRONIZATION
+    // 4. DATA CABANG & SYNCHRONIZATION
     // =========================================================================
     async function loadBranches() {
       try {
@@ -936,7 +1081,7 @@
     }
 
     // =========================================================================
-    // 4. MODAL PROFIL LAPAK & BARCODE QRIS (LEAFLET + UPLOAD QRIS)
+    // 5. MODAL PROFIL LAPAK & BARCODE QRIS (LEAFLET + UPLOAD QRIS)
     // =========================================================================
     function openBranchProfileModal(targetId) {
       const branchIdToLoad = targetId || currentBranchId;
@@ -1015,9 +1160,6 @@
       renderOpenStatusUI(currentBranchData.is_open);
     }
 
-    // =========================================================================
-    // 5. PETA INTERAKTIF LEAFLET (OPENSTREETMAP RESMI - 100% BEBAS WATERMARK)
-    // =========================================================================
     function initBranchMap() {
       const mapContainer = document.getElementById('branchMap');
       if (!mapContainer) return;
@@ -1028,7 +1170,6 @@
           attributionControl: true
         }).setView([activeLat, activeLng], 15);
 
-        // Server resmi OpenStreetMap murni
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           subdomains: ['a', 'b', 'c'],
@@ -1104,9 +1245,6 @@
       );
     }
 
-    // =========================================================================
-    // 6. UPLOAD GAMBAR BARCODE QRIS LAPAK (BASE64 FILE READER)
-    // =========================================================================
     function handleQrisFileUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1133,9 +1271,6 @@
       }
     }
 
-    // =========================================================================
-    // 7. SIMPAN PERUBAHAN KE SERVER (PUT /api/admin/branches/:id)
-    // =========================================================================
     async function saveBranchProfile() {
       const branchId = document.getElementById('modalBranchSelect').value;
       const name = document.getElementById('inputBranchName').value.trim();
@@ -1192,7 +1327,83 @@
     }
 
     // =========================================================================
-    // 8. ORDER MANAGEMENT & KANBAN LOGIC
+    // 6. MENU STOCK MANAGEMENT (STOK MENU PER KATEGORI)
+    // =========================================================================
+    async function fetchMenuData() {
+      try {
+        const res = await fetch('/api/menu').then(r => r.json());
+        if (res.success && res.data) {
+          globalMenu = res.data;
+        }
+      } catch(err) {
+        console.error('Gagal memuat menu:', err);
+      }
+    }
+
+    function renderMenuStock() {
+      const container = document.getElementById('menuStockCategoriesContainer');
+      if (!container || !globalMenu) return;
+
+      const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+      const outOfStockList = (branch && branch.out_of_stock) ? branch.out_of_stock : [];
+
+      container.innerHTML = globalMenu.categories.map(cat => `
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between border-b pb-2">
+            <div>
+              <h3 class="font-black text-sm text-slate-900">${cat.name}</h3>
+              <p class="text-[11px] text-slate-500">${cat.description}</p>
+            </div>
+            <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full">${cat.items.length} Menu</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            ${cat.items.map(item => {
+              const isOut = outOfStockList.includes(item.id);
+              return `
+                <div class="p-2.5 rounded-xl border flex items-center justify-between transition ${isOut ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'}">
+                  <div class="truncate mr-2">
+                    <span class="font-extrabold text-xs block text-slate-900 truncate">${item.name}</span>
+                    <span class="text-[10px] text-slate-500 font-semibold block">${item.meat_type} • Rp ${(item.prices.reguler || item.prices.small).toLocaleString('id-ID')}</span>
+                  </div>
+                  <button type="button" onclick="toggleMenuStockItem('${item.id}', ${!isOut})" class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 transition shadow-xs ${isOut ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+                    ${isOut ? 'HABIS' : 'TERSEDIA'}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function toggleMenuStockItem(itemId, markAsOutOfStock) {
+      const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+      if (!branch) return;
+
+      let list = Array.isArray(branch.out_of_stock) ? [...branch.out_of_stock] : [];
+      if (markAsOutOfStock) {
+        if (!list.includes(itemId)) list.push(itemId);
+      } else {
+        list = list.filter(id => id !== itemId);
+      }
+
+      branch.out_of_stock = list;
+
+      try {
+        await fetch(`/api/admin/branches/${branch.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ out_of_stock: list })
+        });
+        renderMenuStock();
+      } catch (err) {
+        alert('Gagal memperbarui stok menu di server.');
+      }
+    }
+
+    // =========================================================================
+    // 7. ORDER MANAGEMENT & KANBAN LOGIC
     // =========================================================================
     async function fetchOrders() {
       try {
@@ -1236,22 +1447,63 @@
     }
 
     function renderKanban() {
-      const orders = getFilteredOrders();
+      let orders = getFilteredOrders();
+
+      // Filter Pencarian No. Order / Nama Customer
+      const search = (document.getElementById('kitchenSearchInput')?.value || '').toLowerCase().trim();
+      if (search) {
+        orders = orders.filter(o =>
+          (o.order_code && o.order_code.toLowerCase().includes(search)) ||
+          (o.customer_name && o.customer_name.toLowerCase().includes(search)) ||
+          (o.customer_phone && o.customer_phone.includes(search))
+        );
+      }
 
       const pending = orders.filter(o => o.status === 'pending_payment' || o.status === 'pending_verification');
       const cooking = orders.filter(o => o.status === 'cooking');
       const readyOrDelivering = orders.filter(o => o.status === 'ready_for_pickup' || o.status === 'on_delivery');
       const completed = orders.filter(o => o.status === 'completed');
 
+      // Update badge counts di bar kategori
+      document.getElementById('badgeCatAll').innerText = orders.length;
+      document.getElementById('badgeCatPending').innerText = pending.length;
+      document.getElementById('badgeCatCooking').innerText = cooking.length;
+      document.getElementById('badgeCatReady').innerText = readyOrDelivering.length;
+      document.getElementById('badgeCatCompleted').innerText = completed.length;
+
+      // Update header kolom kanban
       document.getElementById('countPending').innerText = pending.length;
       document.getElementById('countCooking').innerText = cooking.length;
       document.getElementById('countReady').innerText = readyOrDelivering.length;
       document.getElementById('countCompleted').innerText = completed.length;
 
-      // Kolom 1: Pending Verification
+      // -------------------------------------------------------------
+      // 1. Render Kolom 1: Pending Verification
+      // -------------------------------------------------------------
       const colPending = document.getElementById('colPending');
-      colPending.innerHTML = pending.length === 0 ? `<p class="text-center text-slate-400 py-8 text-xs">Tidak ada antrean QRIS</p>` :
-        pending.map(o => `
+      colPending.innerHTML = pending.length === 0 ? `<p class="text-center text-slate-400 py-6 text-xs">Tidak ada antrean QRIS</p>` :
+        pending.map(o => isCompactMode ? `
+          <!-- KARTU RINGKAS (COMPACT) -->
+          <div class="bg-white rounded-xl p-2.5 shadow-xs border border-yellow-300 flex items-center justify-between text-xs gap-2">
+            <div class="truncate">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-black text-slate-900 text-xs">#${o.order_code}</span>
+                <span class="font-extrabold text-red-600 text-[11px]">Rp ${o.total_payment.toLocaleString('id-ID')}</span>
+              </div>
+              <span class="text-[10px] text-slate-500 truncate block">${o.customer_name} • ${o.items.length} Kebab</span>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <button onclick="viewProof('${o.payment_proof || 'https://placehold.co/400x600/png?text=Bukti+QRIS+Lunas'}')" class="bg-yellow-50 hover:bg-yellow-100 text-yellow-800 p-1.5 rounded-lg border border-yellow-300 text-xs" title="Cek Struk">
+                <i class="fa-solid fa-receipt"></i>
+              </button>
+              <button onclick="verifyPayment('${o.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-2.5 py-1.5 rounded-lg text-xs shadow flex items-center space-x-1">
+                <i class="fa-solid fa-check text-[10px]"></i>
+                <span>Terima</span>
+              </button>
+            </div>
+          </div>
+        ` : `
+          <!-- KARTU DETAIL (NORMAL) -->
           <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-yellow-300 space-y-2.5">
             <div class="flex justify-between items-start">
               <div>
@@ -1279,13 +1531,41 @@
           </div>
         `).join('');
 
-      // Kolom 2: Cooking
+      // -------------------------------------------------------------
+      // 2. Render Kolom 2: Cooking
+      // -------------------------------------------------------------
       const colCooking = document.getElementById('colCooking');
-      colCooking.innerHTML = cooking.length === 0 ? `<p class="text-center text-slate-400 py-8 text-xs">Dapur kosong</p>` :
-        cooking.map(o => `
+      colCooking.innerHTML = cooking.length === 0 ? `<p class="text-center text-slate-400 py-6 text-xs">Dapur kosong</p>` :
+        cooking.map(o => isCompactMode ? `
+          <!-- KARTU RINGKAS (COMPACT) -->
+          <div class="bg-white rounded-xl p-2.5 shadow-xs border-2 border-amber-400 flex items-center justify-between text-xs gap-2">
+            <div class="truncate">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-black text-slate-900 text-xs">#${o.order_code}</span>
+                <span class="bg-amber-100 text-amber-900 text-[9px] font-bold px-1.5 py-0.2 rounded">${o.items.reduce((sum, item) => sum + item.quantity, 0)} Kebab</span>
+              </div>
+              <span class="text-[10px] text-amber-950 font-semibold truncate block mt-0.5">
+                ${o.items.map(item => `${item.quantity}x ${item.name} (${item.spice})`).join(', ')}
+              </span>
+            </div>
+            <div class="flex items-center space-x-1 shrink-0">
+              <button onclick="printThermalReceipt('${o.id}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 p-1.5 rounded-lg border text-xs" title="Cetak Struk">
+                <i class="fa-solid fa-print"></i>
+              </button>
+              <button onclick="markAsReady('${o.id}')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-2.5 py-1.5 rounded-lg text-xs shadow flex items-center space-x-1">
+                <i class="fa-solid fa-bell text-[10px]"></i>
+                <span>MATANG!</span>
+              </button>
+            </div>
+          </div>
+        ` : `
+          <!-- KARTU DETAIL (NORMAL) -->
           <div class="bg-white rounded-2xl p-3.5 shadow-sm border-2 border-amber-400 space-y-2.5">
             <div class="flex justify-between items-start">
-              <h4 class="font-black text-slate-900 text-sm">#${o.order_code}</h4>
+              <div>
+                <h4 class="font-black text-slate-900 text-sm">#${o.order_code}</h4>
+                <span class="text-[10px] text-slate-500">${o.customer_name}</span>
+              </div>
               <span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded">Dimasak</span>
             </div>
 
@@ -1313,34 +1593,38 @@
           </div>
         `).join('');
 
-      // Kolom 3: Ready for pickup / Delivering
+      // -------------------------------------------------------------
+      // 3. Render Kolom 3: Ready for pickup / Delivering
+      // -------------------------------------------------------------
       const colReady = document.getElementById('colReady');
-      colReady.innerHTML = readyOrDelivering.length === 0 ? `<p class="text-center text-slate-400 py-8 text-xs">Tidak ada pengantaran aktif</p>` :
+      colReady.innerHTML = readyOrDelivering.length === 0 ? `<p class="text-center text-slate-400 py-6 text-xs">Tidak ada pengantaran aktif</p>` :
         readyOrDelivering.map(o => `
-          <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-blue-300 space-y-2">
+          <div class="bg-white rounded-xl p-3 shadow-xs border border-blue-300 space-y-1.5 text-xs">
             <div class="flex justify-between items-start">
-              <h4 class="font-black text-slate-900 text-sm">#${o.order_code}</h4>
-              <span class="${o.status === 'on_delivery' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'} text-[10px] font-bold px-2 py-0.5 rounded">
+              <h4 class="font-black text-slate-900 text-xs">#${o.order_code}</h4>
+              <span class="${o.status === 'on_delivery' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'} text-[9px] font-bold px-2 py-0.5 rounded">
                 ${o.status === 'on_delivery' ? 'Sedang Diantar' : 'Menunggu Kurir'}
               </span>
             </div>
-            <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-xl">
-              <span class="block text-[10px] text-slate-400">Kurir Pengantar:</span>
+            <div class="text-[11px] text-slate-600 bg-slate-50 p-1.5 rounded-lg">
+              <span class="block text-[9px] text-slate-400">Kurir Pengantar:</span>
               <span class="font-bold text-slate-800">${o.driver_name || 'Mencari Kurir Freelance...'}</span>
             </div>
           </div>
         `).join('');
 
-      // Kolom 4: Completed
+      // -------------------------------------------------------------
+      // 4. Render Kolom 4: Completed
+      // -------------------------------------------------------------
       const colCompleted = document.getElementById('colCompleted');
-      colCompleted.innerHTML = completed.length === 0 ? `<p class="text-center text-slate-400 py-8 text-xs">Belum ada pesanan selesai</p>` :
+      colCompleted.innerHTML = completed.length === 0 ? `<p class="text-center text-slate-400 py-6 text-xs">Belum ada pesanan selesai</p>` :
         completed.slice(0, 5).map(o => `
-          <div class="bg-white rounded-2xl p-3 shadow-sm border border-emerald-200 text-xs space-y-1">
+          <div class="bg-white rounded-xl p-2.5 shadow-xs border border-emerald-200 text-xs space-y-1">
             <div class="flex justify-between">
-              <span class="font-black text-slate-800">#${o.order_code}</span>
-              <span class="text-emerald-600 font-extrabold">Rp ${o.total_payment.toLocaleString('id-ID')}</span>
+              <span class="font-black text-slate-800 text-xs">#${o.order_code}</span>
+              <span class="text-emerald-600 font-extrabold text-xs">Rp ${o.total_payment.toLocaleString('id-ID')}</span>
             </div>
-            <div class="text-[11px] text-slate-500">${o.customer_name} • Driver: ${o.driver_name || '-'}</div>
+            <div class="text-[10px] text-slate-500 truncate">${o.customer_name} • Driver: ${o.driver_name || '-'}</div>
           </div>
         `).join('');
     }
