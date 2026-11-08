@@ -370,6 +370,29 @@
               💡 Ditampilkan di bawah barcode QRIS pada aplikasi pembeli untuk transfer manual m-Banking.
             </span>
           </div>
+
+          <!-- KETERSEDIAAN TOPPING TAMBAHAN & BAHAN BAKU LAPAK -->
+          <div class="bg-amber-50/80 border border-amber-300 rounded-2xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="text-lg">🍳</span>
+                <div>
+                  <h4 class="font-black text-xs text-amber-950">Ketersediaan Topping Tambahan & Bahan Baku</h4>
+                  <p class="text-[10px] text-amber-800">Jika telur, keju, atau bahan sayuran habis di lapak ini, matikan di sini. Otomatis terkunci [HABIS] di aplikasi Customer!</p>
+                </div>
+              </div>
+              <span class="text-[9px] bg-amber-200 text-amber-900 font-extrabold px-2 py-0.5 rounded-full shrink-0">Real-time Sync</span>
+            </div>
+
+            <div id="modalToppingsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              <!-- Rendered dynamically via renderModalToppingsStock() -->
+            </div>
+
+            <div class="text-[9px] text-amber-900/80 bg-white/70 p-2 rounded-xl border border-amber-200 flex items-start space-x-1.5">
+              <i class="fa-solid fa-circle-info text-amber-600 mt-0.5 shrink-0"></i>
+              <span>Saat ditandai <b>HABIS</b>, pembeli di aplikasi Customer tidak akan bisa memilih topping/bahan ini saat meracik kebab maupun memesan menu tambahan.</span>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -1135,6 +1158,74 @@
       previewImg.src = activeQrisImage || 'https://placehold.co/300x300/png?text=QRIS+Belum+Ada';
 
       renderOpenStatusUI(branch.is_open);
+
+      modalOutOfStock = Array.isArray(branch.out_of_stock) ? [...branch.out_of_stock] : [];
+      renderModalToppingsStock();
+    }
+
+    let modalOutOfStock = [];
+
+    const INGREDIENT_ITEMS = [
+      { id: 'top-egg', name: 'Telur (Mata Sapi / Dadar)', group: 'Topping Kebab', icon: '🍳', price: 5000 },
+      { id: 'top-cheese', name: 'Keju Slice Lumer', group: 'Topping Kebab', icon: '🧀', price: 3000 },
+      { id: 'top-beef', name: 'Ekstra Daging Sapi (Beef)', group: 'Topping Kebab', icon: '🥩', price: 6000 },
+      { id: 'top-chicken', name: 'Ekstra Daging Ayam (Chicken)', group: 'Topping Kebab', icon: '🍗', price: 6000 },
+      { id: 'veg-nanas', name: 'Nanas Segar', group: 'Isian Sayuran', icon: '🍍', price: null },
+      { id: 'veg-bombay', name: 'Bawang Bombay', group: 'Isian Sayuran', icon: '🧅', price: null },
+      { id: 'veg-lettuce', name: 'Sayur Lettuce', group: 'Isian Sayuran', icon: '🥬', price: null },
+      { id: 'addon-tortilla-chips', name: 'Keripik Kulit Tortilla', group: 'Menu Tambahan', icon: '🍟', price: 8000 },
+      { id: 'drink-es-teh', name: 'Es Teh Manis Segar', group: 'Minuman Dingin', icon: '🥤', price: 5000 },
+      { id: 'drink-air-mineral', name: 'Air Mineral Dingin (600ml)', group: 'Minuman Dingin', icon: '💧', price: 4000 }
+    ];
+
+    function renderModalToppingsStock() {
+      const container = document.getElementById('modalToppingsList');
+      if (!container) return;
+
+      container.innerHTML = INGREDIENT_ITEMS.map(item => {
+        const isOut = modalOutOfStock.includes(item.id);
+        return `
+          <div class="p-2.5 rounded-xl border flex items-center justify-between transition ${isOut ? 'bg-red-50/90 border-red-300' : 'bg-white border-slate-200'}">
+            <div class="flex items-center space-x-2 truncate mr-2">
+              <span class="text-xl">${item.icon}</span>
+              <div class="truncate">
+                <span class="font-extrabold text-xs block leading-tight ${isOut ? 'text-red-900 line-through' : 'text-slate-800'} truncate">${item.name}</span>
+                <span class="text-[10px] ${isOut ? 'text-red-600 font-bold' : 'text-slate-400 font-medium'} block">
+                  ${isOut ? 'HABIS DI LAPAK' : (item.price ? `Rp ${item.price.toLocaleString('id-ID')}` : item.group)}
+                </span>
+              </div>
+            </div>
+            <button type="button" onclick="toggleModalToppingStock('${item.id}')" class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 transition active:scale-95 shadow-xs ${isOut ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+              ${isOut ? 'HABIS' : 'TERSEDIA'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function toggleModalToppingStock(itemId) {
+      if (modalOutOfStock.includes(itemId)) {
+        modalOutOfStock = modalOutOfStock.filter(id => id !== itemId);
+      } else {
+        modalOutOfStock.push(itemId);
+      }
+      renderModalToppingsStock();
+
+      const branchId = document.getElementById('modalBranchSelect').value || currentBranchId;
+      const branch = allBranches.find(b => b.id === branchId);
+      if (branch) {
+        branch.out_of_stock = [...modalOutOfStock];
+      }
+      try {
+        await fetch(`/api/admin/branches/${branchId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ out_of_stock: modalOutOfStock })
+        });
+        if (typeof renderMenuStock === 'function') renderMenuStock();
+      } catch (e) {
+        console.warn('Auto sync topping error:', e);
+      }
     }
 
     function renderOpenStatusUI(isOpen) {
@@ -1301,7 +1392,8 @@
           longitude: activeLng,
           bank_info,
           qris_image: activeQrisImage,
-          is_open
+          is_open,
+          out_of_stock: modalOutOfStock
         };
 
         const res = await fetch(`/api/admin/branches/${branchId}`, {
@@ -1347,7 +1439,45 @@
       const branch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
       const outOfStockList = (branch && branch.out_of_stock) ? branch.out_of_stock : [];
 
-      container.innerHTML = globalMenu.categories.map(cat => `
+      let html = `
+        <!-- TOPPING & BAHAN BAKU LAPAK SECTION -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-300 bg-amber-50/40 space-y-3">
+          <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+            <div class="flex items-center space-x-2">
+              <span class="text-xl">🍳</span>
+              <div>
+                <h3 class="font-black text-sm text-amber-950">Topping Tambahan & Isian Bahan Baku (${branch.name})</h3>
+                <p class="text-[11px] text-amber-800">Jika telur, keju, atau isian sayuran habis di lapak ini, matikan di sini. Otomatis terkunci [HABIS] di aplikasi Customer!</p>
+              </div>
+            </div>
+            <span class="text-xs bg-amber-200 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full shrink-0">Bahan & Topping</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            ${INGREDIENT_ITEMS.map(item => {
+              const isOut = outOfStockList.includes(item.id);
+              return `
+                <div class="p-2.5 rounded-xl border flex items-center justify-between transition ${isOut ? 'bg-red-50 border-red-300' : 'bg-white border-slate-200'}">
+                  <div class="flex items-center space-x-2 truncate mr-2">
+                    <span class="text-lg">${item.icon}</span>
+                    <div class="truncate">
+                      <span class="font-extrabold text-xs block text-slate-900 truncate ${isOut ? 'line-through text-red-900' : ''}">${item.name}</span>
+                      <span class="text-[10px] ${isOut ? 'text-red-600 font-bold' : 'text-slate-500 font-medium'} block">
+                        ${isOut ? 'HABIS DI LAPAK' : (item.price ? `Rp ${item.price.toLocaleString('id-ID')}` : item.group)}
+                      </span>
+                    </div>
+                  </div>
+                  <button type="button" onclick="toggleMenuStockItem('${item.id}', ${!isOut})" class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 transition shadow-xs active:scale-95 ${isOut ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+                    ${isOut ? 'HABIS' : 'TERSEDIA'}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      html += globalMenu.categories.map(cat => `
         <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
           <div class="flex items-center justify-between border-b pb-2">
             <div>
@@ -1363,10 +1493,12 @@
               return `
                 <div class="p-2.5 rounded-xl border flex items-center justify-between transition ${isOut ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200'}">
                   <div class="truncate mr-2">
-                    <span class="font-extrabold text-xs block text-slate-900 truncate">${item.name}</span>
-                    <span class="text-[10px] text-slate-500 font-semibold block">${item.meat_type} • Rp ${(item.prices.reguler || item.prices.small).toLocaleString('id-ID')}</span>
+                    <span class="font-extrabold text-xs block text-slate-900 truncate ${isOut ? 'line-through text-red-900' : ''}">${item.name}</span>
+                    <span class="text-[10px] ${isOut ? 'text-red-600 font-bold' : 'text-slate-500 font-semibold'} block">
+                      ${isOut ? 'HABIS DI LAPAK' : `${item.meat_type} • Rp ${(item.prices.reguler || item.prices.small).toLocaleString('id-ID')}`}
+                    </span>
                   </div>
-                  <button type="button" onclick="toggleMenuStockItem('${item.id}', ${!isOut})" class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 transition shadow-xs ${isOut ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
+                  <button type="button" onclick="toggleMenuStockItem('${item.id}', ${!isOut})" class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 transition shadow-xs active:scale-95 ${isOut ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'}">
                     ${isOut ? 'HABIS' : 'TERSEDIA'}
                   </button>
                 </div>
@@ -1375,6 +1507,8 @@
           </div>
         </div>
       `).join('');
+
+      container.innerHTML = html;
     }
 
     async function toggleMenuStockItem(itemId, markAsOutOfStock) {
@@ -1389,6 +1523,7 @@
       }
 
       branch.out_of_stock = list;
+      modalOutOfStock = [...list];
 
       try {
         await fetch(`/api/admin/branches/${branch.id}`, {
@@ -1397,6 +1532,7 @@
           body: JSON.stringify({ out_of_stock: list })
         });
         renderMenuStock();
+        if (typeof renderModalToppingsStock === 'function') renderModalToppingsStock();
       } catch (err) {
         alert('Gagal memperbarui stok menu di server.');
       }

@@ -463,17 +463,17 @@
         <div id="sectionCustomVeg">
           <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">4. Sayuran & Selera:</label>
           <div class="flex flex-wrap gap-2">
-            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs cursor-pointer">
               <input type="checkbox" id="noPineapple" class="rounded text-red-600">
-              <span>Tanpa Nanas</span>
+              <span id="labelNoPineapple">Tanpa Nanas</span>
             </label>
-            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs cursor-pointer">
               <input type="checkbox" id="noOnion" class="rounded text-red-600">
-              <span>Tanpa Bombay</span>
+              <span id="labelNoOnion">Tanpa Bombay</span>
             </label>
-            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
+            <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs cursor-pointer">
               <input type="checkbox" id="noLettuce" class="rounded text-red-600">
-              <span>Tanpa Sayur</span>
+              <span id="labelNoLettuce">Tanpa Sayur</span>
             </label>
           </div>
         </div>
@@ -2812,6 +2812,7 @@
 
       document.getElementById('qrisImage').src = currentBranch.qris_image;
       document.getElementById('bankInfo').innerText = currentBranch.bank_info;
+      renderMenu('all');
     }
 
     function renderMenu(catFilter) {
@@ -2846,8 +2847,8 @@
                   </div>
                   <p class="text-[11px] text-gray-500 mt-0.5">Daging: ${item.meat_type}</p>
                   <div class="mt-1 flex items-baseline space-x-1">
-                    <span class="text-xs font-extrabold text-red-600">Rp ${item.prices.reguler.toLocaleString('id-ID')}</span>
-                    <span class="text-[10px] text-gray-400">(Reguler)</span>
+                    <span class="text-xs font-extrabold text-red-600">Rp ${(item.prices ? (item.prices.reguler || item.prices.small || Object.values(item.prices)[0] || 0) : 0).toLocaleString('id-ID')}</span>
+                    <span class="text-[10px] text-gray-400">(${item.prices && item.prices.reguler ? 'Reguler' : 'Porsi'})</span>
                   </div>
                 </div>
                 ${isItemOutOfStock ? `
@@ -2893,13 +2894,43 @@
       document.getElementById('modalMenuName').innerText = item.name;
       document.getElementById('modalMenuDesc').innerText = cat.description;
 
+      const branchOutStock = (currentBranch && Array.isArray(currentBranch.out_of_stock)) ? currentBranch.out_of_stock : [];
+
       selectedSize = 'reguler';
       selectedToppings = [];
       modalQty = 1;
       document.getElementById('modalQtyDisplay').innerText = 1;
-      document.getElementById('noPineapple').checked = false;
-      document.getElementById('noOnion').checked = false;
-      document.getElementById('noLettuce').checked = false;
+
+      // Sayuran out of stock check
+      const nanasOut = branchOutStock.includes('veg-nanas');
+      const bombayOut = branchOutStock.includes('veg-bombay');
+      const lettuceOut = branchOutStock.includes('veg-lettuce');
+
+      const noPineappleInput = document.getElementById('noPineapple');
+      const noOnionInput = document.getElementById('noOnion');
+      const noLettuceInput = document.getElementById('noLettuce');
+
+      noPineappleInput.checked = nanasOut;
+      noPineappleInput.disabled = nanasOut;
+      const labelNanas = document.getElementById('labelNoPineapple');
+      if (labelNanas) {
+        labelNanas.innerHTML = `Tanpa Nanas ${nanasOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
+      noOnionInput.checked = bombayOut;
+      noOnionInput.disabled = bombayOut;
+      const labelBombay = document.getElementById('labelNoOnion');
+      if (labelBombay) {
+        labelBombay.innerHTML = `Tanpa Bombay ${bombayOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
+      noLettuceInput.checked = lettuceOut;
+      noLettuceInput.disabled = lettuceOut;
+      const labelLettuce = document.getElementById('labelNoLettuce');
+      if (labelLettuce) {
+        labelLettuce.innerHTML = `Tanpa Sayur ${lettuceOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
       document.getElementById('spiceSelect').value = 'Level 1 - Sedang';
 
       const secSize = document.getElementById('sectionCustomSize');
@@ -2929,17 +2960,32 @@
         </button>
       `).join('');
 
-      // Render toppings
+      // Render toppings with Lapak Out-of-Stock validation
       const toppingContainer = document.getElementById('toppingOptions');
-      toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => `
-        <label class="flex items-center justify-between border rounded-xl p-2 bg-gray-50 cursor-pointer">
-          <div class="flex items-center space-x-1.5">
-            <input type="checkbox" onchange="toggleTopping('${t.id}')" class="rounded text-red-600">
-            <span>${t.icon} ${t.name}</span>
-          </div>
-          <span class="font-bold text-gray-700 text-[10px]">+${(t.price / 1000)}k</span>
-        </label>
-      `).join('');
+      toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => {
+        const isOut = branchOutStock.includes(t.id);
+        if (isOut) {
+          return `
+            <div class="flex items-center justify-between border border-dashed rounded-xl p-2 bg-gray-100/90 cursor-not-allowed opacity-60">
+              <div class="flex items-center space-x-1.5">
+                <input type="checkbox" disabled class="rounded text-gray-400 cursor-not-allowed">
+                <span class="line-through text-gray-400 font-medium">${t.icon} ${t.name}</span>
+                <span class="bg-red-100 text-red-700 font-black text-[9px] px-1.5 py-0.5 rounded border border-red-200 ml-1">HABIS</span>
+              </div>
+              <span class="font-bold text-gray-400 text-[10px]">+${(t.price / 1000)}k</span>
+            </div>
+          `;
+        }
+        return `
+          <label class="flex items-center justify-between border rounded-xl p-2 bg-gray-50 hover:bg-amber-50 cursor-pointer transition">
+            <div class="flex items-center space-x-1.5">
+              <input type="checkbox" onchange="toggleTopping('${t.id}')" class="rounded text-red-600">
+              <span class="font-semibold text-gray-800">${t.icon} ${t.name}</span>
+            </div>
+            <span class="font-bold text-amber-700 text-[10px]">+${(t.price / 1000)}k</span>
+          </label>
+        `;
+      }).join('');
 
       const btnConfirm = document.getElementById('modalBtnConfirmAddToCart');
       if (btnConfirm) {
@@ -2995,10 +3041,40 @@
         spiceSelect.value = cartItem.spice;
       }
 
+      const branchOutStock = (currentBranch && Array.isArray(currentBranch.out_of_stock)) ? currentBranch.out_of_stock : [];
+
       const notes = cartItem.notes || '';
-      document.getElementById('noPineapple').checked = notes.includes('Tanpa Nanas');
-      document.getElementById('noOnion').checked = notes.includes('Tanpa Bombay');
-      document.getElementById('noLettuce').checked = notes.includes('Tanpa Sayur');
+      const nanasOut = branchOutStock.includes('veg-nanas');
+      const bombayOut = branchOutStock.includes('veg-bombay');
+      const lettuceOut = branchOutStock.includes('veg-lettuce');
+
+      const noPineappleInput = document.getElementById('noPineapple');
+      const noOnionInput = document.getElementById('noOnion');
+      const noLettuceInput = document.getElementById('noLettuce');
+
+      noPineappleInput.checked = nanasOut || notes.includes('Tanpa Nanas');
+      noPineappleInput.disabled = nanasOut;
+      const labelNanas = document.getElementById('labelNoPineapple');
+      if (labelNanas) {
+        labelNanas.innerHTML = `Tanpa Nanas ${nanasOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
+      noOnionInput.checked = bombayOut || notes.includes('Tanpa Bombay');
+      noOnionInput.disabled = bombayOut;
+      const labelBombay = document.getElementById('labelNoOnion');
+      if (labelBombay) {
+        labelBombay.innerHTML = `Tanpa Bombay ${bombayOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
+      noLettuceInput.checked = lettuceOut || notes.includes('Tanpa Sayur');
+      noLettuceInput.disabled = lettuceOut;
+      const labelLettuce = document.getElementById('labelNoLettuce');
+      if (labelLettuce) {
+        labelLettuce.innerHTML = `Tanpa Sayur ${lettuceOut ? '<span class="bg-red-100 text-red-700 font-extrabold px-1 rounded text-[9px] ml-1">Lapak Habis</span>' : ''}`;
+      }
+
+      // Filter topping yang sudah habis di lapak
+      selectedToppings = selectedToppings.filter(st => !branchOutStock.includes(st.id));
 
       // Render sizes
       const sizeContainer = document.getElementById('sizeOptions');
@@ -3009,18 +3085,31 @@
         </button>
       `).join('');
 
-      // Render toppings
+      // Render toppings with Lapak Out-of-Stock validation
       const toppingContainer = document.getElementById('toppingOptions');
       if (globalMenu && globalMenu.extra_toppings) {
         toppingContainer.innerHTML = globalMenu.extra_toppings.map(t => {
+          const isOut = branchOutStock.includes(t.id);
+          if (isOut) {
+            return `
+              <div class="flex items-center justify-between border border-dashed rounded-xl p-2 bg-gray-100/90 cursor-not-allowed opacity-60">
+                <div class="flex items-center space-x-1.5">
+                  <input type="checkbox" disabled class="rounded text-gray-400 cursor-not-allowed">
+                  <span class="line-through text-gray-400 font-medium">${t.icon} ${t.name}</span>
+                  <span class="bg-red-100 text-red-700 font-black text-[9px] px-1.5 py-0.5 rounded border border-red-200 ml-1">HABIS</span>
+                </div>
+                <span class="font-bold text-gray-400 text-[10px]">+${(t.price / 1000)}k</span>
+              </div>
+            `;
+          }
           const isChecked = selectedToppings.some(st => st.id === t.id);
           return `
-            <label class="flex items-center justify-between border rounded-xl p-2 ${isChecked ? 'bg-amber-50 border-amber-300' : 'bg-gray-50'} cursor-pointer">
+            <label class="flex items-center justify-between border rounded-xl p-2 ${isChecked ? 'bg-amber-50 border-amber-300' : 'bg-gray-50'} hover:bg-amber-50 cursor-pointer transition">
               <div class="flex items-center space-x-1.5">
                 <input type="checkbox" onchange="toggleTopping('${t.id}')" ${isChecked ? 'checked' : ''} class="rounded text-red-600">
-                <span>${t.icon} ${t.name}</span>
+                <span class="font-semibold text-gray-800">${t.icon} ${t.name}</span>
               </div>
-              <span class="font-bold text-gray-700 text-[10px]">+${(t.price / 1000)}k</span>
+              <span class="font-bold text-amber-700 text-[10px]">+${(t.price / 1000)}k</span>
             </label>
           `;
         }).join('');
