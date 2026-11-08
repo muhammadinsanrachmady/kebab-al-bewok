@@ -1,5 +1,134 @@
 [
   {
+    "id": "opname-1794138802256",
+    "branch_id": "cabang-01",
+    "branch_name": "Kalisari",
+    "staff_name": "Budi Kasir",
+    "closing_date": "Closing 07 November 2026",
+    "date": "2026-11-08",
+    "created_at": "2026-11-08T11:53:22.246Z",
+    "updated_at": "2026-11-08T11:53:22.246Z",
+    "lock_deadline": "2026-11-09T08:00:00.000Z",
+    "cash_opening": 100000,
+    "omzet_cash": 750000,
+    "omzet_bca": 420000,
+    "omzet_gofood": 280000,
+    "omzet_grabfood": 195000,
+    "omzet_shopeefood": 110000,
+    "total_omzet": 1755000,
+    "total_setor_kas": 850000,
+    "stock_items": {
+      "bawang_bombay": {
+        "name": "Bawang Bombay",
+        "unit": "Wadah / Porsi",
+        "physical_count": 5
+      },
+      "beef_kebab_jumbo": {
+        "name": "Beef Kebab Premium Jumbo",
+        "unit": "Porsi",
+        "physical_count": 12
+      },
+      "beef_kebab_reguler": {
+        "name": "Beef Kebab Premium Reguler",
+        "unit": "Porsi",
+        "physical_count": 25
+      },
+      "beef_kebab_small": {
+        "name": "Beef Kebab Premium Small",
+        "unit": "Porsi",
+        "physical_count": 18
+      },
+      "bungkus_kebab_jumbo": {
+        "name": "Bungkus Kebab Jumbo",
+        "unit": "Pcs",
+        "physical_count": 40
+      },
+      "bungkus_kebab_reguler": {
+        "name": "Bungkus Kebab Reguler",
+        "unit": "Pcs",
+        "physical_count": 75
+      },
+      "bungkus_kebab_small": {
+        "name": "Bungkus Kebab Small",
+        "unit": "Pcs",
+        "physical_count": 50
+      },
+      "daging_kebab_central": {
+        "name": "Daging Kebab Central",
+        "unit": "Roll / Kg",
+        "physical_count": 3
+      },
+      "kebab_ayam_homemade": {
+        "name": "Kebab Ayam Homemade",
+        "unit": "Porsi",
+        "physical_count": 14
+      },
+      "keju_slice": {
+        "name": "Keju Slice",
+        "unit": "Lembar",
+        "physical_count": 35
+      },
+      "lettuce_head": {
+        "name": "Lettuce Head",
+        "unit": "Bonggol / Kg",
+        "physical_count": 6
+      },
+      "nanas": {
+        "name": "Nanas",
+        "unit": "Buah / Wadah",
+        "physical_count": 8
+      },
+      "saus_keju": {
+        "name": "Saus Keju",
+        "unit": "Botol / Pack",
+        "physical_count": 2
+      },
+      "saus_mayonaise": {
+        "name": "Saus Mayonaise",
+        "unit": "Botol / Pouch",
+        "physical_count": 4
+      },
+      "saus_sambal": {
+        "name": "Saus Sambal",
+        "unit": "Botol / Pouch",
+        "physical_count": 3
+      },
+      "saus_signature": {
+        "name": "Saus Signature",
+        "unit": "Botol / Pouch",
+        "physical_count": 2
+      },
+      "saus_tomat": {
+        "name": "Saus Tomat",
+        "unit": "Botol / Pouch",
+        "physical_count": 3
+      },
+      "telur": {
+        "name": "Telur",
+        "unit": "Butir",
+        "physical_count": 22
+      },
+      "tortilla_jumbo_25cm": {
+        "name": "Tortilla Jumbo 25 cm",
+        "unit": "Lembar",
+        "physical_count": 38
+      },
+      "tortilla_kecil_19cm": {
+        "name": "Tortilla Kecil 19 cm",
+        "unit": "Lembar",
+        "physical_count": 45
+      },
+      "tortilla_reguler_22cm": {
+        "name": "Tortilla Reguler 22 cm",
+        "unit": "Lembar",
+        "physical_count": 60
+      }
+    },
+    "notes": "Semua aman, uang fisik laci kasir klop Rp 850.000.",
+    "is_bypass": true,
+    "status": "submitted_to_owner"
+  },
+  {
     "id": "opname-1794124118984",
     "branch_id": "cabang-01",
     "branch_name": "Kebab AL Bewok - Cabang Pasar Baru",

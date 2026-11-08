@@ -925,90 +925,269 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 4. TAB VIEW: STOCK OPNAME (HANYA BISA DIBUKA JAM 22:30 WIB)                -->
+  <!-- 4. TAB VIEW: STOCK OPNAME (BUKA 22:30 WIB - KUNCI 15:00 WIB BESOK)         -->
   <!-- ========================================================================= -->
-  <div id="tabViewOpname" class="hidden space-y-4 max-w-4xl mx-auto p-4 pb-24">
+  <div id="tabViewOpname" class="hidden space-y-5 max-w-4xl mx-auto p-4 pb-28">
     
-    <!-- LAYAR TERKUNCI JIKA BELUM JAM 22:30 -->
+    <!-- LAYAR TERKUNCI JIKA JAM 15:00 S/D 22:30 -->
     <div id="opnameLockedView" class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md text-center space-y-4 max-w-md mx-auto">
       <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-3xl flex items-center justify-center text-3xl mx-auto shadow-inner animate-bounce">
         🔒
       </div>
       <div>
-        <h2 class="text-lg font-black text-slate-900">Stock Opname Terkunci</h2>
+        <h2 class="text-lg font-black text-slate-900">Stock Opname Harian Terkunci</h2>
         <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-          Fitur Stock Opname hanya dapat dibuka mulai pukul <b>22:30 WIB</b> menjelang penutupan gerai untuk memastikan seluruh transaksi hari ini telah selesai dihitung.
+          Fitur Stock Opname gerai dibuka setiap malam pukul <b>22:30 WIB</b> dan akan <b>terkunci otomatis pada pukul 15:00 WIB hari berikutnya</b>.
         </p>
+        <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl mt-3 text-left space-y-1">
+          <div class="text-[11px] font-bold text-slate-700 flex items-center">
+            <i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i> Ketentuan Jadwal Opname:
+          </div>
+          <p class="text-[10px] text-slate-500">
+            • <b>Pukul 22:30 WIB:</b> Sesi dibuka untuk rekap omzet harian & hitung sisa fisik 21 bahan baku.<br>
+            • <b>Pukul 15:00 WIB (Keesokan Hari):</b> Sistem terkunci permanen & data dikirim ke Dashboard Owner untuk analisis kinerja gerai.
+          </p>
+        </div>
       </div>
 
       <!-- COUNTDOWN TIMER KE JAM 22:30 -->
       <div class="bg-slate-950 text-amber-400 p-4 rounded-2xl font-mono text-center space-y-1">
-        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Hitung Mundur ke 22:30 WIB:</span>
+        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Hitung Mundur ke 22:30 WIB Malam Ini:</span>
         <div class="text-2xl font-black tracking-widest" id="opnameCountdownText">-- Jam : -- Menit : -- Detik</div>
       </div>
 
       <!-- TOMBOL BYPASS SUPERVISOR / TESTING -->
       <div class="border-t pt-3">
-        <button type="button" onclick="promptOpnameBypass()" class="text-xs text-amber-700 hover:text-amber-800 font-extrabold flex items-center justify-center space-x-1 mx-auto bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200 transition">
+        <button type="button" onclick="promptOpnameBypass()" class="text-xs text-amber-700 hover:text-amber-800 font-extrabold flex items-center justify-center space-x-1.5 mx-auto bg-amber-50 hover:bg-amber-100 px-3.5 py-2 rounded-xl border border-amber-200 transition">
           <i class="fa-solid fa-key"></i>
           <span>Buka Pengujian / Bypass Supervisor (PIN 1234)</span>
         </button>
       </div>
     </div>
 
-    <!-- FORMULIR STOCK OPNAME (MUNCUL JIKA >= 22:30 ATAU DI-BYPASS) -->
-    <div id="opnameUnlockedView" class="hidden space-y-4">
+    <!-- FORMULIR STOCK OPNAME (MUNCUL JIKA TERBUKA ATAU DI-BYPASS) -->
+    <div id="opnameUnlockedView" class="hidden space-y-5">
       
-      <!-- HEADER FORM OPNAME -->
-      <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-3xl shadow-md flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1">
-            <i class="fa-solid fa-lock-open mr-1"></i> Sesi Audit Terbuka (22:30)
-          </span>
-          <h2 class="text-lg sm:text-xl font-black">Stock Opname & Cek Fisik Bahan Baku</h2>
-          <p class="text-xs text-slate-300 mt-0.5">
-            Lapak: <b id="opnameBranchName" class="text-amber-400">-</b> • Tanggal: <span id="opnameDateDisplay">-</span>
-          </p>
-        </div>
-        <div class="text-right">
-          <span class="text-[10px] text-slate-400 block font-semibold">Petugas Kasir:</span>
-          <span class="font-bold text-amber-300 text-xs" id="opnameStaffName">-</span>
+      <!-- HEADER FORM OPNAME & NOTIFIKASI DASHBOARD OWNER -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950 text-white p-5 sm:p-6 rounded-3xl shadow-lg border border-amber-900/40 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center space-x-2 mb-1">
+              <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center">
+                <i class="fa-solid fa-lock-open mr-1"></i> Sesi Audit Terbuka
+              </span>
+              <span class="text-[11px] text-amber-300 font-bold" id="opnameDeadlineNotice">
+                Kunci Otomatis: Besok 15:00 WIB
+              </span>
+            </div>
+            <h2 class="text-lg sm:text-2xl font-black">Stock Opname & Rekap Omzet Harian</h2>
+            <p class="text-xs text-slate-300 mt-0.5">
+              Data penghasilan dan stok fisik dikirim ke <b>Dashboard Owner</b> untuk analisis sistem.
+            </p>
+          </div>
+          <div class="bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-2 rounded-2xl text-right">
+            <span class="text-[10px] text-slate-300 uppercase block font-semibold">Petugas Lapak:</span>
+            <span class="font-black text-amber-300 text-sm" id="opnameStaffName">-</span>
+          </div>
         </div>
       </div>
 
-      <!-- TABEL DAFTAR BAHAN BAKU -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-        <div class="flex items-center justify-between border-b pb-2">
+      <!-- 1. DATA GERAI & MODAL AWAL (CLOSING HEADER) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center space-x-2 border-b pb-3">
+          <div class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">1</div>
           <div>
-            <h3 class="font-black text-sm text-slate-900">Hitung Fisik Sisa Bahan Baku di Lapak</h3>
-            <p class="text-[11px] text-slate-500">Hitung sisa fisik sebenarnya di gerai dan masukkan angkanya</p>
+            <h3 class="font-black text-sm text-slate-900">Informasi Gerai & Modal Awal</h3>
+            <p class="text-[11px] text-slate-500">Sesuaikan tanggal closing, modal awal, dan nama cabang</p>
           </div>
-          <span class="text-xs bg-amber-100 text-amber-900 font-extrabold px-2.5 py-0.5 rounded-full">13 Bahan</span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1" id="opnameItemsContainer">
-          <!-- Dynamically populated via JS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- CLOSING DATE -->
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">
+              <i class="fa-solid fa-calendar-day mr-1 text-amber-600"></i> Tanggal Closing:
+            </label>
+            <input type="text" id="opnameClosingDate" placeholder="Closing 07 November 2026" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500">
+          </div>
+
+          <!-- CASH OPENING (MODAL AWAL) -->
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">
+              <i class="fa-solid fa-wallet mr-1 text-amber-600"></i> Cash Opening (Modal Awal):
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-500">Rp</span>
+              <input type="number" id="opnameCashOpening" value="100000" oninput="calculateOpnameTotals()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">Default: Rp 100.000</span>
+          </div>
+
+          <!-- BRANCH -->
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">
+              <i class="fa-solid fa-store mr-1 text-amber-600"></i> Branch / Lapak:
+            </label>
+            <input type="text" id="opnameBranchInput" value="Kalisari" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-bold" placeholder="Kalisari">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. OMZET MULTI-CHANNEL (PENGHASILAN HARIAN) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between border-b pb-3 gap-2">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">2</div>
+            <div>
+              <h3 class="font-black text-sm text-slate-900">Rekapitulasi Omzet Penjualan (Harian)</h3>
+              <p class="text-[11px] text-slate-500">Masukkan omzet penjualan dari tiap channel kasir & online</p>
+            </div>
+          </div>
+          <button type="button" onclick="autoFillOpnameFromSystem()" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-extrabold px-3 py-1.5 rounded-xl border border-amber-300 flex items-center space-x-1.5 transition active:scale-95 shadow-sm">
+            <i class="fa-solid fa-bolt text-amber-600"></i>
+            <span>Tarik Transaksi Kasir Hari Ini</span>
+          </button>
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- OMZET CASH -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+            <label class="text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
+              <span><i class="fa-solid fa-money-bill-wave text-emerald-600 mr-1"></i> Omzet Cash (Tunai):</span>
+              <span class="text-[9px] bg-emerald-100 text-emerald-800 font-black px-1.5 py-0.2 rounded">Laci Kasir</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+              <input type="number" id="opnameOmzetCash" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+
+          <!-- OMZET BCA MERCHANT -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+            <label class="text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
+              <span><i class="fa-solid fa-qrcode text-blue-600 mr-1"></i> Omzet BCA Merchant:</span>
+              <span class="text-[9px] bg-blue-100 text-blue-800 font-black px-1.5 py-0.2 rounded">QRIS / EDC</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+              <input type="number" id="opnameOmzetBCA" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+
+          <!-- OMZET GOFOOD -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+            <label class="text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
+              <span><i class="fa-solid fa-utensils text-red-600 mr-1"></i> Omzet Gofood:</span>
+              <span class="text-[9px] bg-red-100 text-red-800 font-black px-1.5 py-0.2 rounded">Online App</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+              <input type="number" id="opnameOmzetGofood" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+
+          <!-- OMZET GRABFOOD -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+            <label class="text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
+              <span><i class="fa-solid fa-motorcycle text-green-600 mr-1"></i> Omzet Grabfood:</span>
+              <span class="text-[9px] bg-green-100 text-green-800 font-black px-1.5 py-0.2 rounded">Online App</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+              <input type="number" id="opnameOmzetGrabfood" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+
+          <!-- OMZET SHOPEEFOOD -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+            <label class="text-[11px] font-extrabold text-slate-700 flex items-center justify-between">
+              <span><i class="fa-solid fa-bag-shopping text-orange-600 mr-1"></i> Omzet Shopeefood:</span>
+              <span class="text-[9px] bg-orange-100 text-orange-800 font-black px-1.5 py-0.2 rounded">Online App</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-slate-400">Rp</span>
+              <input type="number" id="opnameOmzetShopeefood" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            </div>
+          </div>
+        </div>
+
+        <!-- REKAPITULASI TOTAL KALKULASI REAL-TIME -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <!-- TOTAL OMZET SEMUA SALURAN -->
+          <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 p-4 rounded-2xl shadow-sm space-y-1">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider block opacity-90">Total Omzet Penjualan (Semua Saluran):</span>
+            <div class="text-2xl font-black font-mono tracking-tight" id="opnameTotalOmzetDisplay">Rp 0</div>
+            <p class="text-[10px] font-semibold opacity-80">Omzet Cash + BCA Merchant + Gofood + Grabfood + Shopeefood</p>
+          </div>
+
+          <!-- TOTAL UANG KAS FISIK DI SETOR -->
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-2xl shadow-sm space-y-1">
+            <span class="text-[11px] font-extrabold uppercase tracking-wider block text-slate-300">Total Uang Fisik Kasir (Setoran Gerai):</span>
+            <div class="text-2xl font-black font-mono tracking-tight text-emerald-400" id="opnameTotalSetorKasDisplay">Rp 100.000</div>
+            <p class="text-[10px] font-semibold text-slate-400">Cash Opening (Rp 100.000) + Omzet Cash Hari Ini</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. CEK FISIK SISA BAHAN BAKU LAPAK (21 BAHAN LENGKAP) -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">3</div>
+            <div>
+              <h3 class="font-black text-sm text-slate-900">Hitung Sisa Fisik Bahan Baku Gerai (21 Bahan)</h3>
+              <p class="text-[11px] text-slate-500">Hitung jumlah fisik sisa di lapak malam ini secara teliti</p>
+            </div>
+          </div>
+          <span class="text-xs bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full border border-amber-300">
+            21 Bahan Terdaftar
+          </span>
+        </div>
+
+        <!-- 21 ITEMS CONTAINER -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="opnameItemsContainer">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- CATATAN KHUSUS LAPAK -->
+        <div class="pt-2">
           <label class="text-[11px] font-bold text-slate-700 block mb-1">
-            <i class="fa-solid fa-comment-dots mr-1"></i> Catatan Khusus / Bahan Rusak / Basi:
+            <i class="fa-solid fa-comment-dots mr-1 text-amber-600"></i> Catatan Khusus / Bahan Rusak / Keterangan Selisih:
           </label>
-          <textarea id="opnameNotesInput" rows="2" placeholder="Contoh: 1 lembar kulit sobek, 1 butir telur pecah saat buka box..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 outline-none focus:border-amber-500"></textarea>
+          <textarea id="opnameNotesInput" rows="2" placeholder="Contoh: 1 pack tortilla reguler sobek saat unboxing, kompor stabil, uang fisik klop dengan omzet cash..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 outline-none focus:border-amber-500"></textarea>
         </div>
 
-        <div class="border-t pt-3 flex justify-end">
-          <button type="button" onclick="submitStockOpname()" id="btnSubmitStockOpname" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-2.5 rounded-2xl text-xs flex items-center space-x-2 shadow-lg transition active:scale-95">
-            <i class="fa-solid fa-floppy-disk"></i>
-            <span>SIMPAN LAPORAN STOCK OPNAME</span>
+        <!-- SUBMIT BUTTON -->
+        <div class="border-t pt-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-[11px] text-slate-500 flex items-center space-x-1.5">
+            <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+            <span>Data closing akan terkunci otomatis pukul <b>15:00 WIB</b> besok hari.</span>
+          </div>
+          <button type="button" onclick="submitStockOpname()" id="btnSubmitStockOpname" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-6 py-3 rounded-2xl text-xs flex items-center space-x-2 shadow-lg transition active:scale-95">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>KIRIM LAPORAN KE DASHBOARD OWNER</span>
           </button>
         </div>
       </div>
 
-      <!-- RIWAYAT LAPORAN OPNAME SEBELUMNYA -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
-        <h3 class="font-black text-sm text-slate-900 border-b pb-2">Riwayat Laporan Stock Opname Lapak</h3>
-        <div id="opnameHistoryList" class="space-y-2 max-h-60 overflow-y-auto">
+      <!-- 4. RIWAYAT LAPORAN STOCK OPNAME LAPAK -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-xl bg-slate-900 text-amber-400 flex items-center justify-center font-black text-sm">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-sm text-slate-900">Riwayat Laporan Closing & Status Analisis Owner</h3>
+              <p class="text-[11px] text-slate-500">Histori data omzet dan stok harian yang telah dikirim ke owner</p>
+            </div>
+          </div>
+          <button type="button" onclick="fetchOpnameHistory()" class="text-xs text-amber-700 hover:text-amber-800 font-bold p-1">
+            <i class="fa-solid fa-rotate-right"></i> Refresh
+          </button>
+        </div>
+
+        <div id="opnameHistoryList" class="space-y-3 max-h-80 overflow-y-auto">
           <!-- Loaded via GET /api/admin/stock-opname -->
         </div>
       </div>
@@ -3120,35 +3299,63 @@
     }
 
     // =========================================================================
-    // 11. LOGIKA STOCK OPNAME (HANYA BISA DIBUKA JAM 22:30 WIB)
+    // 11. LOGIKA STOCK OPNAME (BUKA 22:30 WIB - KUNCI 15:00 WIB BESOK)
     // =========================================================================
-    const OPNAME_INGREDIENTS = [
-      { id: 'beef_sapi', name: 'Daging Sapi Panggang (Beef)', unit: 'Porsi', key_count: 'beef' },
-      { id: 'chicken_ayam', name: 'Daging Ayam Rempah (Chicken)', unit: 'Porsi', key_count: 'chicken' },
-      { id: 'tortilla_small', name: 'Kulit Tortilla Small', unit: 'Lembar', key_count: 'tortilla_small' },
-      { id: 'tortilla_reguler', name: 'Kulit Tortilla Reguler', unit: 'Lembar', key_count: 'tortilla_reguler' },
-      { id: 'tortilla_jumbo', name: 'Kulit Tortilla Jumbo', unit: 'Lembar', key_count: 'tortilla_jumbo' },
-      { id: 'egg_telur', name: 'Telur Ayam Segar', unit: 'Butir', key_count: 'egg' },
-      { id: 'cheese_keju', name: 'Keju Cheddar Slice', unit: 'Lembar', key_count: 'cheese' },
-      { id: 'nanas', name: 'Nanas Segar', unit: 'Porsi / Wadah', key_count: null },
-      { id: 'bombay', name: 'Bawang Bombay', unit: 'Porsi / Wadah', key_count: null },
-      { id: 'lettuce', name: 'Sayur Lettuce Segar', unit: 'Pack / Porsi', key_count: null },
-      { id: 'sauce_chili_tomato', name: 'Saus Sambal & Tomat', unit: 'Botol', key_count: null },
-      { id: 'mayo_cheese_sauce', name: 'Mayonaise & Saus Keju', unit: 'Botol / Pack', key_count: null },
-      { id: 'paper_wrap_plastic', name: 'Kertas Kebab & Kresek', unit: 'Lembar / Pack', key_count: null }
+    // 21 Item Bahan Baku Lengkap Sesuai Ketentuan Owner
+    const OPNAME_ITEMS = [
+      { id: 'bawang_bombay', name: 'Bawang Bombay', unit: 'Wadah / Porsi' },
+      { id: 'beef_kebab_jumbo', name: 'Beef Kebab Premium Jumbo', unit: 'Porsi', key_count: 'beef_jumbo' },
+      { id: 'beef_kebab_reguler', name: 'Beef Kebab Premium Reguler', unit: 'Porsi', key_count: 'beef_reguler' },
+      { id: 'beef_kebab_small', name: 'Beef Kebab Premium Small', unit: 'Porsi', key_count: 'beef_small' },
+      { id: 'bungkus_kebab_jumbo', name: 'Bungkus Kebab Jumbo', unit: 'Pcs', key_count: 'wrap_jumbo' },
+      { id: 'bungkus_kebab_reguler', name: 'Bungkus Kebab Reguler', unit: 'Pcs', key_count: 'wrap_reguler' },
+      { id: 'bungkus_kebab_small', name: 'Bungkus Kebab Small', unit: 'Pcs', key_count: 'wrap_small' },
+      { id: 'daging_kebab_central', name: 'Daging Kebab Central', unit: 'Roll / Kg' },
+      { id: 'kebab_ayam_homemade', name: 'Kebab Ayam Homemade', unit: 'Porsi', key_count: 'chicken' },
+      { id: 'keju_slice', name: 'Keju Slice', unit: 'Lembar', key_count: 'cheese' },
+      { id: 'lettuce_head', name: 'Lettuce Head', unit: 'Bonggol / Kg' },
+      { id: 'nanas', name: 'Nanas', unit: 'Buah / Wadah' },
+      { id: 'saus_keju', name: 'Saus Keju', unit: 'Botol / Pack' },
+      { id: 'saus_mayonaise', name: 'Saus Mayonaise', unit: 'Botol / Pouch' },
+      { id: 'saus_sambal', name: 'Saus Sambal', unit: 'Botol / Pouch' },
+      { id: 'saus_signature', name: 'Saus Signature', unit: 'Botol / Pouch' },
+      { id: 'saus_tomat', name: 'Saus Tomat', unit: 'Botol / Pouch' },
+      { id: 'telur', name: 'Telur', unit: 'Butir', key_count: 'egg' },
+      { id: 'tortilla_jumbo_25cm', name: 'Tortilla Jumbo 25 cm', unit: 'Lembar', key_count: 'tortilla_jumbo' },
+      { id: 'tortilla_kecil_19cm', name: 'Tortilla Kecil 19 cm', unit: 'Lembar', key_count: 'tortilla_small' },
+      { id: 'tortilla_reguler_22cm', name: 'Tortilla Reguler 22 cm', unit: 'Lembar', key_count: 'tortilla_reguler' }
     ];
+
+    function getDefaultClosingDateString() {
+      const now = new Date();
+      // Jika dibuka dini hari s/d siang (sebelum 15:00), sesi ini adalah closing hari kemarin
+      if (now.getHours() < 15) {
+        now.setDate(now.getDate() - 1);
+      }
+      const day = String(now.getDate()).padStart(2, '0');
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const monthName = months[now.getMonth()];
+      const year = now.getFullYear();
+      return `Closing ${day} ${monthName} ${year}`;
+    }
 
     function isCurrentTimeOpnameUnlocked() {
       if (isOpnameBypassed) return true;
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
-      const currentMinutes = hours * 60 + minutes;
-      const unlockMinutes = 22 * 60 + 30; // 22:30 WIB = 1350 menit
+      const totalMinutes = hours * 60 + minutes;
 
-      if (currentMinutes >= unlockMinutes || hours < 4) {
+      const unlockMinutes = 22 * 60 + 30; // 22:30 = 1350 menit
+      const lockMinutes = 15 * 60;        // 15:00 = 900 menit
+
+      // Terbuka jika:
+      // 1. Malam hari: 22:30 s/d 23:59 (totalMinutes >= 1350)
+      // 2. Dini hari s/d Siang hari berikutnya: 00:00 s/d 14:59 (totalMinutes < 900)
+      if (totalMinutes >= unlockMinutes || totalMinutes < lockMinutes) {
         return true;
       }
+      // Pukul 15:00 s/d 22:29 WIB -> TERKUNCI
       return false;
     }
 
@@ -3193,6 +3400,49 @@
       }
     }
 
+    function calculateOpnameTotals() {
+      const cashOpening = Number(document.getElementById('opnameCashOpening').value) || 0;
+      const omzetCash = Number(document.getElementById('opnameOmzetCash').value) || 0;
+      const omzetBca = Number(document.getElementById('opnameOmzetBCA').value) || 0;
+      const omzetGofood = Number(document.getElementById('opnameOmzetGofood').value) || 0;
+      const omzetGrabfood = Number(document.getElementById('opnameOmzetGrabfood').value) || 0;
+      const omzetShopeefood = Number(document.getElementById('opnameOmzetShopeefood').value) || 0;
+
+      const totalOmzet = omzetCash + omzetBca + omzetGofood + omzetGrabfood + omzetShopeefood;
+      const totalSetorKas = cashOpening + omzetCash;
+
+      const elTotalOmzet = document.getElementById('opnameTotalOmzetDisplay');
+      if (elTotalOmzet) elTotalOmzet.innerText = 'Rp ' + totalOmzet.toLocaleString('id-ID');
+
+      const elTotalSetor = document.getElementById('opnameTotalSetorKasDisplay');
+      if (elTotalSetor) elTotalSetor.innerText = 'Rp ' + totalSetorKas.toLocaleString('id-ID');
+    }
+
+    function autoFillOpnameFromSystem() {
+      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId && o.status !== 'cancelled');
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayOrders = branchOrders.filter(o => (o.created_at || '').startsWith(todayStr));
+      const activeOrders = todayOrders.length > 0 ? todayOrders : branchOrders;
+
+      let cashTotal = 0;
+      let qrisTotal = 0;
+
+      activeOrders.forEach(o => {
+        const total = Number(o.total_price) || 0;
+        const method = (o.payment_method || '').toLowerCase();
+        if (method.includes('cash') || method.includes('tunai')) {
+          cashTotal += total;
+        } else {
+          qrisTotal += total;
+        }
+      });
+
+      document.getElementById('opnameOmzetCash').value = cashTotal;
+      document.getElementById('opnameOmzetBCA').value = qrisTotal;
+      calculateOpnameTotals();
+      alert(`⚡ Berhasil menarik data omzet sistem hari ini:\n• Omzet Tunai (Cash): Rp ${cashTotal.toLocaleString('id-ID')}\n• Omzet BCA / QRIS: Rp ${qrisTotal.toLocaleString('id-ID')}\n\nSilakan isi omzet Gofood, Grabfood, & Shopeefood bila ada.`);
+    }
+
     function initOpnameView() {
       const isUnlocked = isCurrentTimeOpnameUnlocked();
       const lockedView = document.getElementById('opnameLockedView');
@@ -3208,54 +3458,93 @@
       if (lockedView) lockedView.classList.add('hidden');
       if (unlockedView) unlockedView.classList.remove('hidden');
 
-      document.getElementById('opnameBranchName').innerText = getBranchName(currentBranchId);
-      document.getElementById('opnameStaffName').innerText = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak';
-      document.getElementById('opnameDateDisplay').innerText = new Date().toLocaleDateString('id-ID', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
+      // Set default closing date jika kosong
+      const closingInput = document.getElementById('opnameClosingDate');
+      if (closingInput && !closingInput.value) {
+        closingInput.value = getDefaultClosingDateString();
+      }
 
+      // Set branch Kalisari
+      const branchInput = document.getElementById('opnameBranchInput');
+      if (branchInput) {
+        const curBranch = branches.find(b => b.id === currentBranchId);
+        branchInput.value = curBranch ? (curBranch.name.includes('Kalisari') ? 'Kalisari' : curBranch.name) : 'Kalisari';
+      }
+
+      // Staff nama
+      const staffEl = document.getElementById('opnameStaffName');
+      if (staffEl) {
+        staffEl.innerText = currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak';
+      }
+
+      // Keterangan deadline kunci
+      const deadlineEl = document.getElementById('opnameDeadlineNotice');
+      if (deadlineEl) {
+        const now = new Date();
+        if (now.getHours() >= 22) {
+          deadlineEl.innerText = 'Kunci Otomatis: Besok pukul 15:00 WIB';
+        } else {
+          deadlineEl.innerText = 'Kunci Otomatis: Hari ini pukul 15:00 WIB';
+        }
+      }
+
+      calculateOpnameTotals();
       renderOpnameForm();
       fetchOpnameHistory();
     }
 
     function calculateSystemSoldIngredients() {
-      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId);
+      const branchOrders = allOrders.filter(o => o.branch_id === currentBranchId && o.status !== 'cancelled');
       const todayStr = new Date().toISOString().split('T')[0];
       const todayOrders = branchOrders.filter(o => (o.created_at || '').startsWith(todayStr));
       const activeOrders = todayOrders.length > 0 ? todayOrders : branchOrders;
 
       let sold = {
-        beef: 0,
+        beef_jumbo: 0,
+        beef_reguler: 0,
+        beef_small: 0,
         chicken: 0,
         tortilla_small: 0,
         tortilla_reguler: 0,
         tortilla_jumbo: 0,
+        wrap_small: 0,
+        wrap_reguler: 0,
+        wrap_jumbo: 0,
         egg: 0,
         cheese: 0
       };
 
       activeOrders.forEach(o => {
-        if (o.status === 'cancelled') return;
         (o.items || []).forEach(item => {
           const qty = Number(item.quantity) || 1;
           const nameLower = (item.name || '').toLowerCase();
           const sizeLower = (item.size || '').toLowerCase();
 
-          if (nameLower.includes('beef')) sold.beef += qty;
-          if (nameLower.includes('chicken')) sold.chicken += qty;
+          const isChicken = nameLower.includes('chicken') || nameLower.includes('ayam');
+          const isBeef = !isChicken;
 
-          if (sizeLower.includes('small') || nameLower.includes('small')) sold.tortilla_small += qty;
-          else if (sizeLower.includes('jumbo') || nameLower.includes('jumbo')) sold.tortilla_jumbo += qty;
-          else sold.tortilla_reguler += qty;
+          const isSmall = sizeLower.includes('small') || nameLower.includes('small');
+          const isJumbo = sizeLower.includes('jumbo') || nameLower.includes('jumbo');
+
+          if (isSmall) {
+            sold.tortilla_small += qty;
+            sold.wrap_small += qty;
+            if (isBeef) sold.beef_small += qty;
+          } else if (isJumbo) {
+            sold.tortilla_jumbo += qty;
+            sold.wrap_jumbo += qty;
+            if (isBeef) sold.beef_jumbo += qty;
+          } else {
+            sold.tortilla_reguler += qty;
+            sold.wrap_reguler += qty;
+            if (isBeef) sold.beef_reguler += qty;
+          }
+
+          if (isChicken) sold.chicken += qty;
 
           (item.toppings || []).forEach(top => {
             if (top.id === 'top-egg' || (top.name || '').toLowerCase().includes('telur')) sold.egg += qty;
             if (top.id === 'top-cheese' || (top.name || '').toLowerCase().includes('keju')) sold.cheese += qty;
-            if (top.id === 'top-beef') sold.beef += qty;
-            if (top.id === 'top-chicken') sold.chicken += qty;
           });
         });
       });
@@ -3269,25 +3558,28 @@
 
       const sold = calculateSystemSoldIngredients();
 
-      container.innerHTML = OPNAME_INGREDIENTS.map(item => {
+      container.innerHTML = OPNAME_ITEMS.map((item, idx) => {
         const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
         return `
-          <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="font-extrabold text-xs text-slate-900">${item.name}</span>
-              <span class="text-[10px] text-slate-500 font-semibold">${item.unit}</span>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">${idx + 1}</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">${item.name}</span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md shrink-0">${item.unit}</span>
             </div>
 
             ${sysSold !== null ? `
-              <div class="text-[10px] text-amber-900 font-bold bg-amber-100/70 px-2 py-0.5 rounded-lg flex justify-between">
-                <span>Terjual Sistem Hari Ini:</span>
+              <div class="text-[10px] text-amber-900 font-bold bg-amber-100/80 px-2.5 py-1 rounded-xl flex justify-between items-center">
+                <span>Terjual Sistem POS:</span>
                 <span class="font-black">${sysSold} ${item.unit}</span>
               </div>
             ` : ''}
 
-            <div class="flex items-center space-x-2 pt-0.5">
-              <span class="text-[10px] text-slate-500 font-bold shrink-0">Sisa Fisik:</span>
-              <input type="number" id="input_opname_${item.id}" placeholder="0" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-500 font-bold shrink-0">Sisa Fisik Lapak:</span>
+              <input type="number" id="input_opname_${item.id}" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
             </div>
           </div>
         `;
@@ -3297,13 +3589,13 @@
     async function submitStockOpname() {
       const btn = document.getElementById('btnSubmitStockOpname');
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan Opname...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengirim ke Dashboard Owner...`;
 
       try {
         const sold = calculateSystemSoldIngredients();
         const stockItems = {};
 
-        OPNAME_INGREDIENTS.forEach(item => {
+        OPNAME_ITEMS.forEach(item => {
           const inputEl = document.getElementById(`input_opname_${item.id}`);
           const count = inputEl ? Number(inputEl.value) || 0 : 0;
           const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
@@ -3316,12 +3608,31 @@
           };
         });
 
+        const closingDate = document.getElementById('opnameClosingDate').value.trim() || getDefaultClosingDateString();
+        const cashOpening = Number(document.getElementById('opnameCashOpening').value) || 100000;
+        const branchName = document.getElementById('opnameBranchInput').value.trim() || 'Kalisari';
+        const omzetCash = Number(document.getElementById('opnameOmzetCash').value) || 0;
+        const omzetBca = Number(document.getElementById('opnameOmzetBCA').value) || 0;
+        const omzetGofood = Number(document.getElementById('opnameOmzetGofood').value) || 0;
+        const omzetGrabfood = Number(document.getElementById('opnameOmzetGrabfood').value) || 0;
+        const omzetShopeefood = Number(document.getElementById('opnameOmzetShopeefood').value) || 0;
+        const totalOmzet = omzetCash + omzetBca + omzetGofood + omzetGrabfood + omzetShopeefood;
+        const totalSetorKas = cashOpening + omzetCash;
         const notes = document.getElementById('opnameNotesInput').value.trim();
 
         const payload = {
           branch_id: currentBranchId,
-          branch_name: getBranchName(currentBranchId),
+          branch_name: branchName,
           staff_name: currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak',
+          closing_date: closingDate,
+          cash_opening: cashOpening,
+          omzet_cash: omzetCash,
+          omzet_bca: omzetBca,
+          omzet_gofood: omzetGofood,
+          omzet_grabfood: omzetGrabfood,
+          omzet_shopeefood: omzetShopeefood,
+          total_omzet: totalOmzet,
+          total_setor_kas: totalSetorKas,
           stock_items: stockItems,
           notes,
           is_bypass: isOpnameBypassed
@@ -3334,18 +3645,17 @@
         }).then(r => r.json());
 
         if (res.success) {
-          alert('✅ Laporan Stock Opname 22:30 WIB berhasil disimpan!');
-          document.getElementById('opnameNotesInput').value = '';
+          alert(`✅ Laporan Closing ${closingDate} Berhasil Dikirim ke Dashboard Owner!\nTotal Omzet: Rp ${totalOmzet.toLocaleString('id-ID')}\nTotal Kas Disetor: Rp ${totalSetorKas.toLocaleString('id-ID')}\n\n(Catatan: Data dapat disesuaikan kembali sebelum jam 15:00 WIB hari berikutnya)`);
           fetchOpnameHistory();
         } else {
-          alert('Gagal menyimpan: ' + (res.message || 'Kesalahan server'));
+          alert('Gagal mengirim: ' + (res.message || 'Kesalahan server'));
         }
       } catch (err) {
         console.error('Opname error:', err);
         alert('Gagal menghubungi server.');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> <span>SIMPAN LAPORAN STOCK OPNAME</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>KIRIM LAPORAN KE DASHBOARD OWNER</span>`;
       }
     }
 
@@ -3356,15 +3666,57 @@
       try {
         const res = await fetch(`/api/admin/stock-opname?branch_id=${currentBranchId}`).then(r => r.json());
         if (res.success && res.data && res.data.length > 0) {
-          container.innerHTML = res.data.map(op => `
-            <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs space-y-1">
-              <div class="flex justify-between items-center font-bold">
-                <span class="text-slate-900">${op.date} • ${new Date(op.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
-                <span class="text-emerald-700 font-extrabold text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full">Tersimpan</span>
+          container.innerHTML = res.data.map(op => {
+            const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
+            return `
+              <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs space-y-2">
+                <div class="flex flex-wrap justify-between items-center gap-1 font-bold">
+                  <div>
+                    <span class="text-slate-900 font-black text-sm">${op.closing_date || 'Closing Harian'}</span>
+                    <span class="text-slate-500 text-[11px] block">Branch: <b>${op.branch_name || 'Kalisari'}</b> • Petugas: ${op.staff_name}</span>
+                  </div>
+                  <div class="text-right">
+                    ${isLocked ? `
+                      <span class="text-slate-700 font-extrabold text-[10px] bg-slate-200 px-2.5 py-1 rounded-full inline-flex items-center">
+                        <i class="fa-solid fa-lock mr-1 text-slate-500"></i> Terkunci (15:00)
+                      </span>
+                    ` : `
+                      <span class="text-emerald-800 font-extrabold text-[10px] bg-emerald-100 px-2.5 py-1 rounded-full inline-flex items-center">
+                        <i class="fa-solid fa-lock-open mr-1 text-emerald-600"></i> Terbuka (Dapat Diedit s/d 15:00)
+                      </span>
+                    `}
+                  </div>
+                </div>
+
+                <!-- FINANCIAL SUMMARY BREAKDOWN -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+                  <div class="bg-white p-2 rounded-xl border border-slate-200">
+                    <span class="text-[9px] text-slate-400 block font-sans">Cash Opening:</span>
+                    <span class="font-bold text-slate-800">Rp ${(op.cash_opening || 100000).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-white p-2 rounded-xl border border-slate-200">
+                    <span class="text-[9px] text-slate-400 block font-sans">Omzet Cash:</span>
+                    <span class="font-bold text-emerald-600">Rp ${(op.omzet_cash || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-white p-2 rounded-xl border border-slate-200">
+                    <span class="text-[9px] text-slate-400 block font-sans">BCA Merchant:</span>
+                    <span class="font-bold text-blue-600">Rp ${(op.omzet_bca || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-amber-100/60 p-2 rounded-xl border border-amber-300">
+                    <span class="text-[9px] text-amber-800 block font-sans font-bold">Total Omzet:</span>
+                    <span class="font-black text-amber-950">Rp ${(op.total_omzet || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-200">
+                  <span>Online Apps: Gofood (Rp ${(op.omzet_gofood || 0).toLocaleString('id-ID')}) • Grab (Rp ${(op.omzet_grabfood || 0).toLocaleString('id-ID')}) • Shopee (Rp ${(op.omzet_shopeefood || 0).toLocaleString('id-ID')})</span>
+                  <span class="font-bold text-slate-700">Setoran Kas: Rp ${(op.total_setor_kas || 0).toLocaleString('id-ID')}</span>
+                </div>
+
+                ${op.notes ? `<div class="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border">Catatan: "${op.notes}"</div>` : ''}
               </div>
-              <div class="text-[11px] text-slate-600">Petugas: <b>${op.staff_name}</b> ${op.notes ? `• Note: <i>${op.notes}</i>` : ''}</div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         } else {
           container.innerHTML = `<p class="text-center text-slate-400 py-4 text-xs">Belum ada riwayat stock opname untuk cabang ini.</p>`;
         }

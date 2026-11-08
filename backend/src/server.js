@@ -926,18 +926,41 @@ app.post('/api/admin/orders/offline', (req, res) => {
 app.get('/api/admin/stock-opname', (req, res) => {
   const { branch_id } = req.query;
   const list = readJSON(STOCK_OPNAME_FILE);
+  
+  const now = new Date();
+  // Tambahkan status lock dinamis berdasarkan deadline 15:00 WIB hari berikutnya
+  const enriched = list.map(item => {
+    let isLocked = false;
+    if (item.lock_deadline) {
+      isLocked = now.getTime() > new Date(item.lock_deadline).getTime();
+    }
+    return {
+      ...item,
+      is_locked: isLocked
+    };
+  });
+
   if (branch_id) {
-    return res.json({ success: true, data: list.filter(op => op.branch_id === branch_id) });
+    return res.json({ success: true, data: enriched.filter(op => op.branch_id === branch_id) });
   }
-  res.json({ success: true, data: list });
+  res.json({ success: true, data: enriched });
 });
 
-// Simpan Laporan Stock Opname Harian (22:30 WIB)
+// Simpan / Perbarui Laporan Stock Opname Harian (Buka 22:30 WIB - Kunci 15:00 WIB)
 app.post('/api/admin/stock-opname', (req, res) => {
   const {
     branch_id,
     branch_name,
     staff_name,
+    closing_date,
+    cash_opening = 100000,
+    omzet_cash = 0,
+    omzet_bca = 0,
+    omzet_gofood = 0,
+    omzet_grabfood = 0,
+    omzet_shopeefood = 0,
+    total_omzet = 0,
+    total_setor_kas = 0,
     stock_items,
     notes,
     is_bypass = false
@@ -948,25 +971,69 @@ app.post('/api/admin/stock-opname', (req, res) => {
   }
 
   const list = readJSON(STOCK_OPNAME_FILE);
-  const newOpname = {
-    id: `opname-${Date.now()}`,
+  const now = new Date();
+
+  // Hitung lock_deadline: Jam 15:00 WIB pada hari berikutnya
+  // Jika input dilakukan jam 22:30 malam, deadline adalah jam 15:00 besok
+  // Jika input dini hari sebelum jam 15:00, deadline adalah jam 15:00 hari ini
+  const deadline = new Date();
+  if (now.getHours() >= 15) {
+    // Malam hari (>= 15:00), deadline adalah besok jam 15:00
+    deadline.setDate(deadline.getDate() + 1);
+  }
+  deadline.setHours(15, 0, 0, 0);
+
+  // Cek apakah ada record yang sama untuk branch_id dan closing_date
+  const existingIndex = list.findIndex(op => op.branch_id === branch_id && op.closing_date === closing_date);
+
+  if (existingIndex >= 0 && !is_bypass) {
+    const existing = list[existingIndex];
+    if (existing.lock_deadline && now.getTime() > new Date(existing.lock_deadline).getTime()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Laporan stock opname ini sudah terkunci permanen sejak pukul 15:00 WIB dan tidak dapat diubah lagi.'
+      });
+    }
+  }
+
+  const formattedClosingDate = closing_date || `Closing ${String(now.getDate()).padStart(2, '0')} November ${now.getFullYear()}`;
+
+  const opnameRecord = {
+    id: existingIndex >= 0 ? list[existingIndex].id : `opname-${Date.now()}`,
     branch_id,
-    branch_name: branch_name || 'Kebab AL Bewok',
+    branch_name: branch_name || 'Kalisari',
     staff_name: staff_name || 'Kasir Lapak',
-    date: new Date().toISOString().split('T')[0],
-    created_at: new Date().toISOString(),
+    closing_date: formattedClosingDate,
+    date: now.toISOString().split('T')[0],
+    created_at: existingIndex >= 0 ? list[existingIndex].created_at : now.toISOString(),
+    updated_at: now.toISOString(),
+    lock_deadline: deadline.toISOString(),
+    cash_opening: Number(cash_opening) || 100000,
+    omzet_cash: Number(omzet_cash) || 0,
+    omzet_bca: Number(omzet_bca) || 0,
+    omzet_gofood: Number(omzet_gofood) || 0,
+    omzet_grabfood: Number(omzet_grabfood) || 0,
+    omzet_shopeefood: Number(omzet_shopeefood) || 0,
+    total_omzet: Number(total_omzet) || 0,
+    total_setor_kas: Number(total_setor_kas) || 0,
     stock_items,
     notes: notes || '',
-    is_bypass: Boolean(is_bypass)
+    is_bypass: Boolean(is_bypass),
+    status: 'submitted_to_owner'
   };
 
-  list.unshift(newOpname);
+  if (existingIndex >= 0) {
+    list[existingIndex] = opnameRecord;
+  } else {
+    list.unshift(opnameRecord);
+  }
+
   writeJSON(STOCK_OPNAME_FILE, list);
 
   res.json({
     success: true,
-    message: 'Laporan Stock Opname 22:30 berhasil disimpan ke database!',
-    data: newOpname
+    message: 'Laporan Stock Opname Harian berhasil dikirim ke Dashboard Owner!',
+    data: opnameRecord
   });
 });
 
