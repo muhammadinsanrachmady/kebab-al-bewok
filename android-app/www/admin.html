@@ -1011,16 +1011,20 @@
             <input type="text" id="opnameClosingDate" placeholder="Closing 07 November 2026" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500">
           </div>
 
-          <!-- CASH OPENING (MODAL AWAL) -->
+          <!-- CASH OPENING (MODAL AWAL DIISI OWNER) -->
           <div>
-            <label class="text-[11px] font-bold text-slate-700 block mb-1">
-              <i class="fa-solid fa-wallet mr-1 text-amber-600"></i> Cash Opening (Modal Awal):
+            <label class="text-[11px] font-bold text-slate-700 block mb-1 flex items-center justify-between">
+              <span><i class="fa-solid fa-wallet mr-1 text-amber-600"></i> Cash Opening:</span>
+              <span class="text-[9px] bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded-full border border-amber-300">di isi Owner</span>
             </label>
             <div class="relative">
               <span class="absolute left-3 top-2 text-xs font-bold text-slate-500">Rp</span>
-              <input type="number" id="opnameCashOpening" value="100000" oninput="calculateOpnameTotals()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
+              <input type="number" id="opnameCashOpening" value="100000" oninput="calculateOpnameTotals()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono" placeholder="Diisi oleh Owner">
             </div>
-            <span class="text-[10px] text-slate-400 mt-0.5 block">Default: Rp 100.000</span>
+            <span class="text-[10px] text-slate-500 mt-0.5 block flex items-center justify-between">
+              <span>Modal Kas Awal (di isi Owner)</span>
+              <button type="button" onclick="promptOwnerSetModal()" class="text-amber-700 hover:text-amber-800 font-bold text-[10px] underline"><i class="fa-solid fa-key text-[9px]"></i> Set Modal Owner</button>
+            </span>
           </div>
 
           <!-- BRANCH -->
@@ -1149,12 +1153,21 @@
           <!-- Rendered via JS -->
         </div>
 
-        <!-- CATATAN KHUSUS LAPAK -->
-        <div class="pt-2">
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">
-            <i class="fa-solid fa-comment-dots mr-1 text-amber-600"></i> Catatan Khusus / Bahan Rusak / Keterangan Selisih:
+        <!-- CATATAN KHUSUS & NOTE SYSTEM -->
+        <div class="pt-2 space-y-2">
+          <label class="text-[11px] font-bold text-slate-700 block">
+            <i class="fa-solid fa-comment-dots mr-1 text-amber-600"></i> Note / Catatan Khusus Lapak:
           </label>
-          <textarea id="opnameNotesInput" rows="2" placeholder="Contoh: 1 pack tortilla reguler sobek saat unboxing, kompor stabil, uang fisik klop dengan omzet cash..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 outline-none focus:border-amber-500"></textarea>
+          <textarea id="opnameNotesInput" rows="2" placeholder="Tuliskan catatan khusus lapak, sisa bahan, atau keterangan selisih kas..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 outline-none focus:border-amber-500"></textarea>
+
+          <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-[11px] text-amber-900 space-y-1">
+            <span class="font-extrabold flex items-center">
+              <i class="fa-solid fa-circle-info text-amber-600 mr-1.5"></i> Note:
+            </span>
+            <p class="text-[10px] text-slate-700 leading-relaxed font-medium">
+              Stok opname malam ini akan terkunci dan tidak bisa di ubah lagi pada jam <b>15.00 WIB</b> pada hari berikutnya, nanti jam <b>22.30 WIB</b> pada setiap harinya akan terbuka kembali. Stok opname ini bertujuan untuk mengirim data penghasilan ke dashboard owner untuk analisis dengan sistem.
+            </p>
+          </div>
         </div>
 
         <!-- SUBMIT BUTTON -->
@@ -3303,27 +3316,27 @@
     // =========================================================================
     // 21 Item Bahan Baku Lengkap Sesuai Ketentuan Owner
     const OPNAME_ITEMS = [
-      { id: 'bawang_bombay', name: 'Bawang Bombay', unit: 'Wadah / Porsi' },
-      { id: 'beef_kebab_jumbo', name: 'Beef Kebab Premium Jumbo', unit: 'Porsi', key_count: 'beef_jumbo' },
-      { id: 'beef_kebab_reguler', name: 'Beef Kebab Premium Reguler', unit: 'Porsi', key_count: 'beef_reguler' },
-      { id: 'beef_kebab_small', name: 'Beef Kebab Premium Small', unit: 'Porsi', key_count: 'beef_small' },
-      { id: 'bungkus_kebab_jumbo', name: 'Bungkus Kebab Jumbo', unit: 'Pcs', key_count: 'wrap_jumbo' },
-      { id: 'bungkus_kebab_reguler', name: 'Bungkus Kebab Reguler', unit: 'Pcs', key_count: 'wrap_reguler' },
-      { id: 'bungkus_kebab_small', name: 'Bungkus Kebab Small', unit: 'Pcs', key_count: 'wrap_small' },
-      { id: 'daging_kebab_central', name: 'Daging Kebab Central', unit: 'Roll / Kg' },
-      { id: 'kebab_ayam_homemade', name: 'Kebab Ayam Homemade', unit: 'Porsi', key_count: 'chicken' },
-      { id: 'keju_slice', name: 'Keju Slice', unit: 'Lembar', key_count: 'cheese' },
-      { id: 'lettuce_head', name: 'Lettuce Head', unit: 'Bonggol / Kg' },
-      { id: 'nanas', name: 'Nanas', unit: 'Buah / Wadah' },
-      { id: 'saus_keju', name: 'Saus Keju', unit: 'Botol / Pack' },
-      { id: 'saus_mayonaise', name: 'Saus Mayonaise', unit: 'Botol / Pouch' },
-      { id: 'saus_sambal', name: 'Saus Sambal', unit: 'Botol / Pouch' },
-      { id: 'saus_signature', name: 'Saus Signature', unit: 'Botol / Pouch' },
-      { id: 'saus_tomat', name: 'Saus Tomat', unit: 'Botol / Pouch' },
-      { id: 'telur', name: 'Telur', unit: 'Butir', key_count: 'egg' },
-      { id: 'tortilla_jumbo_25cm', name: 'Tortilla Jumbo 25 cm', unit: 'Lembar', key_count: 'tortilla_jumbo' },
-      { id: 'tortilla_kecil_19cm', name: 'Tortilla Kecil 19 cm', unit: 'Lembar', key_count: 'tortilla_small' },
-      { id: 'tortilla_reguler_22cm', name: 'Tortilla Reguler 22 cm', unit: 'Lembar', key_count: 'tortilla_reguler' }
+      { id: 'bawang_bombay', name: 'Bawang Bombay', unit: 'gram' },
+      { id: 'beef_kebab_jumbo', name: 'Beef Kebab Premium Jumbo', unit: 'pcs', key_count: 'beef_jumbo' },
+      { id: 'beef_kebab_reguler', name: 'Beef Kebab Premium Reguler', unit: 'pcs', key_count: 'beef_reguler' },
+      { id: 'beef_kebab_small', name: 'Beef Kebab Premium Small', unit: 'pcs', key_count: 'beef_small' },
+      { id: 'bungkus_kebab_jumbo', name: 'Bungkus Kebab Jumbo', unit: 'pcs', key_count: 'wrap_jumbo' },
+      { id: 'bungkus_kebab_reguler', name: 'Bungkus Kebab Reguler', unit: 'pcs', key_count: 'wrap_reguler' },
+      { id: 'bungkus_kebab_small', name: 'Bungkus Kebab Small', unit: 'pcs', key_count: 'wrap_small' },
+      { id: 'daging_kebab_central', name: 'Daging Kebab Central', unit: 'gram' },
+      { id: 'kebab_ayam_homemade', name: 'Kebab Ayam Homemade', unit: 'gram', key_count: 'chicken' },
+      { id: 'keju_slice', name: 'Keju Slice', unit: 'pcs', key_count: 'cheese' },
+      { id: 'lettuce_head', name: 'Lettuce Head', unit: 'gram' },
+      { id: 'nanas', name: 'Nanas', unit: 'gram' },
+      { id: 'saus_keju', name: 'Saus Keju', unit: 'gram' },
+      { id: 'saus_mayonaise', name: 'Saus Mayonaise', unit: 'gram' },
+      { id: 'saus_sambal', name: 'Saus Sambal', unit: 'gram' },
+      { id: 'saus_signature', name: 'Saus Signature', unit: 'gram' },
+      { id: 'saus_tomat', name: 'Saus Tomat', unit: 'gram' },
+      { id: 'telur', name: 'Telur', unit: 'pcs', key_count: 'egg' },
+      { id: 'tortilla_jumbo_25cm', name: 'Tortilla Jumbo 25 cm', unit: 'lembar', key_count: 'tortilla_jumbo' },
+      { id: 'tortilla_kecil_19cm', name: 'Tortilla Kecil 19 cm', unit: 'lembar', key_count: 'tortilla_small' },
+      { id: 'tortilla_reguler_22cm', name: 'Tortilla Reguler 22 cm', unit: 'lembar', key_count: 'tortilla_reguler' }
     ];
 
     function getDefaultClosingDateString() {
@@ -3552,6 +3565,21 @@
       return sold;
     }
 
+    function promptOwnerSetModal() {
+      const pin = prompt('Masukkan PIN Owner / Supervisor untuk mengubah Cash Opening (default: 1234):');
+      if (pin === '1234') {
+        const cur = document.getElementById('opnameCashOpening').value || '100000';
+        const val = prompt('Masukkan nominal Cash Opening (Modal Awal dari Owner):', cur);
+        if (val !== null && !isNaN(Number(val))) {
+          document.getElementById('opnameCashOpening').value = Number(val);
+          calculateOpnameTotals();
+          alert(`✅ Cash Opening (Modal Awal) berhasil diatur menjadi Rp ${Number(val).toLocaleString('id-ID')}`);
+        }
+      } else if (pin !== null) {
+        alert('❌ PIN Owner salah.');
+      }
+    }
+
     function renderOpnameForm() {
       const container = document.getElementById('opnameItemsContainer');
       if (!container) return;
@@ -3567,7 +3595,7 @@
                 <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">${idx + 1}</span>
                 <span class="font-extrabold text-xs text-slate-900 leading-tight">${item.name}</span>
               </div>
-              <span class="text-[10px] text-slate-500 font-bold bg-slate-100 px-2 py-0.5 rounded-md shrink-0">${item.unit}</span>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(${item.unit})</span>
             </div>
 
             ${sysSold !== null ? `
@@ -3578,8 +3606,11 @@
             ` : ''}
 
             <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
-              <span class="text-[10px] text-slate-500 font-bold shrink-0">Sisa Fisik Lapak:</span>
-              <input type="number" id="input_opname_${item.id}" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_${item.id}" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">${item.unit}</span>
+              </div>
             </div>
           </div>
         `;
