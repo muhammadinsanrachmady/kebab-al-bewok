@@ -83,6 +83,70 @@
           "prices": { "small": 16000, "reguler": 20000, "jumbo": 23000 }
         }
       ]
+    },
+    {
+      "id": "cat-addon",
+      "name": "Menu Tambahan & Topping",
+      "description": "Topping telur, keju gurih, ekstra daging dan camilan pelengkap",
+      "badge": "Menu Tambahan",
+      "items": [
+        {
+          "id": "top-egg",
+          "name": "Menu Tambahan - Telur (Mata Sapi / Dadar)",
+          "meat_type": "Telur Segar Goreng",
+          "icon": "🍳",
+          "is_favorite": true,
+          "prices": { "reguler": 5000 }
+        },
+        {
+          "id": "top-cheese",
+          "name": "Menu Tambahan - Keju Slice Lumer",
+          "meat_type": "Keju Cheddar Gurih",
+          "icon": "🧀",
+          "is_favorite": true,
+          "prices": { "reguler": 3000 }
+        },
+        {
+          "id": "top-beef",
+          "name": "Menu Tambahan - Ekstra Daging Sapi (Beef)",
+          "meat_type": "Daging Sapi Panggang",
+          "icon": "🥩",
+          "is_favorite": true,
+          "prices": { "reguler": 6000 }
+        },
+        {
+          "id": "top-chicken",
+          "name": "Menu Tambahan - Ekstra Daging Ayam (Chicken)",
+          "meat_type": "Daging Ayam Rempah",
+          "icon": "🍗",
+          "is_favorite": false,
+          "prices": { "reguler": 6000 }
+        },
+        {
+          "id": "addon-tortilla-chips",
+          "name": "Menu Tambahan - Keripik Kulit Tortilla Crispy",
+          "meat_type": "Kulit Kebab Renyah + Saus",
+          "icon": "🍟",
+          "is_favorite": false,
+          "prices": { "reguler": 8000 }
+        },
+        {
+          "id": "drink-es-teh",
+          "name": "Minuman - Es Teh Manis Segar",
+          "meat_type": "Minuman Dingin",
+          "icon": "🥤",
+          "is_favorite": true,
+          "prices": { "reguler": 5000 }
+        },
+        {
+          "id": "drink-air-mineral",
+          "name": "Minuman - Air Mineral Dingin (600ml)",
+          "meat_type": "Minuman Segar",
+          "icon": "💧",
+          "is_favorite": false,
+          "prices": { "reguler": 4000 }
+        }
+      ]
     }
   ],
   "extra_toppings": [

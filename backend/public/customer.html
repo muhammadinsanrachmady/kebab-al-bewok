@@ -311,6 +311,7 @@
     <button onclick="filterCategory('cat-original')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Original</button>
     <button onclick="filterCategory('cat-cheesy')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Kebab Cheesy 🧀</button>
     <button onclick="filterCategory('cat-signature')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Signature ⭐</button>
+    <button onclick="filterCategory('cat-addon')" class="cat-btn px-4 py-1.5 rounded-full text-xs font-bold bg-white text-gray-700 shadow-sm shrink-0">Menu Tambahan 🍳</button>
   </div>
 
   <!-- DAFTAR MENU CONTAINER -->
@@ -432,7 +433,7 @@
 
       <div class="p-4 overflow-y-auto space-y-4 text-xs">
         <!-- 1. UKURAN -->
-        <div>
+        <div id="sectionCustomSize">
           <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">1. Pilih Ukuran (Wajib):</label>
           <div class="grid grid-cols-3 gap-2" id="sizeOptions">
             <!-- Render via JS -->
@@ -440,7 +441,7 @@
         </div>
 
         <!-- 2. TOPPING TAMBAHAN -->
-        <div>
+        <div id="sectionCustomTopping">
           <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">2. Topping Tambahan (Opsional):</label>
           <div class="grid grid-cols-2 gap-2" id="toppingOptions">
             <!-- Render via JS -->
@@ -448,7 +449,7 @@
         </div>
 
         <!-- 3. LEVEL PEDAS -->
-        <div>
+        <div id="sectionCustomSpice">
           <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">3. Tingkat Kepedasan:</label>
           <select id="spiceSelect" class="w-full border rounded-xl p-2.5 bg-gray-50 text-xs font-semibold outline-none">
             <option value="Level 0 - Tidak Pedas (Tomat)">Level 0 - Tidak Pedas (Tomat)</option>
@@ -459,7 +460,7 @@
         </div>
 
         <!-- 4. SAYURAN SESUAI SELERA -->
-        <div>
+        <div id="sectionCustomVeg">
           <label class="font-extrabold text-gray-800 block mb-2 text-[13px]">4. Sayuran & Selera:</label>
           <div class="flex flex-wrap gap-2">
             <label class="flex items-center space-x-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border text-xs">
@@ -2885,8 +2886,10 @@
       const item = cat.items.find(i => i.id === itemId);
       currentCustomizingItem = { ...item, catName: cat.name };
 
+      const isAddon = (catId === 'cat-addon') || item.id.startsWith('top-') || item.id.startsWith('drink-') || item.id.startsWith('addon-');
+
       const titleEl = document.getElementById('modalCustomTitle');
-      if (titleEl) titleEl.innerText = 'Pilih Racikan Kebab';
+      if (titleEl) titleEl.innerText = isAddon ? 'Pesan Menu Tambahan' : 'Pilih Racikan Kebab';
       document.getElementById('modalMenuName').innerText = item.name;
       document.getElementById('modalMenuDesc').innerText = cat.description;
 
@@ -2899,9 +2902,27 @@
       document.getElementById('noLettuce').checked = false;
       document.getElementById('spiceSelect').value = 'Level 1 - Sedang';
 
+      const secSize = document.getElementById('sectionCustomSize');
+      const secTopping = document.getElementById('sectionCustomTopping');
+      const secSpice = document.getElementById('sectionCustomSpice');
+      const secVeg = document.getElementById('sectionCustomVeg');
+
+      if (isAddon) {
+        if (secSize) secSize.classList.add('hidden');
+        if (secTopping) secTopping.classList.add('hidden');
+        if (secSpice) secSpice.classList.add('hidden');
+        if (secVeg) secVeg.classList.add('hidden');
+      } else {
+        if (secSize) secSize.classList.remove('hidden');
+        if (secTopping) secTopping.classList.remove('hidden');
+        if (secSpice) secSpice.classList.remove('hidden');
+        if (secVeg) secVeg.classList.remove('hidden');
+      }
+
       // Render sizes
       const sizeContainer = document.getElementById('sizeOptions');
-      sizeContainer.innerHTML = Object.entries(item.prices).map(([sizeKey, price]) => `
+      const sizeEntries = Object.entries(item.prices);
+      sizeContainer.innerHTML = sizeEntries.map(([sizeKey, price]) => `
         <button type="button" onclick="selectSize('${sizeKey}')" id="size-btn-${sizeKey}" class="size-btn border rounded-xl p-2 text-center transition ${sizeKey === 'reguler' ? 'border-red-600 bg-red-50 text-red-700 font-bold' : 'border-gray-200'}">
           <div class="uppercase text-[10px]">${sizeKey}</div>
           <div class="text-[11px] font-extrabold">Rp ${price.toLocaleString('id-ID')}</div>
