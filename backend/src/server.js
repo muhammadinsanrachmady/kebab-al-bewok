@@ -568,7 +568,8 @@ app.put('/api/admin/branches/:id', (req, res) => {
     is_open,
     open_hours,
     staff_pin,
-    out_of_stock
+    out_of_stock,
+    cash_opening
   } = req.body;
 
   const branches = readJSON(BRANCHES_FILE);
@@ -598,6 +599,9 @@ app.put('/api/admin/branches/:id', (req, res) => {
   }
   if (Array.isArray(out_of_stock)) {
     branches[idx].out_of_stock = out_of_stock;
+  }
+  if (cash_opening !== undefined && cash_opening !== null && !isNaN(Number(cash_opening))) {
+    branches[idx].cash_opening = Math.max(0, Number(cash_opening));
   }
 
   writeJSON(BRANCHES_FILE, branches);
@@ -1599,6 +1603,7 @@ app.get('/api/super-admin/summary', (req, res) => {
       branch_id: b.id,
       branch_name: b.name,
       address: b.address,
+      cash_opening: b.cash_opening !== undefined ? b.cash_opening : 100000,
       order_count: branchOrders.length,
       food_revenue: foodRev,
       delivery_fee_held: delivFee // Ini uang ongkir kurir yang harus disetorkan cabang ke Pusat!

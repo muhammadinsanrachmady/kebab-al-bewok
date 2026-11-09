@@ -982,7 +982,7 @@
         </div>
       </div>
 
-      <!-- 1. DATA GERAI & MODAL AWAL (CLOSING HEADER) -->
+            <!-- 1. DATA GERAI & MODAL AWAL (CLOSING HEADER) -->
       <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center space-x-2 border-b pb-3">
           <div class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">1</div>
@@ -998,22 +998,23 @@
             <label class="text-[11px] font-bold text-slate-700 block mb-1">
               <i class="fa-solid fa-calendar-day mr-1 text-amber-600"></i> Tanggal Closing:
             </label>
-            <input type="text" id="opnameClosingDate" placeholder="Closing 07 November 2026" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500">
+            <input type="text" id="opnameClosingDate" placeholder="Closing 07 November 2026" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-bold">
           </div>
 
-          <!-- CASH OPENING (MODAL AWAL DIISI OWNER) -->
+          <!-- CASH OPENING (MODAL AWAL DIISI OWNER - HANYA BACA DI LAPAK) -->
           <div>
             <label class="text-[11px] font-bold text-slate-700 block mb-1 flex items-center justify-between">
-              <span><i class="fa-solid fa-wallet mr-1 text-amber-600"></i> Cash Opening:</span>
-              <span class="text-[9px] bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded-full border border-amber-300">di isi Owner</span>
+              <span><i class="fa-solid fa-lock text-amber-600 mr-1"></i> Cash Opening:</span>
+              <span class="text-[9px] bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-full shadow-xs">
+                🔒 Diatur oleh Owner
+              </span>
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-2 text-xs font-bold text-slate-500">Rp</span>
-              <input type="number" id="opnameCashOpening" value="100000" oninput="calculateOpnameTotals()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono" placeholder="Diisi oleh Owner">
+              <span class="absolute left-3 top-2 text-xs font-black text-slate-400 select-none">Rp</span>
+              <input type="number" id="opnameCashOpening" value="100000" readonly disabled class="w-full bg-slate-100 border border-slate-300 text-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs font-black outline-none font-mono cursor-not-allowed select-none" placeholder="Ditetapkan Owner">
             </div>
-            <span class="text-[10px] text-slate-500 mt-0.5 block flex items-center justify-between">
-              <span>Modal Kas Awal (di isi Owner)</span>
-              <button type="button" onclick="promptOwnerSetModal()" class="text-amber-700 hover:text-amber-800 font-bold text-[10px] underline"><i class="fa-solid fa-key text-[9px]"></i> Set Modal Owner</button>
+            <span class="text-[10px] text-slate-500 mt-1 block">
+              <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i>Modal kas awal ditentukan Owner (Lapak hanya baca)
             </span>
           </div>
 
@@ -1027,7 +1028,7 @@
         </div>
       </div>
 
-      <!-- 2. OMZET MULTI-CHANNEL (PENGHASILAN HARIAN) -->
+<!-- 2. OMZET MULTI-CHANNEL (PENGHASILAN HARIAN) -->
       <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
         <div class="flex flex-wrap items-center justify-between border-b pb-3 gap-2">
           <div class="flex items-center space-x-2">
@@ -1140,7 +1141,715 @@
 
         <!-- 21 ITEMS CONTAINER -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="opnameItemsContainer">
-          <!-- Rendered via JS -->
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">1</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bawang Bombay</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_bawang_bombay"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bawang_bombay" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">2</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Jumbo</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_jumbo"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_jumbo" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">3</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Reguler</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_reguler"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_reguler" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">4</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Small</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_small"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_small" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">5</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Jumbo</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_jumbo"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_jumbo" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">6</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Reguler</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_reguler"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_reguler" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">7</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Small</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_small"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_small" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">8</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Daging Kebab Central</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_daging_kebab_central"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_daging_kebab_central" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">9</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Kebab Ayam Homemade</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_kebab_ayam_homemade"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_kebab_ayam_homemade" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">10</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Keju Slice</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_keju_slice"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_keju_slice" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">11</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Lettuce Head</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_lettuce_head"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_lettuce_head" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">12</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Nanas</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_nanas"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_nanas" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">13</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Keju</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_keju"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_keju" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">14</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Mayonaise</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_mayonaise"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_mayonaise" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">15</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Sambal</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_sambal"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_sambal" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">16</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Signature</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_signature"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_signature" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">17</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Tomat</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_tomat"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_tomat" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">18</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Telur</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_telur"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_telur" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">19</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Jumbo 25 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_jumbo_25cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_jumbo_25cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">20</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Kecil 19 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_kecil_19cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_kecil_19cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">21</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Reguler 22 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_reguler_22cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_reguler_22cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_bawang_bombay"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bawang_bombay" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">2</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Jumbo</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_jumbo"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_jumbo" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">3</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Reguler</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_reguler"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_reguler" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">4</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Beef Kebab Premium Small</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_beef_kebab_small"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_beef_kebab_small" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">5</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Jumbo</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_jumbo"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_jumbo" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">6</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Reguler</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_reguler"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_reguler" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">7</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Bungkus Kebab Small</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_bungkus_kebab_small"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_bungkus_kebab_small" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">8</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Daging Kebab Central</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_daging_kebab_central"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_daging_kebab_central" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">9</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Kebab Ayam Homemade</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_kebab_ayam_homemade"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_kebab_ayam_homemade" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">10</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Keju Slice</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_keju_slice"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_keju_slice" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">11</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Lettuce Head</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_lettuce_head"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_lettuce_head" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">12</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Nanas</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_nanas"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_nanas" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">13</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Keju</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_keju"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_keju" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">14</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Mayonaise</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_mayonaise"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_mayonaise" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">15</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Sambal</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_sambal"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_sambal" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">16</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Signature</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_signature"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_signature" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">17</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Saus Tomat</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(gram)</span>
+            </div>
+            <div id="sys_sold_tag_saus_tomat"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_saus_tomat" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">gram</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">18</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Telur</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(pcs)</span>
+            </div>
+            <div id="sys_sold_tag_telur"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_telur" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">pcs</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">19</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Jumbo 25 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_jumbo_25cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_jumbo_25cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">20</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Kecil 19 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_kecil_19cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_kecil_19cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-[10px] w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-black flex items-center justify-center shrink-0">21</span>
+                <span class="font-extrabold text-xs text-slate-900 leading-tight">Tortilla Reguler 22 cm</span>
+              </div>
+              <span class="text-[10px] text-amber-900 font-black bg-amber-100/90 px-2.5 py-0.5 rounded-lg border border-amber-300 shrink-0 uppercase tracking-wider">(lembar)</span>
+            </div>
+            <div id="sys_sold_tag_tortilla_reguler_22cm"></div>
+            <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
+              <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
+              <div class="relative w-full">
+                <input type="number" id="input_opname_tortilla_reguler_22cm" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">lembar</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- CATATAN KHUSUS & NOTE SYSTEM -->
@@ -3458,6 +4167,12 @@
     }
 
     function initOpnameView() {
+      // Muat cash opening dari cabang saat ini
+      const curBranch = (allBranches || []).find(b => b.id === currentBranchId);
+      const cashOpeningEl = document.getElementById('opnameCashOpening');
+      if (cashOpeningEl) {
+        cashOpeningEl.value = (curBranch && curBranch.cash_opening !== undefined) ? curBranch.cash_opening : 100000;
+      }
       updateOpnameCountdown();
 
       // Set default closing date jika kosong
@@ -3555,20 +4270,7 @@
       return sold;
     }
 
-    function promptOwnerSetModal() {
-      const pin = prompt('Masukkan PIN Owner / Supervisor untuk mengubah Cash Opening (default: 1234):');
-      if (pin === '1234') {
-        const cur = document.getElementById('opnameCashOpening').value || '100000';
-        const val = prompt('Masukkan nominal Cash Opening (Modal Awal dari Owner):', cur);
-        if (val !== null && !isNaN(Number(val))) {
-          document.getElementById('opnameCashOpening').value = Number(val);
-          calculateOpnameTotals();
-          alert(`✅ Cash Opening (Modal Awal) berhasil diatur menjadi Rp ${Number(val).toLocaleString('id-ID')}`);
-        }
-      } else if (pin !== null) {
-        alert('❌ PIN Owner salah.');
-      }
-    }
+    // promptOwnerSetModal removed: Cash Opening is managed strictly in Owner Dashboard
 
     function renderOpnameForm() {
       const container = document.getElementById('opnameItemsContainer');

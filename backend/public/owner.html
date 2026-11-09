@@ -19,14 +19,14 @@
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-black text-amber-400">PORTAL PEMILIK (OWNER)</h1>
-          <p class="text-xs text-slate-400">Monitoring Omzet Multi-Cabang & Rekonsiliasi Kurir Kebab AL Bewok</p>
+          <p class="text-xs text-slate-400">Monitoring Omzet Multi-Cabang, Pengaturan Modal Awal (Cash Opening), & Analisis Stock Opname</p>
         </div>
       </div>
       <div class="flex items-center space-x-2 text-xs">
-        <a href="/" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl border border-slate-700">
-          <i class="fa-solid fa-arrow-left"></i> Kembali ke Simulator
+        <a href="/admin.html" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-2 rounded-xl border border-slate-700 transition">
+          <i class="fa-solid fa-cash-register mr-1"></i> Buka Pos / Kasir Lapak
         </a>
-        <button onclick="fetchSummary()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl flex items-center space-x-1 shadow">
+        <button onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95">
           <i class="fa-solid fa-arrows-rotate"></i>
           <span>Segarkan Data</span>
         </button>
@@ -34,37 +34,49 @@
     </header>
 
     <!-- METRIK UTAMA FINANSIAL -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab (Semua Cabang)</span>
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab</span>
         <div id="statTotalFood" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">Rp 0</div>
-        <p class="text-[11px] text-slate-500 mt-1">Hak bersih masing-masing lapak</p>
+        <p class="text-[11px] text-slate-500 mt-1">Akumulasi seluruh lapak cabang</p>
         <div class="absolute -right-3 -bottom-4 text-6xl text-slate-700/30">🍢</div>
       </div>
 
       <div class="bg-slate-800 border border-red-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Total Titipan Ongkir Kurir di Cabang</span>
+        <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Titipan Ongkir di Cabang</span>
         <div id="statTotalDelivery" class="text-2xl md:text-3xl font-black text-red-400 mt-2">Rp 0</div>
-        <p class="text-[11px] text-red-300/60 mt-1">Uang yang harus disetor cabang ke Pusat untuk kurir</p>
+        <p class="text-[11px] text-red-300/60 mt-1">Wajib disetor cabang ke Pusat</p>
         <div class="absolute -right-3 -bottom-4 text-6xl text-red-900/20">🛵</div>
       </div>
 
       <div class="bg-slate-800 border border-emerald-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
         <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Total Transaksi Selesai</span>
         <div id="statTotalOrders" class="text-2xl md:text-3xl font-black text-emerald-400 mt-2">0 Pesanan</div>
-        <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi seluruh lapak</p>
+        <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi penjualan sistem</p>
         <div class="absolute -right-3 -bottom-4 text-6xl text-emerald-900/20">✅</div>
+      </div>
+
+      <div class="bg-slate-800 border border-amber-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+        <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">Laporan Opname Masuk</span>
+        <div id="statTotalOpname" class="text-2xl md:text-3xl font-black text-amber-300 mt-2">0 Laporan</div>
+        <p class="text-[11px] text-amber-300/60 mt-1">Closing & rekap fisik bahan</p>
+        <div class="absolute -right-3 -bottom-4 text-6xl text-amber-900/20">📦</div>
       </div>
     </div>
 
-    <!-- TABEL 1: REKAPITULASI & TAGIHAN PER CABANG (SETTLEMENT INVOICE) -->
+    <!-- TABEL 1: PENGATURAN CABANG, MODAL AWAL (CASH OPENING) & TITIPAN ONGKIR -->
     <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 class="font-extrabold text-base text-slate-100">Rekapitulasi Cabang & Titipan Ongkir</h2>
-          <p class="text-xs text-slate-400">Pencatatan otomatis pembagian hak lapak vs hak kurir freelance</p>
+          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+            <i class="fa-solid fa-store mr-2 text-amber-400"></i>
+            <span>Rekapitulasi Cabang & Pengaturan Modal Awal (Cash Opening)</span>
+          </h2>
+          <p class="text-xs text-slate-400">Owner berwenang menetapkan Cash Opening (laci kasir) masing-masing cabang. Lapak hanya dapat membaca nilai ini.</p>
         </div>
-        <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">Multi-Cabang</span>
+        <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">
+          <i class="fa-solid fa-lock text-[10px] mr-1"></i>Otoritas Khusus Owner
+        </span>
       </div>
 
       <div class="overflow-x-auto">
@@ -74,8 +86,9 @@
               <th class="p-3 rounded-l-xl">Nama Lapak Cabang</th>
               <th class="p-3">Total Order</th>
               <th class="p-3">Omzet Makanan (Hak Lapak)</th>
-              <th class="p-3 text-red-400">Titipan Ongkir (Wajib Disetor)</th>
-              <th class="p-3 rounded-r-xl text-right">Aksi Tagihan</th>
+              <th class="p-3 text-red-400">Titipan Ongkir</th>
+              <th class="p-3 text-amber-300">Cash Opening (Modal Awal dari Owner)</th>
+              <th class="p-3 rounded-r-xl text-right">Aksi</th>
             </tr>
           </thead>
           <tbody id="branchTableBody" class="divide-y divide-slate-700 text-slate-200">
@@ -85,11 +98,35 @@
       </div>
     </div>
 
-    <!-- TABEL 2: PERMINTAAN TARIK SALDO (WITHDRAWAL) KURIR FREELANCE -->
+    <!-- TABEL 2: LAPORAN STOCK OPNAME HARIAN & ANALISIS BAHAN DARI LAPAK -->
+    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+        <div>
+          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+            <i class="fa-solid fa-boxes-stacked mr-2 text-amber-400"></i>
+            <span>Laporan Stock Opname Harian Gerai (Analisis Owner)</span>
+          </h2>
+          <p class="text-xs text-slate-400">Data setoran kasir, omzet multi-channel (Cash, BCA/QRIS, Gofood, Grabfood, Shopeefood) & sisa fisik 21 bahan baku</p>
+        </div>
+        <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
+          Sinkronisasi Lapak Real-Time
+        </span>
+      </div>
+
+      <div id="opnameContainer" class="space-y-4">
+        <!-- Render via JS -->
+        <div class="text-center py-8 text-slate-500 text-xs">Memuat laporan stock opname...</div>
+      </div>
+    </div>
+
+    <!-- TABEL 3: PERMINTAAN TARIK SALDO (WITHDRAWAL) KURIR FREELANCE -->
     <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="font-extrabold text-base text-slate-100">Antrean Pencairan Saldo Driver</h2>
+          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+            <i class="fa-solid fa-money-bill-transfer mr-2 text-emerald-400"></i>
+            <span>Antrean Pencairan Saldo Driver</span>
+          </h2>
           <p class="text-xs text-slate-400">Driver freelance meminta penarikan dana ke rekening atau e-wallet mereka</p>
         </div>
         <span class="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">Kurir Freelance</span>
@@ -116,6 +153,11 @@
   </div>
 
   <script>
+    async function fetchAllData() {
+      await fetchSummary();
+      await fetchStockOpnames();
+    }
+
     async function fetchSummary() {
       try {
         const res = await fetch('/api/super-admin/summary').then(r => r.json());
@@ -125,24 +167,38 @@
           document.getElementById('statTotalDelivery').innerText = `Rp ${d.total_delivery_fees.toLocaleString('id-ID')}`;
           document.getElementById('statTotalOrders').innerText = `${d.total_orders} Pesanan`;
 
-          // Render Cabang
+          // Render Cabang dengan Pengaturan Modal Awal
           const bBody = document.getElementById('branchTableBody');
-          bBody.innerHTML = d.branches.map(b => `
-            <tr class="hover:bg-slate-750 transition">
-              <td class="p-3">
-                <span class="font-bold text-slate-100 block text-[13px]">${b.branch_name}</span>
-                <span class="text-slate-400 text-[10px]">${b.address}</span>
-              </td>
-              <td class="p-3 font-semibold">${b.order_count} Transaksi</td>
-              <td class="p-3 font-black text-amber-400">Rp ${b.food_revenue.toLocaleString('id-ID')}</td>
-              <td class="p-3 font-black text-red-400">Rp ${b.delivery_fee_held.toLocaleString('id-ID')}</td>
-              <td class="p-3 text-right">
-                <button onclick="sendInvoiceWA('${b.branch_name}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
-                  <i class="fa-brands fa-whatsapp"></i> Tagih ke Kasir
-                </button>
-              </td>
-            </tr>
-          `).join('');
+          bBody.innerHTML = d.branches.map(b => {
+            const currentCashOpening = Number(b.cash_opening) || 100000;
+            return `
+              <tr class="hover:bg-slate-750 transition">
+                <td class="p-3">
+                  <span class="font-bold text-slate-100 block text-[13px]">${b.branch_name}</span>
+                  <span class="text-slate-400 text-[10px]">${b.address}</span>
+                </td>
+                <td class="p-3 font-semibold">${b.order_count} Transaksi</td>
+                <td class="p-3 font-black text-amber-400">Rp ${b.food_revenue.toLocaleString('id-ID')}</td>
+                <td class="p-3 font-black text-red-400">Rp ${b.delivery_fee_held.toLocaleString('id-ID')}</td>
+                <td class="p-3">
+                  <div class="flex items-center space-x-2">
+                    <span class="font-black text-white bg-slate-900/90 px-2.5 py-1 rounded-xl border border-amber-500/30 text-xs">
+                      Rp ${currentCashOpening.toLocaleString('id-ID')}
+                    </span>
+                    <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${b.branch_name}', ${currentCashOpening})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded-xl text-[10px] flex items-center space-x-1 shadow transition active:scale-95">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                      <span>Ubah Modal</span>
+                    </button>
+                  </div>
+                </td>
+                <td class="p-3 text-right">
+                  <button onclick="sendInvoiceWA('${b.branch_name}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
+                    <i class="fa-brands fa-whatsapp"></i> Tagih ke Kasir
+                  </button>
+                </td>
+              </tr>
+            `;
+          }).join('');
 
           // Render Withdrawals
           const wBody = document.getElementById('withdrawalTableBody');
@@ -175,6 +231,190 @@
       }
     }
 
+    // Fungsi Owner Mengatur Cash Opening (Modal Awal)
+    async function editBranchCashOpening(branchId, branchName, currentVal) {
+      const input = prompt(`[PENGATURAN OWNER]\nMasukkan nominal Cash Opening (Modal Kas Awal Laci) untuk:\n${branchName}\n\n(Nilai ini akan terkunci di aplikasi kasir/lapak dan hanya bisa diubah di sini):`, currentVal);
+      if (input === null) return;
+      const num = Number(input.replace(/[^0-9]/g, ''));
+      if (isNaN(num) || num < 0) {
+        alert('❌ Nominal uang tidak valid.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/branches/${branchId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cash_opening: num })
+        }).then(r => r.json());
+
+        if (res.success) {
+          alert(`✅ BERHASIL!\nCash Opening untuk ${branchName} berhasil diatur menjadi:\nRp ${num.toLocaleString('id-ID')}\n\nNilai ini telah dikirim ke sistem dan lapak/kasir akan otomatis menggunakan modal ini (hanya baca).`);
+          fetchAllData();
+        } else {
+          alert('❌ Gagal mengubah modal: ' + (res.message || 'Kesalahan server'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    // Mengambil & Menampilkan Riwayat Stock Opname dari Seluruh Lapak
+    async function fetchStockOpnames() {
+      const container = document.getElementById('opnameContainer');
+      try {
+        const res = await fetch('/api/admin/stock-opname').then(r => r.json());
+        if (res.success && Array.isArray(res.data)) {
+          const list = res.data;
+          document.getElementById('statTotalOpname').innerText = `${list.length} Laporan`;
+
+          if (list.length === 0) {
+            container.innerHTML = `
+              <div class="text-center py-10 bg-slate-900/50 rounded-2xl border border-slate-700/60 p-4 space-y-2">
+                <i class="fa-solid fa-box-open text-3xl text-slate-600"></i>
+                <p class="text-sm font-bold text-slate-400">Belum ada laporan stock opname harian yang dikirim dari lapak.</p>
+                <p class="text-xs text-slate-500">Lapak akan mengirimkan laporan closing harian pada jam 22:30 WIB.</p>
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = list.map((op, idx) => {
+            const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
+            const items = op.stock_items || {};
+            const itemKeys = Object.keys(items);
+
+            return `
+              <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4 hover:border-amber-500/40 transition">
+                <!-- HEADER LAPORAN -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-amber-400 font-black text-sm md:text-base">${op.closing_date || 'Closing Harian'}</span>
+                      <span class="text-slate-400 text-xs">• Cabang: <b class="text-white">${op.branch_name || 'Kalisari'}</b></span>
+                    </div>
+                    <span class="text-slate-400 text-xs">Petugas Kasir: <b>${op.staff_name || 'Kasir Lapak'}</b> • Waktu Submit: ${new Date(op.created_at || Date.now()).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div>
+                    ${isLocked ? `
+                      <span class="bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center">
+                        <i class="fa-solid fa-lock text-slate-500 mr-1.5"></i> Terkunci Permanen (Lewat 15:00 WIB)
+                      </span>
+                    ` : `
+                      <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center animate-pulse">
+                        <i class="fa-solid fa-clock mr-1.5"></i> Sesi Aktif (Bisa disesuaikan s/d 15:00 WIB)
+                      </span>
+                    `}
+                  </div>
+                </div>
+
+                <!-- RINGKASAN FINANSIAL & REKAP KAS -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center">
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-amber-300 font-bold block">Cash Opening (Owner)</span>
+                    <span class="text-xs font-black text-white font-mono">Rp ${(op.cash_opening || 100000).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-emerald-400 font-bold block">Omzet Cash</span>
+                    <span class="text-xs font-black text-emerald-300 font-mono">Rp ${(op.omzet_cash || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-blue-400 font-bold block">BCA / QRIS</span>
+                    <span class="text-xs font-black text-blue-300 font-mono">Rp ${(op.omzet_bca || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-red-400 font-bold block">Gofood</span>
+                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_gofood || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-green-400 font-bold block">Grabfood</span>
+                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_grabfood || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                    <span class="text-[10px] text-orange-400 font-bold block">Shopeefood</span>
+                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_shopeefood || 0).toLocaleString('id-ID')}</span>
+                  </div>
+                  <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 p-2.5 rounded-xl font-bold col-span-2 sm:col-span-1 shadow-sm">
+                    <span class="text-[10px] font-black uppercase block opacity-90">Total Kas Setor</span>
+                    <span class="text-xs font-black font-mono">Rp ${(op.total_setor_kas || (op.cash_opening + op.omzet_cash)).toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 pt-1">
+                  <div>
+                    <span>Total Penjualan Semua Saluran: <b class="text-amber-400 font-mono font-bold text-sm">Rp ${(op.total_omzet || 0).toLocaleString('id-ID')}</b></span>
+                  </div>
+                  ${op.notes ? `
+                    <div class="text-[11px] text-slate-300 italic bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
+                      <i class="fa-solid fa-comment-dots text-amber-400 mr-1"></i> Catatan Lapak: "${op.notes}"
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- ACCORDION 21 BAHAN BAKU -->
+                <div class="pt-2 border-t border-slate-800">
+                  <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform" id="icon_toggle_${op.id}"></i>
+                    <span>Tampilkan Rincian 21 Bahan Baku Fisik (${itemKeys.length} Bahan Tercatat)</span>
+                  </button>
+
+                  <div id="details_${op.id}" class="hidden mt-3 overflow-x-auto bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                    <table class="w-full text-xs text-left">
+                      <thead class="text-[10px] uppercase text-slate-400 border-b border-slate-800">
+                        <tr>
+                          <th class="p-2">No</th>
+                          <th class="p-2">Nama Bahan Baku</th>
+                          <th class="p-2">Satuan Resmi</th>
+                          <th class="p-2 text-center text-amber-400">Terjual Sistem POS</th>
+                          <th class="p-2 text-right text-emerald-400">Sisa Fisik Lapak</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-800 text-slate-300">
+                        ${itemKeys.map((k, i) => {
+                          const item = items[k] || {};
+                          return `
+                            <tr class="hover:bg-slate-900/50">
+                              <td class="p-2 text-slate-500 font-mono">${i + 1}</td>
+                              <td class="p-2 font-bold text-white">${item.name || k}</td>
+                              <td class="p-2 uppercase font-mono text-[10px] text-slate-400">(${item.unit || 'pcs'})</td>
+                              <td class="p-2 text-center font-mono font-bold text-amber-400">
+                                ${item.system_sold !== null && item.system_sold !== undefined ? `${item.system_sold} ${item.unit}` : '<span class="text-slate-600">-</span>'}
+                              </td>
+                              <td class="p-2 text-right font-mono font-black text-emerald-400 text-[13px]">
+                                ${Number(item.physical_count || 0).toLocaleString('id-ID')} ${item.unit || ''}
+                              </td>
+                            </tr>
+                          `;
+                        }).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load stock opnames:', err);
+        container.innerHTML = `<div class="text-center py-6 text-red-400 text-xs">Gagal memuat laporan stock opname.</div>`;
+      }
+    }
+
+    function toggleOpnameDetails(id) {
+      const el = document.getElementById(`details_${id}`);
+      const icon = document.getElementById(`icon_toggle_${id}`);
+      if (!el) return;
+      const isHidden = el.classList.contains('hidden');
+      if (isHidden) {
+        el.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+      } else {
+        el.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+      }
+    }
+
     function sendInvoiceWA(branchName, amount) {
       const msg = `Halo Kasir ${branchName}, rekap sistem aplikasi Kebab AL Bewok mencatat ada titipan ongkir kurir sebesar Rp ${amount.toLocaleString('id-ID')} dari transaksi QRIS cabang Anda. Mohon segera disetorkan ke rekening Pusat untuk pencairan gaji kurir ya. Terima kasih!`;
       alert(`Pesan WhatsApp yang dikirim ke kasir:\n\n"${msg}"`);
@@ -186,14 +426,14 @@
         const res = await fetch(`/api/super-admin/withdrawals/${id}/approve`, { method: 'POST' }).then(r => r.json());
         if (res.success) {
           alert('Berhasil! Status pencairan dana kurir diperbarui.');
-          fetchSummary();
+          fetchAllData();
         }
       } catch (err) {
         alert('Gagal memproses approval');
       }
     }
 
-    fetchSummary();
+    fetchAllData();
   </script>
 </body>
 </html>

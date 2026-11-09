@@ -11,7 +11,8 @@
     "is_open": true,
     "open_hours": "15:00 - 23:00",
     "staff_pin": "1234",
-    "out_of_stock": []
+    "out_of_stock": [],
+    "cash_opening": 100000
   },
   {
     "id": "cabang-02",
@@ -25,6 +26,7 @@
     "is_open": true,
     "open_hours": "16:00 - 23:30",
     "staff_pin": "1234",
-    "out_of_stock": []
+    "out_of_stock": [],
+    "cash_opening": 100000
   }
 ]
