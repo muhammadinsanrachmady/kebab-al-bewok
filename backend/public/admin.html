@@ -1400,6 +1400,7 @@
       checkKitchenPipeline();
       await fetchOrders();
       switchMainTab('beranda');
+      renderOpnameForm();
       setInterval(fetchOrders, 3000);
       setInterval(updateOpnameCountdown, 1000);
     }
@@ -3468,7 +3469,7 @@
       // Set branch Kalisari
       const branchInput = document.getElementById('opnameBranchInput');
       if (branchInput) {
-        const curBranch = branches.find(b => b.id === currentBranchId);
+        const curBranch = (allBranches || []).find(b => b.id === currentBranchId);
         branchInput.value = curBranch ? (curBranch.name.includes('Kalisari') ? 'Kalisari' : curBranch.name) : 'Kalisari';
       }
 
@@ -3573,7 +3574,8 @@
       const container = document.getElementById('opnameItemsContainer');
       if (!container) return;
 
-      const sold = calculateSystemSoldIngredients();
+      let sold = {};
+      try { sold = calculateSystemSoldIngredients() || {}; } catch (e) { sold = {}; }
 
       container.innerHTML = OPNAME_ITEMS.map((item, idx) => {
         const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
@@ -3623,7 +3625,8 @@
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Mengirim ke Dashboard Owner...`;
 
       try {
-        const sold = calculateSystemSoldIngredients();
+        let sold = {};
+      try { sold = calculateSystemSoldIngredients() || {}; } catch (e) { sold = {}; }
         const stockItems = {};
 
         OPNAME_ITEMS.forEach(item => {
