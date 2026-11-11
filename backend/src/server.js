@@ -89,6 +89,171 @@ const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const STOCK_OPNAME_FILE = path.join(DATA_DIR, 'stock_opname.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
+const WAREHOUSE_FILE = path.join(DATA_DIR, 'warehouse.json');
+
+const WAREHOUSE_CATEGORIES = [
+  'Kemasan',
+  'Tortilla',
+  'Daging & Protein',
+  'Sayuran & Buah',
+  'Saus & Condiment',
+  'Topping Tambahan'
+];
+
+const DEFAULT_WAREHOUSE_ITEMS = [
+  { no: 1, id: 'bungkus_kebab_jumbo', category: 'Kemasan', name: 'Bungkus Kebab Jumbo', unit: 'pcs', current_stock: 500, safety_stock: 200, unit_cost: 350 },
+  { no: 2, id: 'bungkus_kebab_reguler', category: 'Kemasan', name: 'Bungkus Kebab Reguler', unit: 'pcs', current_stock: 800, safety_stock: 300, unit_cost: 300 },
+  { no: 3, id: 'bungkus_kebab_small', category: 'Kemasan', name: 'Bungkus Kebab Small', unit: 'pcs', current_stock: 250, safety_stock: 200, unit_cost: 250 },
+  { no: 4, id: 'tortilla_jumbo_25cm', category: 'Tortilla', name: 'Tortilla Jumbo 25 cm', unit: 'pcs', current_stock: 300, safety_stock: 150, unit_cost: 1500 },
+  { no: 5, id: 'tortilla_reguler_22cm', category: 'Tortilla', name: 'Tortilla Reguler 22 cm', unit: 'pcs', current_stock: 500, safety_stock: 200, unit_cost: 1200 },
+  { no: 6, id: 'tortilla_kecil_19cm', category: 'Tortilla', name: 'Tortilla Kecil 19 cm', unit: 'pcs', current_stock: 150, safety_stock: 120, unit_cost: 950 },
+  { no: 7, id: 'beef_kebab_jumbo', category: 'Daging & Protein', name: 'Beef Kebab Premium Jumbo', unit: 'pcs', current_stock: 120, safety_stock: 50, unit_cost: 4500 },
+  { no: 8, id: 'beef_kebab_reguler', category: 'Daging & Protein', name: 'Beef Kebab Premium Reguler', unit: 'pcs', current_stock: 180, safety_stock: 80, unit_cost: 3500 },
+  { no: 9, id: 'beef_kebab_small', category: 'Daging & Protein', name: 'Beef Kebab Premium Small', unit: 'pcs', current_stock: 60, safety_stock: 50, unit_cost: 2500 },
+  { no: 10, id: 'daging_kebab_central', category: 'Daging & Protein', name: 'Daging Kebab Central', unit: 'gram', current_stock: 25000, safety_stock: 10000, unit_cost: 85 },
+  { no: 11, id: 'kebab_ayam_homemade', category: 'Daging & Protein', name: 'Kebab Ayam Homemade', unit: 'gram', current_stock: 10000, safety_stock: 5000, unit_cost: 65 },
+  { no: 12, id: 'lettuce_head', category: 'Sayuran & Buah', name: 'Lettuce Head', unit: 'gram', current_stock: 12000, safety_stock: 5000, unit_cost: 28 },
+  { no: 13, id: 'bawang_bombay', category: 'Sayuran & Buah', name: 'Bawang Bombay', unit: 'gram', current_stock: 8000, safety_stock: 3000, unit_cost: 32 },
+  { no: 14, id: 'nanas', category: 'Sayuran & Buah', name: 'Nanas', unit: 'gram', current_stock: 4000, safety_stock: 2000, unit_cost: 20 },
+  { no: 15, id: 'saus_sambal', category: 'Saus & Condiment', name: 'Saus Sambal', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 24 },
+  { no: 16, id: 'saus_tomat', category: 'Saus & Condiment', name: 'Saus Tomat', unit: 'gram', current_stock: 10000, safety_stock: 6000, unit_cost: 22 },
+  { no: 17, id: 'saus_mayonaise', category: 'Saus & Condiment', name: 'Saus Mayonaise', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 30 },
+  { no: 18, id: 'saus_keju', category: 'Saus & Condiment', name: 'Saus Keju', unit: 'gram', current_stock: 6000, safety_stock: 4000, unit_cost: 45 },
+  { no: 19, id: 'saus_signature', category: 'Saus & Condiment', name: 'Saus Signature', unit: 'gram', current_stock: 8000, safety_stock: 4000, unit_cost: 38 },
+  { no: 20, id: 'keju_slice', category: 'Topping Tambahan', name: 'Keju Slice', unit: 'pcs', current_stock: 100, safety_stock: 50, unit_cost: 1100 },
+  { no: 21, id: 'telur', category: 'Topping Tambahan', name: 'Telur', unit: 'pcs', current_stock: 120, safety_stock: 80, unit_cost: 2000 }
+];
+
+function createDefaultWarehouseData() {
+  return {
+    meta: {
+      warehouse_name: 'Central Kitchen & Warehouse',
+      pic_name: 'Supervisor Gudang & Logistik',
+      safety_days: 3,
+      target_food_cost_min: 35,
+      target_food_cost_max: 40
+    },
+    items: DEFAULT_WAREHOUSE_ITEMS.map(item => ({ ...item, updated_at: null })),
+    ledger: [],
+    purchase_orders: []
+  };
+}
+
+function getOrInitWarehouse() {
+  const wh = readJSON(WAREHOUSE_FILE, createDefaultWarehouseData());
+  if (!wh || !Array.isArray(wh.items) || wh.items.length === 0) {
+    const fresh = createDefaultWarehouseData();
+    writeJSON(WAREHOUSE_FILE, fresh);
+    return fresh;
+  }
+  if (!wh.meta) wh.meta = createDefaultWarehouseData().meta;
+  if (!Array.isArray(wh.ledger)) wh.ledger = [];
+  if (!Array.isArray(wh.purchase_orders)) wh.purchase_orders = [];
+  return wh;
+}
+
+function getWarehouseReorderCount() {
+  const wh = getOrInitWarehouse();
+  return wh.items.filter(it => (Number(it.current_stock) || 0) <= (Number(it.safety_stock) || 0)).length;
+}
+
+function recordWarehouseTransaction(wh, payload) {
+  const {
+    type,
+    date,
+    branch_id = '',
+    branch_name = '',
+    supplier_name = '',
+    reference_no = '',
+    pic_name = 'Admin Gudang',
+    note = '',
+    items = []
+  } = payload;
+
+  if (!['supplier_in', 'branch_transfer', 'waste', 'adjustment'].includes(type)) {
+    return { error: 'Tipe transaksi gudang tidak valid' };
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    return { error: 'Pilih minimal 1 bahan baku dengan jumlah valid' };
+  }
+
+  const itemMap = new Map(wh.items.map(it => [it.id, it]));
+  const normalizedRows = [];
+  const isOutgoing = type === 'branch_transfer' || type === 'waste';
+
+  for (const row of items) {
+    const target = itemMap.get(row.item_id);
+    if (!target) {
+      return { error: `Bahan tidak ditemukan: ${row.item_id}` };
+    }
+    const qty = Number(row.qty) || 0;
+    if (type !== 'adjustment' && qty <= 0) {
+      return { error: `Jumlah untuk ${target.name} harus lebih dari 0` };
+    }
+    const currStock = Number(target.current_stock) || 0;
+    if (isOutgoing && qty > currStock) {
+      return { error: `Stok gudang ${target.name} tidak cukup (sisa ${currStock} ${target.unit}, diminta ${qty} ${target.unit})` };
+    }
+    const effectiveCost = row.unit_cost != null && Number(row.unit_cost) > 0
+      ? Number(row.unit_cost)
+      : (Number(target.unit_cost) || 0);
+    normalizedRows.push({ target, qty, effectiveCost });
+  }
+
+  const nowIso = new Date().toISOString();
+  const txDate = date || getWibDateISO(new Date());
+  const txItems = [];
+  let totalValue = 0;
+
+  for (const { target, qty, effectiveCost } of normalizedRows) {
+    const prevStock = Number(target.current_stock) || 0;
+    let nextStock = prevStock;
+    if (type === 'supplier_in') {
+      nextStock = prevStock + qty;
+      target.unit_cost = effectiveCost;
+    } else if (isOutgoing) {
+      nextStock = prevStock - qty;
+    } else if (type === 'adjustment') {
+      nextStock = Math.max(0, qty);
+    }
+
+    const deltaQty = type === 'adjustment' ? Math.abs(nextStock - prevStock) : qty;
+    const subtotal = deltaQty * effectiveCost;
+    target.current_stock = nextStock;
+    target.updated_at = nowIso;
+    totalValue += subtotal;
+
+    txItems.push({
+      item_id: target.id,
+      name: target.name,
+      category: target.category,
+      unit: target.unit,
+      qty: type === 'adjustment' ? nextStock - prevStock : qty,
+      unit_cost: effectiveCost,
+      subtotal,
+      prev_stock: prevStock,
+      next_stock: nextStock
+    });
+  }
+
+  const entry = {
+    id: `whm-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    type,
+    date: txDate,
+    branch_id,
+    branch_name,
+    supplier_name,
+    reference_no,
+    pic_name,
+    note,
+    items: txItems,
+    total_value: totalValue,
+    created_at: nowIso
+  };
+
+  wh.ledger.unshift(entry);
+  return { entry };
+}
 
 // Helper untuk membaca & menulis file JSON (dengan In-Memory Fallback untuk Serverless Cloud seperti Vercel/Render)
 const memoryCache = {};
@@ -2111,7 +2276,8 @@ app.get('/api/super-admin/summary', (req, res) => {
       drivers: Object.values(wallets.drivers || {}),
       withdrawals: wallets.withdrawals || [],
       wallet_change_requests: wallets.wallet_change_requests || [],
-      customer_password_resets_pending: (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length
+      customer_password_resets_pending: (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length,
+      warehouse_reorder_alerts: getWarehouseReorderCount()
     }
   });
 });
@@ -2514,6 +2680,447 @@ app.post('/api/super-admin/customers/:key/reset-password', (req, res) => {
     success: true,
     message: `Kata sandi untuk ${cust.name} berhasil diatur ulang oleh Owner.`
   });
+});
+
+// ============================================================================
+// PORTAL OWNER TAB GUDANG: MUTASI STOK PUSAT, PO & EVALUASI HPP CABANG
+// ============================================================================
+app.get('/api/super-admin/warehouse', (req, res) => {
+  const { start_date, end_date } = req.query;
+  const wh = getOrInitWarehouse();
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const opnamesRaw = readJSON(STOCK_OPNAME_FILE) || [];
+  const orders = readJSON(ORDERS_FILE) || [];
+
+  const inPeriod = entryDate => isDateInRange(entryDate, start_date, end_date);
+  const periodLedger = (wh.ledger || []).filter(tx => inPeriod(tx.date || getWibDateISO(tx.created_at)));
+
+  // Hitung agregasi mutasi periode per item & per cabang (untuk mempertahankan identitas Stok Awal + Masuk - Keluar === Sisa Akhir)
+  const itemAgg = new Map();
+  wh.items.forEach(it => {
+    itemAgg.set(it.id, {
+      stock_in: 0,
+      waste: 0,
+      transfers_by_branch: {},
+      total_transfer_out: 0,
+      adj_delta: 0
+    });
+  });
+
+  const branchTransferTotalsMap = new Map();
+  branches.forEach(b => {
+    branchTransferTotalsMap.set(b.id, {
+      branch_id: b.id,
+      branch_name: b.name,
+      qty_units: 0,
+      total_value: 0,
+      tx_count: 0
+    });
+  });
+
+  let totalTransferValue = 0;
+  let totalSupplierInValue = 0;
+  let totalWasteValue = 0;
+
+  periodLedger.forEach(tx => {
+    if (tx.type === 'supplier_in') totalSupplierInValue += Number(tx.total_value) || 0;
+    if (tx.type === 'waste') totalWasteValue += Number(tx.total_value) || 0;
+    if (tx.type === 'branch_transfer') {
+      totalTransferValue += Number(tx.total_value) || 0;
+      if (tx.branch_id) {
+        if (!branchTransferTotalsMap.has(tx.branch_id)) {
+          branchTransferTotalsMap.set(tx.branch_id, {
+            branch_id: tx.branch_id,
+            branch_name: tx.branch_name || tx.branch_id,
+            qty_units: 0,
+            total_value: 0,
+            tx_count: 0
+          });
+        }
+        const bt = branchTransferTotalsMap.get(tx.branch_id);
+        bt.total_value += Number(tx.total_value) || 0;
+        bt.tx_count += 1;
+      }
+    }
+
+    (tx.items || []).forEach(row => {
+      const agg = itemAgg.get(row.item_id);
+      if (!agg) return;
+      const qty = Number(row.qty) || 0;
+      if (tx.type === 'supplier_in') {
+        agg.stock_in += qty;
+      } else if (tx.type === 'waste') {
+        agg.waste += qty;
+      } else if (tx.type === 'branch_transfer') {
+        const bKey = tx.branch_id || 'lainnya';
+        agg.transfers_by_branch[bKey] = (agg.transfers_by_branch[bKey] || 0) + qty;
+        agg.total_transfer_out += qty;
+        if (branchTransferTotalsMap.has(bKey)) {
+          branchTransferTotalsMap.get(bKey).qty_units += qty;
+        }
+      } else if (tx.type === 'adjustment') {
+        agg.adj_delta += qty;
+      }
+    });
+  });
+
+  const items = wh.items.map(it => {
+    const agg = itemAgg.get(it.id);
+    const currentStock = Number(it.current_stock) || 0;
+    const totalOut = agg.total_transfer_out + agg.waste;
+    // Reverse-compute Stok Awal periode sehingga (Stok Awal + Masuk) - Keluar === Sisa Akhir
+    const openingStock = Math.max(0, currentStock - agg.stock_in - agg.adj_delta + totalOut);
+    const availableStock = openingStock + agg.stock_in;
+    const safetyStock = Number(it.safety_stock) || 0;
+    const unitCost = Number(it.unit_cost) || 0;
+    const assetValue = currentStock * unitCost;
+
+    let status = 'SAFE';
+    if (currentStock <= safetyStock) status = 'REORDER';
+    else if (currentStock <= Math.ceil(safetyStock * 1.25)) status = 'WARNING';
+
+    const suggestedPoQty = currentStock <= safetyStock
+      ? Math.max(safetyStock, safetyStock * 2 - currentStock)
+      : 0;
+
+    return {
+      ...it,
+      opening_stock: openingStock,
+      stock_in: agg.stock_in,
+      available_stock: availableStock,
+      transfers_by_branch: agg.transfers_by_branch,
+      total_transfer_out: agg.total_transfer_out,
+      waste: agg.waste,
+      total_out: totalOut,
+      current_stock: currentStock,
+      safety_stock: safetyStock,
+      unit_cost: unitCost,
+      asset_value: assetValue,
+      status,
+      suggested_po_qty: suggestedPoQty
+    };
+  });
+
+  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Integrasi Sheet HPP Outlet + Opname Kasir + Kiriman Gudang)
+  const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
+  const branchEvaluations = branches.map(b => {
+    const bOpnames = enrichedOpnames
+      .filter(op => op.branch_id === b.id && (!start_date || !end_date || isDateInRange(op.business_date, start_date, end_date)))
+      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
+
+    const allBranchOpnamesSorted = enrichedOpnames
+      .filter(op => op.branch_id === b.id)
+      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
+
+    const latestOpname = bOpnames[bOpnames.length - 1] || allBranchOpnamesSorted[allBranchOpnamesSorted.length - 1] || null;
+    const latestIdxAll = latestOpname ? allBranchOpnamesSorted.findIndex(op => op.id === latestOpname.id) : -1;
+    const prevOpname = latestIdxAll > 0 ? allBranchOpnamesSorted[latestIdxAll - 1] : null;
+
+    const restockByItem = {};
+    (wh.ledger || []).forEach(tx => {
+      if (tx.type !== 'branch_transfer' || tx.branch_id !== b.id) return;
+      const txDate = tx.date || getWibDateISO(tx.created_at);
+      const matchesEvalWindow = latestOpname
+        ? (prevOpname ? (txDate > prevOpname.business_date && txDate <= latestOpname.business_date) : txDate === latestOpname.business_date)
+        : inPeriod(txDate);
+      if (matchesEvalWindow) {
+        (tx.items || []).forEach(r => {
+          restockByItem[r.item_id] = (restockByItem[r.item_id] || 0) + (Number(r.qty) || 0);
+        });
+      }
+    });
+
+    const catHppMap = new Map(WAREHOUSE_CATEGORIES.map(c => [c, 0]));
+    let totalHpp = 0;
+    let comparableItemCount = 0;
+
+    const materialUsageRows = wh.items.map(it => {
+      const openingQty = prevOpname && prevOpname.stock_items && prevOpname.stock_items[it.id] != null
+        ? Number(prevOpname.stock_items[it.id].physical_count)
+        : null;
+      const closingQty = latestOpname && latestOpname.stock_items && latestOpname.stock_items[it.id] != null
+        ? Number(latestOpname.stock_items[it.id].physical_count)
+        : null;
+      const restockQty = restockByItem[it.id] || 0;
+      const unitCost = Number(it.unit_cost) || 0;
+
+      let usageQty = null;
+      let subtotalHpp = 0;
+      if (openingQty !== null && closingQty !== null) {
+        usageQty = Math.max(0, openingQty + restockQty - closingQty);
+        subtotalHpp = usageQty * unitCost;
+        comparableItemCount += 1;
+      }
+
+      totalHpp += subtotalHpp;
+      catHppMap.set(it.category, (catHppMap.get(it.category) || 0) + subtotalHpp);
+
+      return {
+        item_id: it.id,
+        category: it.category,
+        name: it.name,
+        unit: it.unit,
+        opening_qty: openingQty,
+        restock_qty: restockQty,
+        closing_qty: closingQty,
+        usage_qty: usageQty,
+        unit_cost: unitCost,
+        subtotal_hpp: subtotalHpp
+      };
+    });
+
+    const omzet = latestOpname ? (Number(latestOpname.total_omzet) || 0) : 0;
+    const grossProfit = omzet - totalHpp;
+    const foodCostRatio = omzet > 0 && comparableItemCount > 0 ? Number(((totalHpp / omzet) * 100).toFixed(1)) : null;
+
+    const hppByCategory = WAREHOUSE_CATEGORIES.map(cat => {
+      const val = catHppMap.get(cat) || 0;
+      return {
+        category: cat,
+        hpp: val,
+        share_pct: totalHpp > 0 ? Number(((val / totalHpp) * 100).toFixed(1)) : 0
+      };
+    });
+
+    return {
+      branch_id: b.id,
+      branch_name: b.name,
+      has_opname_pair: Boolean(prevOpname && latestOpname),
+      has_latest_opname: Boolean(latestOpname),
+      opening_date: prevOpname ? prevOpname.closing_date : null,
+      closing_date: latestOpname ? latestOpname.closing_date : null,
+      business_date: latestOpname ? latestOpname.business_date : null,
+      gross_sales: omzet,
+      total_hpp: totalHpp,
+      gross_profit: grossProfit,
+      food_cost_ratio: foodCostRatio,
+      hpp_by_category: hppByCategory,
+      items: materialUsageRows
+    };
+  });
+
+  const ratios = branchEvaluations.map(e => e.food_cost_ratio).filter(v => v !== null);
+  const avgFoodCostRatio = ratios.length > 0
+    ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
+    : null;
+
+  const purchaseOrders = [...(wh.purchase_orders || [])].sort(
+    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  );
+  const recentLedger = [...(wh.ledger || [])].sort(
+    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  );
+
+  res.json({
+    success: true,
+    data: {
+      meta: wh.meta,
+      categories: WAREHOUSE_CATEGORIES,
+      branches: branches.map(b => ({ id: b.id, name: b.name })),
+      stats: {
+        total_asset_value: items.reduce((s, it) => s + it.asset_value, 0),
+        reorder_count: items.filter(it => it.status === 'REORDER').length,
+        warning_count: items.filter(it => it.status === 'WARNING').length,
+        total_transfer_value: totalTransferValue,
+        total_supplier_in_value: totalSupplierInValue,
+        total_waste_value: totalWasteValue,
+        transfer_by_branch_totals: Array.from(branchTransferTotalsMap.values()),
+        pending_po_count: purchaseOrders.filter(po => po.status === 'ordered').length,
+        avg_food_cost_ratio: avgFoodCostRatio
+      },
+      items,
+      branch_evaluations: branchEvaluations,
+      purchase_orders: purchaseOrders,
+      ledger: recentLedger.slice(0, 60)
+    }
+  });
+});
+
+// Catat Transaksi Mutasi Gudang (Masuk Supplier / Kirim Cabang / Rusak-Waste)
+app.post('/api/super-admin/warehouse/transaction', (req, res) => {
+  const { type, date, branch_id, supplier_name, reference_no, pic_name, note, items } = req.body || {};
+  const wh = getOrInitWarehouse();
+  const branches = readJSON(BRANCHES_FILE) || [];
+  let branchName = '';
+
+  if (type === 'branch_transfer') {
+    const targetBranch = branches.find(b => b.id === branch_id);
+    if (!targetBranch) {
+      return res.status(400).json({ success: false, message: 'Pilih lapak tujuan distribusi terlebih dahulu.' });
+    }
+    branchName = targetBranch.name;
+  }
+
+  const result = recordWarehouseTransaction(wh, {
+    type,
+    date,
+    branch_id,
+    branch_name: branchName,
+    supplier_name,
+    reference_no,
+    pic_name,
+    note,
+    items
+  });
+
+  if (result.error) {
+    return res.status(400).json({ success: false, message: result.error });
+  }
+
+  writeJSON(WAREHOUSE_FILE, wh);
+  const labelMap = {
+    supplier_in: 'Penerimaan dari supplier',
+    branch_transfer: `Distribusi ke ${branchName}`,
+    waste: 'Pencatatan rusak / waste'
+  };
+
+  res.json({
+    success: true,
+    message: `${labelMap[type] || 'Mutasi gudang'} berhasil dicatat!`,
+    data: result.entry
+  });
+});
+
+// Perbarui Harga Modal, Safety Stock, atau Penyesuaian Fisik Item Gudang
+app.patch('/api/super-admin/warehouse/items/:id', (req, res) => {
+  const { id } = req.params;
+  const { unit_cost, safety_stock, current_stock, pic_name, note } = req.body || {};
+  const wh = getOrInitWarehouse();
+  const item = wh.items.find(it => it.id === id);
+  if (!item) {
+    return res.status(404).json({ success: false, message: 'Bahan baku tidak ditemukan' });
+  }
+
+  if (unit_cost !== undefined && !Number.isNaN(Number(unit_cost)) && Number(unit_cost) >= 0) {
+    item.unit_cost = Number(unit_cost);
+  }
+  if (safety_stock !== undefined && !Number.isNaN(Number(safety_stock)) && Number(safety_stock) >= 0) {
+    item.safety_stock = Number(safety_stock);
+  }
+  if (current_stock !== undefined && !Number.isNaN(Number(current_stock)) && Number(current_stock) >= 0) {
+    const nextStock = Number(current_stock);
+    if (nextStock !== Number(item.current_stock)) {
+      recordWarehouseTransaction(wh, {
+        type: 'adjustment',
+        pic_name: pic_name || 'Owner (Stock Opname Gudang)',
+        note: note || `Penyesuaian fisik stok ${item.name}`,
+        items: [{ item_id: item.id, qty: nextStock }]
+      });
+    }
+  }
+  item.updated_at = new Date().toISOString();
+  writeJSON(WAREHOUSE_FILE, wh);
+
+  res.json({
+    success: true,
+    message: `Pengaturan ${item.name} berhasil diperbarui.`,
+    data: item
+  });
+});
+
+// Buat Purchase Order (PO) Pembelian Bahan ke Supplier
+app.post('/api/super-admin/warehouse/purchase-orders', (req, res) => {
+  const { supplier_name, note, items } = req.body || {};
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ success: false, message: 'Pilih minimal 1 bahan baku untuk dibuat PO.' });
+  }
+
+  const wh = getOrInitWarehouse();
+  const itemMap = new Map(wh.items.map(it => [it.id, it]));
+  const poItems = [];
+  let totalCost = 0;
+
+  for (const row of items) {
+    const master = itemMap.get(row.item_id);
+    const qty = Number(row.qty) || 0;
+    if (!master || qty <= 0) continue;
+    const unitCost = row.unit_cost != null && Number(row.unit_cost) > 0 ? Number(row.unit_cost) : (Number(master.unit_cost) || 0);
+    const subtotal = qty * unitCost;
+    totalCost += subtotal;
+    poItems.push({
+      item_id: master.id,
+      name: master.name,
+      category: master.category,
+      unit: master.unit,
+      qty,
+      unit_cost: unitCost,
+      subtotal
+    });
+  }
+
+  if (poItems.length === 0) {
+    return res.status(400).json({ success: false, message: 'Tidak ada item PO dengan kuantitas valid.' });
+  }
+
+  const po = {
+    id: `PO-${getWibDateISO().replace(/-/g, '')}-${String(wh.purchase_orders.length + 1).padStart(2, '0')}`,
+    supplier_name: (supplier_name || '').trim() || 'Supplier Pusat / Pasar Induk',
+    note: (note || '').trim(),
+    items: poItems,
+    total_estimated_cost: totalCost,
+    status: 'ordered',
+    created_at: new Date().toISOString()
+  };
+
+  wh.purchase_orders.unshift(po);
+  writeJSON(WAREHOUSE_FILE, wh);
+
+  res.json({
+    success: true,
+    message: `PO ${po.id} berhasil diterbitkan!`,
+    data: po
+  });
+});
+
+// Terima Barang PO -> Otomatis Masuk ke Stok Gudang & Ledger
+app.post('/api/super-admin/warehouse/purchase-orders/:id/receive', (req, res) => {
+  const { id } = req.params;
+  const wh = getOrInitWarehouse();
+  const po = wh.purchase_orders.find(p => p.id === id);
+  if (!po) {
+    return res.status(404).json({ success: false, message: 'PO tidak ditemukan' });
+  }
+  if (po.status !== 'ordered') {
+    return res.status(400).json({ success: false, message: `PO ini berstatus "${po.status}" dan tidak dapat diterima lagi.` });
+  }
+
+  const txResult = recordWarehouseTransaction(wh, {
+    type: 'supplier_in',
+    supplier_name: po.supplier_name,
+    reference_no: po.id,
+    pic_name: 'Owner / Penerimaan PO',
+    note: po.note || `Penerimaan barang sesuai ${po.id}`,
+    items: po.items.map(it => ({ item_id: it.item_id, qty: it.qty, unit_cost: it.unit_cost }))
+  });
+
+  if (txResult.error) {
+    return res.status(400).json({ success: false, message: txResult.error });
+  }
+
+  po.status = 'received';
+  po.received_at = new Date().toISOString();
+  writeJSON(WAREHOUSE_FILE, wh);
+
+  res.json({
+    success: true,
+    message: `Barang ${po.id} berhasil diterima & stok gudang otomatis bertambah!`,
+    data: po
+  });
+});
+
+// Batalkan Purchase Order
+app.post('/api/super-admin/warehouse/purchase-orders/:id/cancel', (req, res) => {
+  const { id } = req.params;
+  const wh = getOrInitWarehouse();
+  const po = wh.purchase_orders.find(p => p.id === id);
+  if (!po) {
+    return res.status(404).json({ success: false, message: 'PO tidak ditemukan' });
+  }
+  po.status = 'cancelled';
+  po.cancelled_at = new Date().toISOString();
+  writeJSON(WAREHOUSE_FILE, wh);
+
+  res.json({ success: true, message: `PO ${po.id} dibatalkan.`, data: po });
 });
 
 // Mulai Server

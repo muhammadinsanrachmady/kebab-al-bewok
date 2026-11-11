@@ -110,6 +110,7 @@
         <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
           <i class="fa-solid fa-boxes-stacked text-[11px]"></i>
           <span>Gudang</span>
+          <span id="badgeGudangAlert" class="hidden bg-rose-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
         </button>
 
         <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
@@ -543,22 +544,238 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 5: GUDANG                                                       -->
+    <!-- TAB 5: GUDANG (CENTRAL WAREHOUSE, PO & EVALUASI HPP CABANG)         -->
     <!-- =================================================================== -->
-    <section id="tabView-gudang" class="owner-tab-view hidden">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Gudang & Bahan Baku</h2>
-            <p class="text-[11px] text-slate-500">Stok pusat, restok 21 bahan ke lapak & alert stok menipis</p>
+    <section id="tabView-gudang" class="owner-tab-view hidden space-y-3.5">
+
+      <!-- 4 KPI RINGKAS GUDANG & HPP -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Valuasi Aset Gudang</span>
+            <p id="kpiWhAssetValue" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiWhAssetSub" class="text-[10px] text-slate-500 block truncate">21 Bahan Aktif</span>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
+            <i class="fa-solid fa-warehouse"></i>
+          </div>
         </div>
-        <div class="text-center py-8 text-xs text-slate-500">
-          <i class="fa-solid fa-boxes-stacked text-xl text-slate-600 mb-1.5 block"></i>
-          Wadah Tab Gudang siap diisi pada langkah selanjutnya.
+
+        <button type="button" onclick="setWarehouseSubtab('stock'); toggleWarehouseReorderOnly(true);" id="kpiWhReorderCard" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Status Buffer Stock</span>
+            <p id="kpiWhReorderCount" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums">0 Perlu PO</p>
+            <span id="kpiWhReorderSub" class="text-[10px] text-slate-500 block truncate">Min. 3 hari pemakaian</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-xs shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </button>
+
+        <div class="bg-slate-900/75 border border-sky-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Distribusi ke Cabang</span>
+            <p id="kpiWhTransferOut" class="text-base md:text-lg font-extrabold text-sky-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiWhTransferSub" class="text-[10px] text-slate-500 block truncate">Restock multi-lapak</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xs shrink-0">
+            <i class="fa-solid fa-truck-fast"></i>
+          </div>
+        </div>
+
+        <button type="button" onclick="setWarehouseSubtab('hpp')" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Food Cost Ratio</span>
+            <p id="kpiWhFoodCost" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums">-</p>
+            <span id="kpiWhFoodCostSub" class="text-[10px] text-slate-500 block truncate">Target sehat: 35% - 40%</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- TOOLBAR PERIODE + AKSI CEPAT GUDANG -->
+      <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+          <button type="button" data-wh-period="today" onclick="setWarehousePeriod('today')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">Hari Ini</button>
+          <button type="button" data-wh-period="7d" onclick="setWarehousePeriod('7d')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">7 Hari</button>
+          <button type="button" data-wh-period="month" onclick="setWarehousePeriod('month')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">Bulan Ini</button>
+          <button type="button" data-wh-period="all" onclick="setWarehousePeriod('all')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">Semua</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button type="button" onclick="openWarehouseTxModal('supplier_in')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 transition">
+            <i class="fa-solid fa-box-open"></i>
+            <span>Terima Supplier</span>
+          </button>
+          <button type="button" onclick="openWarehouseTxModal('branch_transfer')" class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500 text-sky-400 hover:text-slate-950 border border-sky-500/30 text-[11px] font-bold flex items-center gap-1 transition">
+            <i class="fa-solid fa-truck-arrow-right"></i>
+            <span>Kirim ke Lapak</span>
+          </button>
+          <button type="button" onclick="openWarehouseTxModal('waste')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 text-[11px] font-semibold flex items-center gap-1 transition">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Waste</span>
+          </button>
+          <button type="button" onclick="openWarehousePoModal()" id="btnWhOpenPo" class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 transition">
+            <i class="fa-solid fa-file-circle-plus"></i>
+            <span>Buat PO</span>
+          </button>
         </div>
       </div>
+
+      <!-- PANEL SUBTAB GUDANG -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+            <button type="button" data-wh-subtab="stock" onclick="setWarehouseSubtab('stock')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">
+              Mutasi Stok Pusat (21 Bahan)
+            </button>
+            <button type="button" data-wh-subtab="hpp" onclick="setWarehouseSubtab('hpp')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">
+              HPP &amp; Evaluasi Cabang
+            </button>
+            <button type="button" data-wh-subtab="po" onclick="setWarehouseSubtab('po')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+              <span>PO &amp; Log Mutasi</span>
+              <span id="subtabBadgeWhPo" class="hidden bg-amber-500/20 text-amber-300 text-[9px] font-bold px-1.5 rounded-full">0</span>
+            </button>
+          </div>
+
+          <button type="button" onclick="exportWarehouseCsv()" class="text-[11px] font-semibold bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1 transition">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+
+        <!-- SUBTAB 1: TABEL MUTASI INVENTORY GUDANG PUSAT (21 ITEM) -->
+        <div id="whPanel-stock" class="space-y-2.5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <div id="whCategoryPills" class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-full">
+                <!-- Category pills rendered via JS -->
+              </div>
+              <button type="button" id="btnWhReorderFilter" onclick="toggleWarehouseReorderOnly()" class="px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-semibold text-slate-400 hover:text-rose-300 transition shrink-0">
+                🚨 Hanya Perlu Order
+              </button>
+            </div>
+
+            <div class="relative w-full md:w-56 shrink-0">
+              <i class="fa-solid fa-magnifying-glass text-[10px] text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="whSearchInput" oninput="renderWarehouseStockTable()" placeholder="Cari bahan baku..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500/60 rounded-xl pl-7 pr-2.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 outline-none">
+            </div>
+          </div>
+
+          <!-- Ringkasan Kiriman per Cabang Dinamis -->
+          <div id="whBranchTransferStrip" class="flex flex-wrap items-center gap-2 text-[10px]"></div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-[11px] text-left">
+              <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800 whitespace-nowrap">
+                <tr>
+                  <th class="py-2 px-2">Bahan Baku</th>
+                  <th class="py-2 px-2">Kategori</th>
+                  <th class="py-2 px-2 text-right">Awal</th>
+                  <th class="py-2 px-2 text-right">Masuk</th>
+                  <th class="py-2 px-2 text-right">Kirim Lapak</th>
+                  <th class="py-2 px-2 text-right">Waste</th>
+                  <th class="py-2 px-2 text-right">Sisa Akhir</th>
+                  <th class="py-2 px-2 text-right">Min. Safety</th>
+                  <th class="py-2 px-2 text-center">Status</th>
+                  <th class="py-2 px-2 text-right">Modal</th>
+                  <th class="py-2 px-2 text-right">Valuasi</th>
+                  <th class="py-2 px-2 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="whStockTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+                <!-- Render via JS -->
+              </tbody>
+              <tfoot id="whStockTableFoot" class="border-t border-slate-700 bg-slate-950/60 font-bold text-slate-100">
+                <!-- Total row -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUBTAB 2: HPP & EVALUASI FOOD COST CABANG -->
+        <div id="whPanel-hpp" class="hidden space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <i class="fa-solid fa-store text-amber-400 text-xs"></i>
+              <select id="whEvalBranchSelect" onchange="renderWarehouseEvaluation()" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-100 outline-none cursor-pointer">
+                <!-- Branches -->
+              </select>
+            </div>
+            <span id="whEvalWindowLabel" class="text-[11px] text-slate-400 truncate">-</span>
+          </div>
+
+          <!-- 4 Kartu Keuangan Outlet vs HPP -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-500 block">Omzet Closing Outlet</span>
+              <p id="whEvalOmzet" class="text-sm font-extrabold text-amber-400 tabular-nums mt-0.5">Rp 0</p>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-500 block">Total HPP Pemakaian</span>
+              <p id="whEvalHpp" class="text-sm font-extrabold text-rose-400 tabular-nums mt-0.5">Rp 0</p>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-500 block">Estimasi Laba Kotor</span>
+              <p id="whEvalProfit" class="text-sm font-extrabold text-emerald-400 tabular-nums mt-0.5">Rp 0</p>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-500 block">Food Cost Ratio (35–40%)</span>
+              <p id="whEvalRatio" class="text-sm font-extrabold text-sky-400 tabular-nums mt-0.5">-</p>
+            </div>
+          </div>
+
+          <!-- Breakdown HPP 6 Kategori + Tabel 21 Bahan Outlet -->
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 space-y-2">
+            <h3 class="text-[11px] font-bold text-slate-300 uppercase tracking-wide">Breakdown HPP Per Kategori Bahan</h3>
+            <div id="whEvalCategoryBars" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-[11px] text-left">
+              <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800 whitespace-nowrap">
+                <tr>
+                  <th class="py-2 px-2">Bahan Baku</th>
+                  <th class="py-2 px-2 text-right">Awal</th>
+                  <th class="py-2 px-2 text-right">Restock Gudang</th>
+                  <th class="py-2 px-2 text-right">Stok Akhir</th>
+                  <th class="py-2 px-2 text-right">Pemakaian</th>
+                  <th class="py-2 px-2 text-right">Modal</th>
+                  <th class="py-2 px-2 text-right">Subtotal HPP</th>
+                </tr>
+              </thead>
+              <tbody id="whEvalTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUBTAB 3: PURCHASE ORDER (PO) & LOG MUTASI GUDANG -->
+        <div id="whPanel-po" class="hidden space-y-3.5">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-200"><i class="fa-solid fa-clipboard-list text-amber-400 mr-1.5"></i>Daftar Purchase Order (PO Supplier)</h3>
+              <button type="button" onclick="openWarehousePoModal()" class="text-[10px] font-bold text-amber-400 hover:underline">+ Buat PO Baru</button>
+            </div>
+            <div id="whPoListContainer" class="space-y-2">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <h3 class="text-xs font-bold text-slate-200"><i class="fa-solid fa-clock-rotate-left text-sky-400 mr-1.5"></i>Riwayat Mutasi Gudang (Masuk / Kirim / Waste)</h3>
+            <div id="whLedgerContainer" class="space-y-1.5">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
     </section>
 
     <!-- =================================================================== -->
@@ -719,6 +936,138 @@
     </div>
   </div>
 
+  <!-- MODAL TRANSAKSI BATCH GUDANG (TERIMA SUPPLIER / KIRIM LAPAK / WASTE) -->
+  <div id="whTransactionModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-4 space-y-3 max-h-[92vh] flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0">
+        <div>
+          <h3 id="whTxModalTitle" class="text-sm font-extrabold text-amber-400">Catat Mutasi Gudang</h3>
+          <p id="whTxModalSub" class="text-[11px] text-slate-400">Input jumlah pada bahan baku yang ingin dicatat sekaligus</p>
+        </div>
+        <button type="button" onclick="closeWarehouseTxModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitWarehouseTransaction(event)" class="flex flex-col flex-1 min-h-0 space-y-2.5 text-xs">
+        <input type="hidden" id="whTxType" value="branch_transfer">
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 shrink-0">
+          <div>
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">Tanggal Mutasi</label>
+            <input type="date" id="whTxDate" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+
+          <div id="whTxBranchWrap">
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">Lapak Tujuan Distribusi <span class="text-rose-400">*</span></label>
+            <select id="whTxBranchId" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500"></select>
+          </div>
+
+          <div id="whTxSupplierWrap" class="hidden">
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">Nama Supplier</label>
+            <input type="text" id="whTxSupplierName" placeholder="Contoh: Supplier Pusat / Pasar Induk" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+
+          <div>
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">No. Surat Jalan / Catatan</label>
+            <input type="text" id="whTxNote" placeholder="Contoh: SJ-001 / Kirim shift pagi" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 shrink-0">
+          <input type="text" id="whTxItemSearch" oninput="renderWhTxModalItems()" placeholder="Filter nama bahan dalam form..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 outline-none focus:border-amber-500">
+          <span class="text-[11px] text-slate-400 shrink-0">Estimasi: <b id="whTxEstimatedTotal" class="text-amber-400 tabular-nums">Rp 0</b></span>
+        </div>
+
+        <div id="whTxItemsList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 border border-slate-800 rounded-xl p-2 bg-slate-950/60 min-h-[200px]">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800 shrink-0">
+          <button type="button" onclick="closeWarehouseTxModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+          <button type="submit" id="btnSubmitWhTx" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">
+            Simpan Mutasi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EDIT MASTER BAHAN (HARGA MODAL, SAFETY STOCK & KOREKSI FISIK) -->
+  <div id="whItemEditModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-2xl p-4 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+        <div>
+          <h3 id="whEditItemTitle" class="text-sm font-extrabold text-slate-100">Pengaturan Bahan</h3>
+          <p id="whEditItemSub" class="text-[11px] text-slate-400">-</p>
+        </div>
+        <button type="button" onclick="closeWarehouseItemModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitWarehouseItemEdit(event)" class="space-y-2.5 text-xs">
+        <input type="hidden" id="whEditItemId">
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Harga Beli Modal / Satuan (Rp)</label>
+          <input type="number" id="whEditUnitCost" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Safety Stock Minimum</label>
+          <input type="number" id="whEditSafetyStock" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Stok Fisik Gudang Sekarang (Koreksi Opname)</label>
+          <input type="number" id="whEditCurrentStock" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeWarehouseItemModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+          <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL PURCHASE ORDER (PO OTOMATIS DARI ITEM PERLU ORDER) -->
+  <div id="whPoModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 space-y-3 max-h-[92vh] flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0">
+        <div>
+          <h3 class="text-sm font-extrabold text-amber-400">Buat Purchase Order (PO Supplier)</h3>
+          <p class="text-[11px] text-slate-400">Otomatis mengisi rekomendasi order untuk bahan berstatus 🚨 PERLU ORDER</p>
+        </div>
+        <button type="button" onclick="closeWarehousePoModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitWarehousePo(event)" class="flex flex-col flex-1 min-h-0 space-y-2.5 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 shrink-0">
+          <div>
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">Supplier Tujuan</label>
+            <input type="text" id="whPoSupplier" value="Supplier Pusat / Pasar Induk" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="text-[10px] font-semibold text-slate-400 block mb-1">Catatan PO</label>
+            <input type="text" id="whPoNote" placeholder="Contoh: Restock mingguan buffer 3 hari" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div id="whPoItemsList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 border border-slate-800 rounded-xl p-2 bg-slate-950/60 min-h-[180px]">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800 shrink-0">
+          <span class="text-xs text-slate-300">Estimasi PO: <b id="whPoTotalCost" class="text-amber-400 tabular-nums">Rp 0</b></span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeWarehousePoModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+            <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">Terbitkan PO</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
     const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
@@ -751,6 +1100,16 @@
     let cachedCustomersData = null;
     let currentCustomerFilter = 'all';
     let activeCustomerModalKey = null;
+
+    // State Tab Gudang
+    let cachedWarehouseData = null;
+    let currentWhPeriod = 'month';
+    let currentWhSubtab = 'stock';
+    let currentWhCategory = 'Semua';
+    let whOnlyReorderFilter = false;
+    const whTxDraftQty = new Map();
+    const whTxDraftCost = new Map();
+    const whPoDraftQty = new Map();
 
     const RADAR_STATUS_META = {
       TO_CUSTOMER: {
@@ -957,6 +1316,8 @@
         stopCourierRadarPolling();
         if (targetTab === 'costumer') {
           fetchCustomersData();
+        } else if (targetTab === 'gudang') {
+          fetchWarehouseData();
         }
       }
     }
@@ -1000,7 +1361,7 @@
     }
 
     async function fetchAllData() {
-      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData()]);
+      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData(), fetchWarehouseData()]);
     }
 
     async function fetchSummary() {
@@ -1017,6 +1378,9 @@
           renderCourierFinanceSection();
           if (typeof cachedSummary.customer_password_resets_pending === 'number') {
             updateCustomerPendingBadge(cachedSummary.customer_password_resets_pending);
+          }
+          if (typeof cachedSummary.warehouse_reorder_alerts === 'number') {
+            updateWarehouseAlertBadge(cachedSummary.warehouse_reorder_alerts);
           }
         }
       } catch (err) {
@@ -2875,6 +3239,777 @@
       if (!input) return;
       const ok = await submitOwnerCustomerPasswordReset(customerKey, input.value);
       if (ok) input.value = '';
+    }
+
+    // =========================================================================
+    // TAB GUDANG: KONTROL MUTASI 21 BAHAN, PO OTOMATIS & EVALUASI HPP CABANG
+    // =========================================================================
+    const WH_STATUS_META = {
+      SAFE: { label: '✅ AMAN', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+      WARNING: { label: '⚠️ MENIPIS', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+      REORDER: { label: '🚨 PERLU ORDER', cls: 'bg-rose-500/15 text-rose-400 border-rose-500/35 font-extrabold' }
+    };
+
+    function formatQtyUnit(val, unit = '') {
+      const n = Number(val) || 0;
+      const formatted = n.toLocaleString('id-ID');
+      return unit ? `${formatted} ${unit}` : formatted;
+    }
+
+    function updateWarehouseAlertBadge(count) {
+      const badge = document.getElementById('badgeGudangAlert');
+      if (badge) {
+        badge.innerText = count;
+        badge.classList.toggle('hidden', count <= 0);
+      }
+    }
+
+    function getWarehouseDateQuery() {
+      const today = getWibTodayISO();
+      if (currentWhPeriod === 'today') return `?start_date=${today}&end_date=${today}`;
+      if (currentWhPeriod === '7d') return `?start_date=${shiftIsoDays(today, -6)}&end_date=${today}`;
+      if (currentWhPeriod === 'month') return `?start_date=${today.slice(0, 8)}01&end_date=${today}`;
+      return '';
+    }
+
+    function setWarehousePeriod(period) {
+      currentWhPeriod = period || 'month';
+      document.querySelectorAll('[data-wh-period]').forEach(btn => {
+        const active = btn.dataset.whPeriod === currentWhPeriod;
+        btn.className = active
+          ? 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition'
+          : 'px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition';
+      });
+      fetchWarehouseData();
+    }
+
+    function setWarehouseSubtab(subtab) {
+      const allowed = ['stock', 'hpp', 'po'];
+      currentWhSubtab = allowed.includes(subtab) ? subtab : 'stock';
+      allowed.forEach(key => {
+        const btn = document.querySelector(`[data-wh-subtab="${key}"]`);
+        const panel = document.getElementById(`whPanel-${key}`);
+        const isActive = key === currentWhSubtab;
+        if (btn) {
+          btn.className = isActive
+            ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition'
+            : 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition';
+        }
+        if (panel) panel.classList.toggle('hidden', !isActive);
+      });
+    }
+
+    function setWarehouseCategory(category) {
+      currentWhCategory = category || 'Semua';
+      renderWarehouseCategoryPills();
+      renderWarehouseStockTable();
+    }
+
+    function toggleWarehouseReorderOnly(forceVal = null) {
+      whOnlyReorderFilter = typeof forceVal === 'boolean' ? forceVal : !whOnlyReorderFilter;
+      const btn = document.getElementById('btnWhReorderFilter');
+      if (btn) {
+        btn.className = whOnlyReorderFilter
+          ? 'px-2.5 py-1 rounded-xl bg-rose-500/20 border border-rose-500/40 text-[10px] font-bold text-rose-300 transition shrink-0'
+          : 'px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-[10px] font-semibold text-slate-400 hover:text-rose-300 transition shrink-0';
+      }
+      renderWarehouseStockTable();
+    }
+
+    async function fetchWarehouseData() {
+      try {
+        const res = await fetch(`/api/super-admin/warehouse${getWarehouseDateQuery()}`).then(r => r.json());
+        if (res.success && res.data) {
+          cachedWarehouseData = res.data;
+          renderWarehouseHub();
+        }
+      } catch (err) {
+        console.error('Gagal memuat data gudang:', err);
+      }
+    }
+
+    function renderWarehouseHub() {
+      if (!cachedWarehouseData) return;
+      renderWarehouseKpis();
+      renderWarehouseCategoryPills();
+      renderWarehouseBranchStrip();
+      renderWarehouseStockTable();
+      renderWarehouseEvalSelectAndView();
+      renderWarehousePoAndLedger();
+    }
+
+    function renderWarehouseKpis() {
+      const s = cachedWarehouseData.stats || {};
+      const items = cachedWarehouseData.items || [];
+      const reorderCount = Number(s.reorder_count) || 0;
+      const warnCount = Number(s.warning_count) || 0;
+      const pendingPo = Number(s.pending_po_count) || 0;
+
+      updateWarehouseAlertBadge(reorderCount);
+
+      const elAsset = document.getElementById('kpiWhAssetValue');
+      const elAssetSub = document.getElementById('kpiWhAssetSub');
+      const elReorder = document.getElementById('kpiWhReorderCount');
+      const elReorderSub = document.getElementById('kpiWhReorderSub');
+      const elReorderCard = document.getElementById('kpiWhReorderCard');
+      const elTransfer = document.getElementById('kpiWhTransferOut');
+      const elTransferSub = document.getElementById('kpiWhTransferSub');
+      const elFoodCost = document.getElementById('kpiWhFoodCost');
+      const elFoodCostSub = document.getElementById('kpiWhFoodCostSub');
+      const poBadge = document.getElementById('subtabBadgeWhPo');
+
+      if (elAsset) elAsset.innerText = formatRp(s.total_asset_value || 0);
+      if (elAssetSub) elAssetSub.innerText = `${items.length} bahan • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
+
+      if (elReorder) {
+        elReorder.innerText = reorderCount > 0 ? `${reorderCount} Perlu PO` : 'Semua Aman';
+        elReorder.className = reorderCount > 0
+          ? 'text-base md:text-lg font-extrabold text-rose-400 mt-0.5 tabular-nums'
+          : 'text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums';
+      }
+      if (elReorderSub) {
+        elReorderSub.innerText = `${warnCount} mendekati batas • ${pendingPo} PO aktif`;
+      }
+      if (elReorderCard) {
+        elReorderCard.className = reorderCount > 0
+          ? 'text-left bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/35 rounded-2xl p-3 flex items-center justify-between gap-2 transition'
+          : 'text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition';
+      }
+
+      if (elTransfer) elTransfer.innerText = formatRp(s.total_transfer_value || 0);
+      if (elTransferSub) elTransferSub.innerText = `Waste periode: ${formatRp(s.total_waste_value || 0)}`;
+
+      if (elFoodCost) {
+        elFoodCost.innerText = s.avg_food_cost_ratio !== null ? `${s.avg_food_cost_ratio}%` : '-';
+      }
+      if (elFoodCostSub) {
+        elFoodCostSub.innerText = 'Target sehat: 35% - 40%';
+      }
+
+      if (poBadge) {
+        poBadge.innerText = pendingPo;
+        poBadge.classList.toggle('hidden', pendingPo <= 0);
+      }
+    }
+
+    function renderWarehouseCategoryPills() {
+      const container = document.getElementById('whCategoryPills');
+      if (!container || !cachedWarehouseData) return;
+      const cats = ['Semua', ...(cachedWarehouseData.categories || [])];
+      container.innerHTML = cats.map(cat => {
+        const active = currentWhCategory === cat;
+        const safeCat = escapeJsArg(cat);
+        return `
+          <button type="button" onclick="setWarehouseCategory('${safeCat}')" class="px-2 py-0.5 rounded-lg text-[10px] shrink-0 transition ${active ? 'font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30' : 'font-medium text-slate-400 hover:text-slate-100 border border-transparent'}">
+            ${escapeHtml(cat)}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderWarehouseBranchStrip() {
+      const strip = document.getElementById('whBranchTransferStrip');
+      if (!strip || !cachedWarehouseData) return;
+      const totals = (cachedWarehouseData.stats && cachedWarehouseData.stats.transfer_by_branch_totals) || [];
+      if (totals.length === 0) {
+        strip.innerHTML = '';
+        return;
+      }
+      strip.innerHTML = `
+        <span class="text-slate-500 font-semibold">Distribusi Lapak:</span>
+        ${totals.map(b => `
+          <span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 tabular-nums">
+            <b class="text-sky-400">${escapeHtml(shortBranchLabel(b.branch_name))}</b>: ${formatRp(b.total_value)} (${b.tx_count} kirim)
+          </span>
+        `).join('')}
+      `;
+    }
+
+    function renderWarehouseStockTable() {
+      const tbody = document.getElementById('whStockTableBody');
+      const tfoot = document.getElementById('whStockTableFoot');
+      if (!tbody || !cachedWarehouseData) return;
+
+      const searchEl = document.getElementById('whSearchInput');
+      const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+      const branches = cachedWarehouseData.branches || [];
+      const branchLabelById = new Map(branches.map(b => [b.id, shortBranchLabel(b.name)]));
+
+      const items = (cachedWarehouseData.items || []).filter(it => {
+        if (currentWhCategory !== 'Semua' && it.category !== currentWhCategory) return false;
+        if (whOnlyReorderFilter && it.status !== 'REORDER') return false;
+        if (query && !it.name.toLowerCase().includes(query) && !it.category.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-8 text-slate-500">Tidak ada bahan baku pada filter ini.</td></tr>`;
+        if (tfoot) tfoot.innerHTML = '';
+        return;
+      }
+
+      tbody.innerHTML = items.map(it => {
+        const meta = WH_STATUS_META[it.status] || WH_STATUS_META.SAFE;
+        const safeId = escapeJsArg(it.id);
+        const branchBreakdown = Object.entries(it.transfers_by_branch || {})
+          .filter(([, q]) => q > 0)
+          .map(([bId, q]) => `${branchLabelById.get(bId) || bId}: ${q}`)
+          .join(' • ');
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition ${it.status === 'REORDER' ? 'bg-rose-500/5' : ''}">
+            <td class="py-2 px-2">
+              <div class="font-semibold text-slate-100 whitespace-nowrap">${it.no}. ${escapeHtml(it.name)}</div>
+              <span class="text-[10px] text-slate-500">${escapeHtml(it.unit)}</span>
+            </td>
+            <td class="py-2 px-2 text-slate-400 whitespace-nowrap">${escapeHtml(it.category)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-300">${Number(it.opening_stock).toLocaleString('id-ID')}</td>
+            <td class="py-2 px-2 text-right tabular-nums ${it.stock_in > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}">${it.stock_in > 0 ? '+' + Number(it.stock_in).toLocaleString('id-ID') : '0'}</td>
+            <td class="py-2 px-2 text-right tabular-nums">
+              <span class="${it.total_transfer_out > 0 ? 'text-sky-400 font-semibold' : 'text-slate-500'}">${Number(it.total_transfer_out).toLocaleString('id-ID')}</span>
+              ${branchBreakdown ? `<span class="block text-[9px] text-slate-500 whitespace-nowrap">${escapeHtml(branchBreakdown)}</span>` : ''}
+            </td>
+            <td class="py-2 px-2 text-right tabular-nums ${it.waste > 0 ? 'text-rose-400' : 'text-slate-500'}">${Number(it.waste).toLocaleString('id-ID')}</td>
+            <td class="py-2 px-2 text-right font-extrabold tabular-nums ${it.status === 'REORDER' ? 'text-rose-400' : 'text-slate-100'}">${Number(it.current_stock).toLocaleString('id-ID')}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-400">${Number(it.safety_stock).toLocaleString('id-ID')}</td>
+            <td class="py-2 px-2 text-center whitespace-nowrap">
+              <span class="px-1.5 py-0.5 rounded border text-[9px] font-semibold ${meta.cls}">${meta.label}</span>
+            </td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-300 whitespace-nowrap">${formatRp(it.unit_cost)}</td>
+            <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums whitespace-nowrap">${formatRp(it.asset_value)}</td>
+            <td class="py-2 px-2 text-right whitespace-nowrap">
+              <button type="button" onclick="openWarehouseItemModal('${safeId}')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
+                Edit
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const totalVal = items.reduce((s, it) => s + (Number(it.asset_value) || 0), 0);
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr>
+            <td colspan="10" class="py-2 px-2 text-right text-[11px] uppercase tracking-wide text-slate-400">Total Valuasi Aset (${items.length} Item):</td>
+            <td class="py-2 px-2 text-right text-amber-400 font-extrabold tabular-nums whitespace-nowrap">${formatRp(totalVal)}</td>
+            <td></td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderWarehouseEvalSelectAndView() {
+      const sel = document.getElementById('whEvalBranchSelect');
+      if (!sel || !cachedWarehouseData) return;
+      const evals = cachedWarehouseData.branch_evaluations || [];
+      const prevVal = sel.value;
+
+      sel.innerHTML = evals.map(ev => `
+        <option value="${escapeHtml(ev.branch_id)}" class="bg-slate-900 text-slate-100">
+          ${escapeHtml(shortBranchLabel(ev.branch_name))}
+        </option>
+      `).join('');
+
+      if (prevVal && evals.some(ev => ev.branch_id === prevVal)) {
+        sel.value = prevVal;
+      } else if (evals.length > 0) {
+        sel.value = evals[0].branch_id;
+      }
+      renderWarehouseEvaluation();
+    }
+
+    function renderWarehouseEvaluation() {
+      if (!cachedWarehouseData) return;
+      const sel = document.getElementById('whEvalBranchSelect');
+      const branchId = sel ? sel.value : '';
+      const evals = cachedWarehouseData.branch_evaluations || [];
+      const ev = evals.find(e => e.branch_id === branchId) || evals[0];
+
+      const winEl = document.getElementById('whEvalWindowLabel');
+      const omzetEl = document.getElementById('whEvalOmzet');
+      const hppEl = document.getElementById('whEvalHpp');
+      const profitEl = document.getElementById('whEvalProfit');
+      const ratioEl = document.getElementById('whEvalRatio');
+      const catBars = document.getElementById('whEvalCategoryBars');
+      const tbody = document.getElementById('whEvalTableBody');
+
+      if (!ev) {
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Belum ada data lapak.</td></tr>`;
+        return;
+      }
+
+      if (winEl) {
+        if (ev.has_opname_pair) {
+          winEl.innerText = `Periode Closing: ${ev.opening_date} → ${ev.closing_date}`;
+        } else if (ev.has_latest_opname) {
+          winEl.innerText = `Closing Terakhir: ${ev.closing_date} (Butuh minimal 2 laporan closing untuk hitung pemakaian opening-closing)`;
+        } else {
+          winEl.innerText = 'Lapak ini belum mengirim laporan closing opname';
+        }
+      }
+
+      if (omzetEl) omzetEl.innerText = formatRp(ev.gross_sales);
+      if (hppEl) hppEl.innerText = formatRp(ev.total_hpp);
+      if (profitEl) profitEl.innerText = formatRp(ev.gross_profit);
+      if (ratioEl) {
+        if (ev.food_cost_ratio === null) {
+          ratioEl.innerText = '-';
+          ratioEl.className = 'text-sm font-extrabold text-slate-400 tabular-nums mt-0.5';
+        } else {
+          const r = ev.food_cost_ratio;
+          ratioEl.innerText = `${r}%`;
+          ratioEl.className = `text-sm font-extrabold tabular-nums mt-0.5 ${r <= 40 ? 'text-emerald-400' : r <= 48 ? 'text-amber-400' : 'text-rose-400'}`;
+        }
+      }
+
+      if (catBars) {
+        catBars.innerHTML = (ev.hpp_by_category || []).map(c => `
+          <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 space-y-1">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-semibold text-slate-200">${escapeHtml(c.category)}</span>
+              <span class="font-bold text-amber-400 tabular-nums">${formatRp(c.hpp)} <span class="text-[10px] text-slate-500">(${c.share_pct}%)</span></span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full" style="width:${Math.min(100, c.share_pct)}%"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (tbody) {
+        tbody.innerHTML = (ev.items || []).map(row => `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-1.5 px-2">
+              <span class="font-semibold text-slate-100">${escapeHtml(row.name)}</span>
+              <span class="text-[9px] text-slate-500 block">${escapeHtml(row.category)} (${escapeHtml(row.unit)})</span>
+            </td>
+            <td class="py-1.5 px-2 text-right tabular-nums text-slate-400">${row.opening_qty !== null ? Number(row.opening_qty).toLocaleString('id-ID') : '-'}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums ${row.restock_qty > 0 ? 'text-sky-400 font-semibold' : 'text-slate-500'}">${row.restock_qty > 0 ? '+' + Number(row.restock_qty).toLocaleString('id-ID') : '0'}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums text-slate-200">${row.closing_qty !== null ? Number(row.closing_qty).toLocaleString('id-ID') : '-'}</td>
+            <td class="py-1.5 px-2 text-right font-bold tabular-nums ${row.usage_qty > 0 ? 'text-amber-300' : 'text-slate-500'}">${row.usage_qty !== null ? Number(row.usage_qty).toLocaleString('id-ID') : '-'}</td>
+            <td class="py-1.5 px-2 text-right tabular-nums text-slate-400">${formatRp(row.unit_cost)}</td>
+            <td class="py-1.5 px-2 text-right font-bold text-rose-400 tabular-nums">${formatRp(row.subtotal_hpp)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function renderWarehousePoAndLedger() {
+      const poContainer = document.getElementById('whPoListContainer');
+      const ledgerContainer = document.getElementById('whLedgerContainer');
+      if (!cachedWarehouseData) return;
+
+      const pos = cachedWarehouseData.purchase_orders || [];
+      if (poContainer) {
+        if (pos.length === 0) {
+          poContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada Purchase Order ke supplier. Klik "Buat PO" saat ada stok 🚨 PERLU ORDER.</div>`;
+        } else {
+          const poStatusCls = {
+            ordered: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+            received: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+            cancelled: 'bg-slate-800 text-slate-400 border-slate-700'
+          };
+          const poStatusLbl = { ordered: 'Dipesan (Aktif)', received: 'Diterima di Gudang', cancelled: 'Dibatalkan' };
+          poContainer.innerHTML = pos.map(po => {
+            const safeId = escapeJsArg(po.id);
+            const summaryItems = (po.items || []).map(it => `${it.name} (${formatQtyUnit(it.qty, it.unit)})`).join(', ');
+            return `
+              <div class="bg-slate-950/75 border ${po.status === 'ordered' ? 'border-amber-500/35' : 'border-slate-800'} rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2">
+                <div class="min-w-0 flex-1 space-y-0.5">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="text-xs font-extrabold text-slate-100">${escapeHtml(po.id)}</span>
+                    <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${poStatusCls[po.status] || poStatusCls.ordered}">${poStatusLbl[po.status] || po.status}</span>
+                    <span class="text-[10px] text-slate-400">• ${escapeHtml(po.supplier_name)}</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 truncate">${escapeHtml(summaryItems)}</p>
+                  <p class="text-[11px] font-bold text-amber-400 tabular-nums">Estimasi: ${formatRp(po.total_estimated_cost)}${po.note ? ` <span class="text-slate-500 font-normal">• ${escapeHtml(po.note)}</span>` : ''}</p>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  ${po.status === 'ordered' ? `
+                    <button type="button" onclick="receiveWarehousePo('${safeId}')" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-extrabold transition">
+                      <i class="fa-solid fa-check mr-1"></i>Terima Barang
+                    </button>
+                    <button type="button" onclick="cancelWarehousePo('${safeId}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700 text-[10px] font-semibold transition">
+                      Batal
+                    </button>
+                  ` : `<span class="text-[10px] text-slate-500">${escapeHtml(formatTimeAgo(po.received_at || po.cancelled_at || po.created_at))}</span>`}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      const ledger = cachedWarehouseData.ledger || [];
+      if (ledgerContainer) {
+        if (ledger.length === 0) {
+          ledgerContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada riwayat mutasi gudang (masuk supplier, distribusi lapak, atau waste).</div>`;
+        } else {
+          const txTypeMeta = {
+            supplier_in: { label: 'Masuk Supplier', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+            branch_transfer: { label: 'Kirim ke Lapak', cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+            waste: { label: 'Rusak / Waste', cls: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+            adjustment: { label: 'Penyesuaian', cls: 'bg-slate-800 text-slate-300 border-slate-700' }
+          };
+          ledgerContainer.innerHTML = ledger.map(tx => {
+            const tm = txTypeMeta[tx.type] || txTypeMeta.adjustment;
+            const targetDesc = tx.type === 'branch_transfer'
+              ? shortBranchLabel(tx.branch_name || tx.branch_id)
+              : (tx.supplier_name || tx.reference_no || '-');
+            const itemsSummary = (tx.items || []).map(it => `${it.name} (${it.qty > 0 ? '+' : ''}${it.qty} ${it.unit})`).join(', ');
+            return `
+              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                <div class="min-w-0 flex-1 space-y-0.5">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${tm.cls}">${tm.label}</span>
+                    <span class="font-bold text-slate-200">${escapeHtml(targetDesc)}</span>
+                    <span class="text-[10px] text-slate-500">• ${escapeHtml(tx.date || '')} (${escapeHtml(formatTimeAgo(tx.created_at))})</span>
+                  </div>
+                  <p class="text-[10px] text-slate-400 truncate">${escapeHtml(itemsSummary)}</p>
+                  ${tx.note ? `<p class="text-[10px] text-slate-500 italic truncate">"${escapeHtml(tx.note)}"</p>` : ''}
+                </div>
+                <span class="font-bold text-amber-400 tabular-nums shrink-0">${formatRp(tx.total_value || 0)}</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function openWarehouseTxModal(type = 'branch_transfer') {
+      if (!cachedWarehouseData) {
+        alert('Memuat data gudang terlebih dahulu...');
+        return;
+      }
+      whTxDraftQty.clear();
+      whTxDraftCost.clear();
+
+      document.getElementById('whTxType').value = type;
+      document.getElementById('whTxDate').value = getWibTodayISO();
+      document.getElementById('whTxNote').value = '';
+      document.getElementById('whTxItemSearch').value = '';
+
+      const titleMap = {
+        supplier_in: 'Terima Barang dari Supplier',
+        branch_transfer: 'Distribusi / Kirim Bahan ke Lapak',
+        waste: 'Catat Bahan Rusak / Waste Gudang'
+      };
+      const subMap = {
+        supplier_in: 'Sesuaikan fisik barang dengan Surat Jalan sebelum menambah stok gudang.',
+        branch_transfer: 'Mengurangi stok Gudang Pusat & otomatis tercatat sebagai Restock Cabang.',
+        waste: 'Catat penyusutan/rusak/expired untuk kontrol HPP gudang.'
+      };
+      document.getElementById('whTxModalTitle').innerText = titleMap[type] || 'Mutasi Gudang';
+      document.getElementById('whTxModalSub').innerText = subMap[type] || '';
+
+      const branchWrap = document.getElementById('whTxBranchWrap');
+      const supplierWrap = document.getElementById('whTxSupplierWrap');
+      branchWrap.classList.toggle('hidden', type !== 'branch_transfer');
+      supplierWrap.classList.toggle('hidden', type !== 'supplier_in');
+
+      const branchSel = document.getElementById('whTxBranchId');
+      const branches = cachedWarehouseData.branches || [];
+      branchSel.innerHTML = branches.map(b => `
+        <option value="${escapeHtml(b.id)}" class="bg-slate-900 text-slate-100">${escapeHtml(shortBranchLabel(b.name))}</option>
+      `).join('');
+
+      renderWhTxModalItems();
+      updateWhTxTotalEstimate();
+      document.getElementById('whTransactionModal').classList.remove('hidden');
+    }
+
+    function closeWarehouseTxModal() {
+      const m = document.getElementById('whTransactionModal');
+      if (m) m.classList.add('hidden');
+    }
+
+    function renderWhTxModalItems() {
+      const container = document.getElementById('whTxItemsList');
+      if (!container || !cachedWarehouseData) return;
+      const type = document.getElementById('whTxType').value;
+      const q = (document.getElementById('whTxItemSearch').value || '').trim().toLowerCase();
+      const items = (cachedWarehouseData.items || []).filter(it => !q || it.name.toLowerCase().includes(q) || it.category.toLowerCase().includes(q));
+
+      container.innerHTML = items.map(it => {
+        const qtyVal = whTxDraftQty.has(it.id) ? whTxDraftQty.get(it.id) : '';
+        const costVal = whTxDraftCost.has(it.id) ? whTxDraftCost.get(it.id) : it.unit_cost;
+        const safeId = escapeJsArg(it.id);
+        return `
+          <div class="bg-slate-900/90 border border-slate-800 rounded-lg px-2.5 py-1.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <span class="font-bold text-slate-100 text-[11px] block truncate">${it.no}. ${escapeHtml(it.name)}</span>
+              <span class="text-[10px] text-slate-400">Sisa Gudang: <b class="text-amber-300 tabular-nums">${Number(it.current_stock).toLocaleString('id-ID')} ${escapeHtml(it.unit)}</b> • Modal ${formatRp(it.unit_cost)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              ${type === 'supplier_in' ? `
+                <input type="number" min="0" value="${costVal}" oninput="onWhTxCostChange('${safeId}', this.value)" class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-[11px] text-slate-200 text-right tabular-nums outline-none focus:border-amber-500" title="Harga beli satuan (Rp)">
+              ` : ''}
+              <input type="number" min="0" placeholder="Qty (${escapeHtml(it.unit)})" value="${qtyVal}" oninput="onWhTxQtyChange('${safeId}', this.value)" class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-bold text-amber-300 text-right tabular-nums outline-none focus:border-amber-500">
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function onWhTxQtyChange(itemId, val) {
+      const n = Number(val);
+      if (!val || Number.isNaN(n) || n <= 0) whTxDraftQty.delete(itemId);
+      else whTxDraftQty.set(itemId, n);
+      updateWhTxTotalEstimate();
+    }
+
+    function onWhTxCostChange(itemId, val) {
+      const n = Number(val);
+      if (!Number.isNaN(n) && n >= 0) whTxDraftCost.set(itemId, n);
+      updateWhTxTotalEstimate();
+    }
+
+    function updateWhTxTotalEstimate() {
+      if (!cachedWarehouseData) return;
+      const itemMap = new Map((cachedWarehouseData.items || []).map(it => [it.id, it]));
+      let total = 0;
+      whTxDraftQty.forEach((qty, id) => {
+        const master = itemMap.get(id);
+        if (!master) return;
+        const cost = whTxDraftCost.has(id) ? whTxDraftCost.get(id) : (Number(master.unit_cost) || 0);
+        total += qty * cost;
+      });
+      const el = document.getElementById('whTxEstimatedTotal');
+      if (el) el.innerText = formatRp(total);
+    }
+
+    async function submitWarehouseTransaction(e) {
+      e.preventDefault();
+      const type = document.getElementById('whTxType').value;
+      const date = document.getElementById('whTxDate').value;
+      const branch_id = document.getElementById('whTxBranchId').value;
+      const supplier_name = document.getElementById('whTxSupplierName').value.trim();
+      const note = document.getElementById('whTxNote').value.trim();
+
+      const items = [];
+      whTxDraftQty.forEach((qty, item_id) => {
+        if (qty > 0) {
+          const row = { item_id, qty };
+          if (type === 'supplier_in' && whTxDraftCost.has(item_id)) {
+            row.unit_cost = whTxDraftCost.get(item_id);
+          }
+          items.push(row);
+        }
+      });
+
+      if (items.length === 0) {
+        alert('❌ Masukkan jumlah minimal pada 1 bahan baku.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitWhTx');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+      try {
+        const res = await fetch('/api/super-admin/warehouse/transaction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, date, branch_id, supplier_name, note, items })
+        }).then(r => r.json());
+
+        if (res.success) {
+          alert('✅ ' + res.message);
+          closeWarehouseTxModal();
+          fetchWarehouseData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal mencatat mutasi gudang'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Mutasi';
+      }
+    }
+
+    function openWarehouseItemModal(itemId) {
+      if (!cachedWarehouseData) return;
+      const it = (cachedWarehouseData.items || []).find(item => item.id === itemId);
+      if (!it) return;
+      document.getElementById('whEditItemId').value = it.id;
+      document.getElementById('whEditItemTitle').innerText = it.name;
+      document.getElementById('whEditItemSub').innerText = `${it.category} • Satuan: ${it.unit}`;
+      document.getElementById('whEditUnitCost').value = it.unit_cost;
+      document.getElementById('whEditSafetyStock').value = it.safety_stock;
+      document.getElementById('whEditCurrentStock').value = it.current_stock;
+      document.getElementById('whItemEditModal').classList.remove('hidden');
+    }
+
+    function closeWarehouseItemModal() {
+      const m = document.getElementById('whItemEditModal');
+      if (m) m.classList.add('hidden');
+    }
+
+    async function submitWarehouseItemEdit(e) {
+      e.preventDefault();
+      const id = document.getElementById('whEditItemId').value;
+      const unit_cost = Number(document.getElementById('whEditUnitCost').value);
+      const safety_stock = Number(document.getElementById('whEditSafetyStock').value);
+      const current_stock = Number(document.getElementById('whEditCurrentStock').value);
+
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/items/${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ unit_cost, safety_stock, current_stock })
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          closeWarehouseItemModal();
+          fetchWarehouseData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyimpan item'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    function openWarehousePoModal() {
+      if (!cachedWarehouseData) return;
+      whPoDraftQty.clear();
+      (cachedWarehouseData.items || []).forEach(it => {
+        if (it.status === 'REORDER' && it.suggested_po_qty > 0) {
+          whPoDraftQty.set(it.id, it.suggested_po_qty);
+        }
+      });
+      renderWhPoItemsList();
+      updateWhPoTotalEstimate();
+      document.getElementById('whPoModal').classList.remove('hidden');
+    }
+
+    function closeWarehousePoModal() {
+      const m = document.getElementById('whPoModal');
+      if (m) m.classList.add('hidden');
+    }
+
+    function renderWhPoItemsList() {
+      const container = document.getElementById('whPoItemsList');
+      if (!container || !cachedWarehouseData) return;
+      const sorted = [...(cachedWarehouseData.items || [])].sort((a, b) => (a.status === 'REORDER' ? -1 : 1));
+      container.innerHTML = sorted.map(it => {
+        const val = whPoDraftQty.has(it.id) ? whPoDraftQty.get(it.id) : '';
+        const safeId = escapeJsArg(it.id);
+        return `
+          <div class="bg-slate-900/90 border ${it.status === 'REORDER' ? 'border-rose-500/35' : 'border-slate-800'} rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-slate-100 text-[11px] truncate">${escapeHtml(it.name)}</span>
+                ${it.status === 'REORDER' ? '<span class="px-1 rounded bg-rose-500/20 text-rose-300 text-[8px] font-bold">PERLU PO</span>' : ''}
+              </div>
+              <span class="text-[10px] text-slate-400">Sisa: ${it.current_stock} / Min: ${it.safety_stock} ${escapeHtml(it.unit)} • Modal ${formatRp(it.unit_cost)}</span>
+            </div>
+            <input type="number" min="0" placeholder="Qty PO" value="${val}" oninput="onWhPoQtyChange('${safeId}', this.value)" class="w-24 bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-bold text-amber-300 text-right tabular-nums outline-none focus:border-amber-500 shrink-0">
+          </div>
+        `;
+      }).join('');
+    }
+
+    function onWhPoQtyChange(itemId, val) {
+      const n = Number(val);
+      if (!val || Number.isNaN(n) || n <= 0) whPoDraftQty.delete(itemId);
+      else whPoDraftQty.set(itemId, n);
+      updateWhPoTotalEstimate();
+    }
+
+    function updateWhPoTotalEstimate() {
+      if (!cachedWarehouseData) return;
+      const itemMap = new Map((cachedWarehouseData.items || []).map(it => [it.id, it]));
+      let total = 0;
+      whPoDraftQty.forEach((qty, id) => {
+        const m = itemMap.get(id);
+        if (m) total += qty * (Number(m.unit_cost) || 0);
+      });
+      const el = document.getElementById('whPoTotalCost');
+      if (el) el.innerText = formatRp(total);
+    }
+
+    async function submitWarehousePo(e) {
+      e.preventDefault();
+      const supplier_name = document.getElementById('whPoSupplier').value.trim();
+      const note = document.getElementById('whPoNote').value.trim();
+      const items = [];
+      whPoDraftQty.forEach((qty, item_id) => {
+        if (qty > 0) items.push({ item_id, qty });
+      });
+      if (items.length === 0) {
+        alert('❌ Masukkan kuantitas PO minimal pada 1 bahan.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/super-admin/warehouse/purchase-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ supplier_name, note, items })
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          closeWarehousePoModal();
+          setWarehouseSubtab('po');
+          fetchWarehouseData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menerbitkan PO'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function receiveWarehousePo(poId) {
+      if (!confirm(`Konfirmasi barang ${poId} sudah diterima fisik? Stok Gudang Pusat akan otomatis bertambah.`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/purchase-orders/${encodeURIComponent(poId)}/receive`, {
+          method: 'POST'
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchWarehouseData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menerima PO'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function cancelWarehousePo(poId) {
+      if (!confirm(`Batalkan PO ${poId}?`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/purchase-orders/${encodeURIComponent(poId)}/cancel`, {
+          method: 'POST'
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchWarehouseData();
+        }
+      } catch (err) {
+        alert('❌ Gagal membatalkan PO');
+      }
+    }
+
+    function exportWarehouseCsv() {
+      if (!cachedWarehouseData || !cachedWarehouseData.items) return;
+      const headers = ['No', 'Kategori', 'Nama Bahan', 'Satuan', 'Stok Awal', 'Masuk Supplier', 'Kirim Cabang', 'Waste', 'Sisa Akhir', 'Safety Stock', 'Status', 'Harga Modal', 'Valuasi Aset'];
+      const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = cachedWarehouseData.items.map(it => [
+        it.no, it.category, it.name, it.unit, it.opening_stock, it.stock_in, it.total_transfer_out, it.waste, it.current_stock, it.safety_stock, it.status, it.unit_cost, it.asset_value
+      ].map(csvCell).join(','));
+      const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stok-gudang-pusat-${getWibTodayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     async function approveWithdrawal(id) {

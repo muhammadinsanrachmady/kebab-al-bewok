@@ -1,0 +1,244 @@
+{
+  "meta": {
+    "warehouse_name": "Central Kitchen & Warehouse",
+    "pic_name": "Supervisor Gudang & Logistik",
+    "safety_days": 3,
+    "target_food_cost_min": 35,
+    "target_food_cost_max": 40
+  },
+  "items": [
+    {
+      "no": 1,
+      "id": "bungkus_kebab_jumbo",
+      "category": "Kemasan",
+      "name": "Bungkus Kebab Jumbo",
+      "unit": "pcs",
+      "current_stock": 500,
+      "safety_stock": 200,
+      "unit_cost": 350,
+      "updated_at": null
+    },
+    {
+      "no": 2,
+      "id": "bungkus_kebab_reguler",
+      "category": "Kemasan",
+      "name": "Bungkus Kebab Reguler",
+      "unit": "pcs",
+      "current_stock": 800,
+      "safety_stock": 300,
+      "unit_cost": 300,
+      "updated_at": null
+    },
+    {
+      "no": 3,
+      "id": "bungkus_kebab_small",
+      "category": "Kemasan",
+      "name": "Bungkus Kebab Small",
+      "unit": "pcs",
+      "current_stock": 250,
+      "safety_stock": 200,
+      "unit_cost": 250,
+      "updated_at": null
+    },
+    {
+      "no": 4,
+      "id": "tortilla_jumbo_25cm",
+      "category": "Tortilla",
+      "name": "Tortilla Jumbo 25 cm",
+      "unit": "pcs",
+      "current_stock": 300,
+      "safety_stock": 150,
+      "unit_cost": 1500,
+      "updated_at": null
+    },
+    {
+      "no": 5,
+      "id": "tortilla_reguler_22cm",
+      "category": "Tortilla",
+      "name": "Tortilla Reguler 22 cm",
+      "unit": "pcs",
+      "current_stock": 500,
+      "safety_stock": 200,
+      "unit_cost": 1200,
+      "updated_at": null
+    },
+    {
+      "no": 6,
+      "id": "tortilla_kecil_19cm",
+      "category": "Tortilla",
+      "name": "Tortilla Kecil 19 cm",
+      "unit": "pcs",
+      "current_stock": 150,
+      "safety_stock": 120,
+      "unit_cost": 950,
+      "updated_at": null
+    },
+    {
+      "no": 7,
+      "id": "beef_kebab_jumbo",
+      "category": "Daging & Protein",
+      "name": "Beef Kebab Premium Jumbo",
+      "unit": "pcs",
+      "current_stock": 120,
+      "safety_stock": 50,
+      "unit_cost": 4500,
+      "updated_at": null
+    },
+    {
+      "no": 8,
+      "id": "beef_kebab_reguler",
+      "category": "Daging & Protein",
+      "name": "Beef Kebab Premium Reguler",
+      "unit": "pcs",
+      "current_stock": 180,
+      "safety_stock": 80,
+      "unit_cost": 3500,
+      "updated_at": null
+    },
+    {
+      "no": 9,
+      "id": "beef_kebab_small",
+      "category": "Daging & Protein",
+      "name": "Beef Kebab Premium Small",
+      "unit": "pcs",
+      "current_stock": 60,
+      "safety_stock": 50,
+      "unit_cost": 2500,
+      "updated_at": null
+    },
+    {
+      "no": 10,
+      "id": "daging_kebab_central",
+      "category": "Daging & Protein",
+      "name": "Daging Kebab Central",
+      "unit": "gram",
+      "current_stock": 25000,
+      "safety_stock": 10000,
+      "unit_cost": 85,
+      "updated_at": null
+    },
+    {
+      "no": 11,
+      "id": "kebab_ayam_homemade",
+      "category": "Daging & Protein",
+      "name": "Kebab Ayam Homemade",
+      "unit": "gram",
+      "current_stock": 10000,
+      "safety_stock": 5000,
+      "unit_cost": 65,
+      "updated_at": null
+    },
+    {
+      "no": 12,
+      "id": "lettuce_head",
+      "category": "Sayuran & Buah",
+      "name": "Lettuce Head",
+      "unit": "gram",
+      "current_stock": 12000,
+      "safety_stock": 5000,
+      "unit_cost": 28,
+      "updated_at": null
+    },
+    {
+      "no": 13,
+      "id": "bawang_bombay",
+      "category": "Sayuran & Buah",
+      "name": "Bawang Bombay",
+      "unit": "gram",
+      "current_stock": 8000,
+      "safety_stock": 3000,
+      "unit_cost": 32,
+      "updated_at": null
+    },
+    {
+      "no": 14,
+      "id": "nanas",
+      "category": "Sayuran & Buah",
+      "name": "Nanas",
+      "unit": "gram",
+      "current_stock": 4000,
+      "safety_stock": 2000,
+      "unit_cost": 20,
+      "updated_at": null
+    },
+    {
+      "no": 15,
+      "id": "saus_sambal",
+      "category": "Saus & Condiment",
+      "name": "Saus Sambal",
+      "unit": "gram",
+      "current_stock": 15000,
+      "safety_stock": 8000,
+      "unit_cost": 24,
+      "updated_at": null
+    },
+    {
+      "no": 16,
+      "id": "saus_tomat",
+      "category": "Saus & Condiment",
+      "name": "Saus Tomat",
+      "unit": "gram",
+      "current_stock": 10000,
+      "safety_stock": 6000,
+      "unit_cost": 22,
+      "updated_at": null
+    },
+    {
+      "no": 17,
+      "id": "saus_mayonaise",
+      "category": "Saus & Condiment",
+      "name": "Saus Mayonaise",
+      "unit": "gram",
+      "current_stock": 15000,
+      "safety_stock": 8000,
+      "unit_cost": 30,
+      "updated_at": null
+    },
+    {
+      "no": 18,
+      "id": "saus_keju",
+      "category": "Saus & Condiment",
+      "name": "Saus Keju",
+      "unit": "gram",
+      "current_stock": 6000,
+      "safety_stock": 4000,
+      "unit_cost": 45,
+      "updated_at": null
+    },
+    {
+      "no": 19,
+      "id": "saus_signature",
+      "category": "Saus & Condiment",
+      "name": "Saus Signature",
+      "unit": "gram",
+      "current_stock": 8000,
+      "safety_stock": 4000,
+      "unit_cost": 38,
+      "updated_at": null
+    },
+    {
+      "no": 20,
+      "id": "keju_slice",
+      "category": "Topping Tambahan",
+      "name": "Keju Slice",
+      "unit": "pcs",
+      "current_stock": 100,
+      "safety_stock": 50,
+      "unit_cost": 1100,
+      "updated_at": null
+    },
+    {
+      "no": 21,
+      "id": "telur",
+      "category": "Topping Tambahan",
+      "name": "Telur",
+      "unit": "pcs",
+      "current_stock": 120,
+      "safety_stock": 80,
+      "unit_cost": 2000,
+      "updated_at": null
+    }
+  ],
+  "ledger": [],
+  "purchase_orders": []
+}
