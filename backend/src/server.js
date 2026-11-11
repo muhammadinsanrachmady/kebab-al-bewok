@@ -16,6 +16,54 @@ function normalizePhone(p) {
   return s;
 }
 
+function sanitizeCustomer(cust) {
+  if (!cust) return null;
+  const safe = { ...cust };
+  safe.has_password = Boolean(cust.password_hash || cust.has_password);
+  delete safe.password_hash;
+  return safe;
+}
+
+function findCustomerEntry(wallets, identifier) {
+  const customers = (wallets && wallets.customers) || {};
+  const raw = String(identifier || '').trim();
+  const cleanId = raw.toLowerCase();
+  if (!cleanId) return null;
+
+  if (customers[raw]) return { key: raw, customer: customers[raw] };
+  if (customers[cleanId]) return { key: cleanId, customer: customers[cleanId] };
+
+  const entries = Object.entries(customers);
+  const emailMatch = entries.find(([, c]) => c && c.email && c.email.toLowerCase() === cleanId);
+  if (emailMatch) return { key: emailMatch[0], customer: emailMatch[1] };
+
+  const normInput = normalizePhone(raw);
+  if (normInput.length >= 7) {
+    const phoneMatches = entries.filter(([, c]) => {
+      if (!c) return false;
+      return normalizePhone(c.whatsapp) === normInput || normalizePhone(c.phone) === normInput;
+    });
+    if (phoneMatches.length > 0) {
+      phoneMatches.sort((a, b) => {
+        const score = c => (c.password_hash ? 4 : 0) + (c.email ? 2 : 0) + (c.profile_completed ? 1 : 0);
+        return score(b[1]) - score(a[1]);
+      });
+      return { key: phoneMatches[0][0], customer: phoneMatches[0][1] };
+    }
+  }
+  return null;
+}
+
+function applyCustomerPasswordUpdate(wallets, customerKey, passwordHash) {
+  if (!wallets.customers || !wallets.customers[customerKey]) return null;
+  const cust = wallets.customers[customerKey];
+  cust.password_hash = passwordHash;
+  cust.has_password = true;
+  cust.password_reset_at = new Date().toISOString();
+  cust.updated_at = new Date().toISOString();
+  return cust;
+}
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -207,7 +255,7 @@ app.post('/api/auth/google-login', async (req, res) => {
     data: {
       token: `token-google-${email}-${Date.now()}`,
       verified_by_google: isGoogleVerified,
-      user: wallets.customers[email]
+      user: sanitizeCustomer(wallets.customers[email])
     }
   });
 });
@@ -297,26 +345,8 @@ app.post('/api/auth/login-password', (req, res) => {
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.customers) wallets.customers = {};
 
-  const cleanId = identifier.trim().toLowerCase();
-  const normInputPhone = normalizePhone(identifier);
-
-  // Cari user berdasarkan email ATAU nomor whatsapp
-  let targetCust = null;
-
-  // 1. Cari exact match email key
-  if (wallets.customers[cleanId]) {
-    targetCust = wallets.customers[cleanId];
-  } else {
-    // 2. Cari di daftar seluruh pelanggan
-    targetCust = Object.values(wallets.customers).find(c => {
-      if (c.email && c.email.toLowerCase() === cleanId) return true;
-      if (c.whatsapp && normInputPhone && normInputPhone.length >= 7) {
-        const normWa = normalizePhone(c.whatsapp);
-        if (normWa === normInputPhone) return true;
-      }
-      return false;
-    });
-  }
+  const matched = findCustomerEntry(wallets, identifier);
+  const targetCust = matched ? matched.customer : null;
 
   if (!targetCust) {
     return res.status(404).json({
@@ -340,19 +370,117 @@ app.post('/api/auth/login-password', (req, res) => {
     });
   }
 
-  const safeCust = { ...targetCust };
-  delete safeCust.password_hash;
+  targetCust.last_login = new Date().toISOString();
+  writeJSON(WALLETS_FILE, wallets);
 
-  console.log(`🔑 [LOGIN PASSWORD BERHASIL] Pelanggan: ${safeCust.name} (${safeCust.email})`);
+  const safeCust = sanitizeCustomer(targetCust);
+
+  console.log(`🔑 [LOGIN PASSWORD BERHASIL] Pelanggan: ${safeCust.name} (${safeCust.email || safeCust.phone})`);
 
   res.json({
     success: true,
     message: `Login Berhasil! Selamat datang kembali, Kak ${safeCust.name}.`,
     data: {
-      token: `token-pass-${safeCust.id || safeCust.email}-${Date.now()}`,
+      token: `token-pass-${safeCust.id || safeCust.email || safeCust.phone}-${Date.now()}`,
       user: safeCust
     }
   });
+});
+
+// Pengajuan Lupa Kata Sandi Customer (Menunggu ACC Owner)
+app.post('/api/auth/forgot-password', (req, res) => {
+  const { identifier, new_password, note } = req.body || {};
+  if (!identifier || !new_password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email / Nomor WhatsApp dan Kata Sandi Baru wajib diisi.'
+    });
+  }
+
+  const cleanPass = String(new_password).trim();
+  if (cleanPass.length < 6) {
+    return res.status(400).json({
+      success: false,
+      message: 'Kata sandi baru minimal 6 karakter.'
+    });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  const matched = findCustomerEntry(wallets, identifier);
+  if (!matched) {
+    return res.status(404).json({
+      success: false,
+      message: 'Akun dengan Email / WhatsApp tersebut tidak ditemukan. Pastikan sudah pernah masuk sebelumnya.'
+    });
+  }
+
+  if (!wallets.password_reset_requests) wallets.password_reset_requests = [];
+  const { key: customerKey, customer: cust } = matched;
+  const nowIso = new Date().toISOString();
+  const newHash = hashPassword(cleanPass);
+
+  const existingPending = wallets.password_reset_requests.find(
+    r => r.customer_key === customerKey && r.status === 'pending'
+  );
+
+  let resetReq;
+  if (existingPending) {
+    existingPending.new_password_hash = newHash;
+    existingPending.has_requested_password = true;
+    existingPending.note = (note || '').trim() || existingPending.note || 'Lupa kata sandi akun';
+    existingPending.requested_at = nowIso;
+    resetReq = existingPending;
+  } else {
+    resetReq = {
+      id: `pwr-${Date.now()}`,
+      customer_key: customerKey,
+      customer_id: cust.id || customerKey,
+      customer_name: cust.name || 'Pelanggan',
+      customer_email: cust.email || '',
+      customer_phone: cust.whatsapp || cust.phone || '',
+      note: (note || '').trim() || 'Lupa kata sandi akun',
+      new_password_hash: newHash,
+      has_requested_password: true,
+      status: 'pending',
+      requested_at: nowIso
+    };
+    wallets.password_reset_requests.push(resetReq);
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  console.log(`🔐 [LUPA PASSWORD CUSTOMER] ${cust.name} (${cust.email || cust.whatsapp || cust.phone}) mengajukan reset menunggu ACC Owner.`);
+
+  const { new_password_hash, ...safeReq } = resetReq;
+  res.json({
+    success: true,
+    message: 'Pengajuan reset kata sandi terkirim ke Owner! Setelah di-ACC Owner, Anda langsung bisa login memakai kata sandi baru tersebut.',
+    data: safeReq
+  });
+});
+
+// Cek Status Pengajuan Lupa Kata Sandi Customer
+app.get('/api/auth/forgot-password/status', (req, res) => {
+  const { identifier } = req.query;
+  if (!identifier) {
+    return res.status(400).json({ success: false, message: 'Identifier diperlukan' });
+  }
+  const wallets = readJSON(WALLETS_FILE);
+  const matched = findCustomerEntry(wallets, identifier);
+  if (!matched) {
+    return res.status(404).json({ success: false, message: 'Akun tidak ditemukan' });
+  }
+
+  const list = (wallets.password_reset_requests || [])
+    .filter(r => r.customer_key === matched.key)
+    .sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+
+  if (list.length === 0) {
+    return res.json({ success: true, data: null, message: 'Belum ada pengajuan reset kata sandi untuk akun ini.' });
+  }
+
+  const { new_password_hash, ...latest } = list[0];
+  res.json({ success: true, data: latest });
 });
 
 // Login Dapur & Kasir Lapak (Mendukung PIN Kasir Cabang, Kata Sandi & Akun Google)
@@ -1982,7 +2110,8 @@ app.get('/api/super-admin/summary', (req, res) => {
       branches: branchStats,
       drivers: Object.values(wallets.drivers || {}),
       withdrawals: wallets.withdrawals || [],
-      wallet_change_requests: wallets.wallet_change_requests || []
+      wallet_change_requests: wallets.wallet_change_requests || [],
+      customer_password_resets_pending: (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length
     }
   });
 });
@@ -2201,6 +2330,189 @@ app.post('/api/super-admin/drivers/:id/reset-device', (req, res) => {
     success: true,
     message: `Kunci perangkat HP ${driver.name} berhasil direset.`,
     data: { id: driver.id, has_device_lock: false }
+  });
+});
+
+// ============================================================================
+// PORTAL OWNER TAB COSTUMER: PROFIL PELANGGAN & ACC LUPA PASSWORD
+// ============================================================================
+app.get('/api/super-admin/customers', (req, res) => {
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const orders = readJSON(ORDERS_FILE) || [];
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const branchNameById = new Map(branches.map(b => [b.id, b.name]));
+
+  const custEntries = Object.entries(wallets.customers || {});
+  const resetRequestsRaw = wallets.password_reset_requests || [];
+  const pendingByKey = new Set(resetRequestsRaw.filter(r => r.status === 'pending').map(r => r.customer_key));
+
+  const customers = custEntries.map(([customerKey, rawCust]) => {
+    const safe = sanitizeCustomer(rawCust);
+    const normCustPhone = normalizePhone(safe.whatsapp || safe.phone || '');
+    const emailLower = safe.email ? safe.email.toLowerCase() : '';
+
+    const matchedOrders = orders.filter(o => {
+      if (o.status === 'cancelled' || o.status === 'rejected') return false;
+      if (emailLower && o.customer_email && String(o.customer_email).toLowerCase() === emailLower) return true;
+      if (safe.id && o.customer_id && o.customer_id === safe.id) return true;
+      if (normCustPhone.length >= 7 && o.customer_phone && normalizePhone(o.customer_phone) === normCustPhone) return true;
+      return false;
+    });
+
+    matchedOrders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    const totalSpent = matchedOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+    const recentOrders = matchedOrders.slice(0, 5).map(o => ({
+      id: o.id,
+      branch_name: branchNameById.get(o.branch_id) || o.branch_name || o.branch_id || 'Lapak',
+      total_price: Number(o.total_price) || 0,
+      status: o.status,
+      order_type: o.order_type || 'delivery',
+      created_at: o.created_at
+    }));
+
+    return {
+      ...safe,
+      customer_key: customerKey,
+      phone_display: safe.whatsapp || safe.phone || '',
+      order_count: matchedOrders.length,
+      total_spent: totalSpent,
+      last_order_at: matchedOrders[0] ? matchedOrders[0].created_at : null,
+      recent_orders: recentOrders,
+      pending_password_reset: pendingByKey.has(customerKey)
+    };
+  }).sort((a, b) => {
+    if (a.pending_password_reset !== b.pending_password_reset) return a.pending_password_reset ? -1 : 1;
+    if (b.order_count !== a.order_count) return b.order_count - a.order_count;
+    return new Date(b.updated_at || b.registered_at || 0) - new Date(a.updated_at || a.registered_at || 0);
+  });
+
+  const password_reset_requests = resetRequestsRaw
+    .map(({ new_password_hash, ...rest }) => rest)
+    .sort((a, b) => {
+      if ((a.status === 'pending') !== (b.status === 'pending')) return a.status === 'pending' ? -1 : 1;
+      return new Date(b.requested_at || 0) - new Date(a.requested_at || 0);
+    });
+
+  const stats = {
+    total_customers: customers.length,
+    completed_profiles: customers.filter(c => c.profile_completed).length,
+    with_password: customers.filter(c => c.has_password).length,
+    repeat_buyers: customers.filter(c => c.order_count > 0).length,
+    total_customer_balance: customers.reduce((sum, c) => sum + (Number(c.balance) || 0), 0),
+    pending_password_resets: password_reset_requests.filter(r => r.status === 'pending').length
+  };
+
+  res.json({
+    success: true,
+    data: {
+      stats,
+      customers,
+      password_reset_requests
+    }
+  });
+});
+
+// Owner ACC Pengajuan Lupa Password Customer
+app.post('/api/super-admin/customers/password-resets/:id/approve', (req, res) => {
+  const { id } = req.params;
+  const { temporary_password } = req.body || {};
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.password_reset_requests) wallets.password_reset_requests = [];
+
+  const resetReq = wallets.password_reset_requests.find(r => r.id === id);
+  if (!resetReq) {
+    return res.status(404).json({ success: false, message: 'Permintaan reset password tidak ditemukan' });
+  }
+
+  let nextHash = resetReq.new_password_hash || '';
+  if (temporary_password && String(temporary_password).trim().length >= 6) {
+    nextHash = hashPassword(String(temporary_password).trim());
+  }
+  if (!nextHash) {
+    return res.status(400).json({
+      success: false,
+      message: 'Kata sandi baru belum tersedia. Masukkan minimal 6 karakter password sementara.'
+    });
+  }
+
+  let cust = applyCustomerPasswordUpdate(wallets, resetReq.customer_key, nextHash);
+  if (!cust) {
+    const fallbackMatch = findCustomerEntry(wallets, resetReq.customer_email || resetReq.customer_phone);
+    if (fallbackMatch) {
+      cust = applyCustomerPasswordUpdate(wallets, fallbackMatch.key, nextHash);
+    }
+  }
+  if (!cust) {
+    return res.status(404).json({ success: false, message: 'Profil akun pelanggan tidak ditemukan' });
+  }
+
+  resetReq.status = 'approved';
+  resetReq.approved_at = new Date().toISOString();
+  writeJSON(WALLETS_FILE, wallets);
+
+  console.log(`✅ [ACC LUPA PASSWORD] Owner menyetujui reset password untuk ${cust.name} (${resetReq.customer_key})`);
+
+  const { new_password_hash, ...safeReq } = resetReq;
+  res.json({
+    success: true,
+    message: `Reset kata sandi ${cust.name} telah di-ACC! Pelanggan sudah bisa login dengan kata sandi barunya.`,
+    data: safeReq
+  });
+});
+
+// Owner Tolak Pengajuan Lupa Password Customer
+app.post('/api/super-admin/customers/password-resets/:id/reject', (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body || {};
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.password_reset_requests) wallets.password_reset_requests = [];
+
+  const resetReq = wallets.password_reset_requests.find(r => r.id === id);
+  if (!resetReq) {
+    return res.status(404).json({ success: false, message: 'Permintaan reset password tidak ditemukan' });
+  }
+
+  resetReq.status = 'rejected';
+  resetReq.rejected_at = new Date().toISOString();
+  if (reason) resetReq.rejected_reason = String(reason).trim();
+  writeJSON(WALLETS_FILE, wallets);
+
+  const { new_password_hash, ...safeReq } = resetReq;
+  res.json({
+    success: true,
+    message: `Pengajuan reset password ${resetReq.customer_name} ditolak.`,
+    data: safeReq
+  });
+});
+
+// Owner Reset / Atur Ulang Kata Sandi Langsung dari Profil Costumer
+app.post('/api/super-admin/customers/:key/reset-password', (req, res) => {
+  const { key } = req.params;
+  const { new_password } = req.body || {};
+  const cleanPass = String(new_password || '').trim();
+  if (cleanPass.length < 6) {
+    return res.status(400).json({ success: false, message: 'Kata sandi baru minimal 6 karakter.' });
+  }
+
+  const wallets = readJSON(WALLETS_FILE);
+  const cust = applyCustomerPasswordUpdate(wallets, key, hashPassword(cleanPass));
+  if (!cust) {
+    return res.status(404).json({ success: false, message: 'Akun pelanggan tidak ditemukan' });
+  }
+
+  if (Array.isArray(wallets.password_reset_requests)) {
+    wallets.password_reset_requests.forEach(r => {
+      if (r.customer_key === key && r.status === 'pending') {
+        r.status = 'approved';
+        r.approved_at = new Date().toISOString();
+      }
+    });
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+  res.json({
+    success: true,
+    message: `Kata sandi untuk ${cust.name} berhasil diatur ulang oleh Owner.`
   });
 });
 

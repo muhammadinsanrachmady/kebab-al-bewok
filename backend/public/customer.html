@@ -197,6 +197,12 @@
           <span>MASUK DENGAN KATA SANDI</span>
         </button>
 
+        <div class="flex items-center justify-between pt-1">
+          <button type="button" onclick="openForgotPasswordModal('cover')" class="text-[10px] font-bold text-amber-300 hover:text-amber-200 underline underline-offset-2 transition">
+            Lupa Kata Sandi? Ajukan Reset ke Owner
+          </button>
+        </div>
+
         <p class="text-[9px] text-slate-400 leading-tight text-center pt-1 border-t border-slate-800">
           💡 Kata sandi dapat dibuat di biodata profil setelah Anda login pertama kali via Google.
         </p>
@@ -684,6 +690,9 @@
             <i class="fa-solid fa-arrow-right-to-bracket"></i>
             <span>Masuk dengan Kata Sandi</span>
           </button>
+          <button type="button" onclick="openForgotPasswordModal('modal')" class="w-full text-center text-[10px] font-bold text-amber-800 hover:text-amber-950 underline underline-offset-2 pt-0.5">
+            Lupa Kata Sandi? Ajukan Reset ke Owner
+          </button>
         </div>
 
         <button type="button" onclick="closeLoginModal()" class="w-full text-center text-[11px] text-gray-400 hover:text-gray-600 py-1 font-semibold">
@@ -694,6 +703,57 @@
       <div class="pt-2 border-t text-[10px] text-emerald-800 font-semibold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
         🔒 Bebas biaya seumur hidup. Akun Google memvalidasi pelanggan resmi Kebab AL Bewok.
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL LUPA KATA SANDI CUSTOMER (PENGAJUAN KE OWNER) -->
+  <div id="forgotPasswordModal" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-3.5 relative border border-amber-100">
+      <button type="button" onclick="closeForgotPasswordModal()" class="absolute top-3.5 right-3.5 w-7 h-7 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-xs transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="space-y-1 pr-6">
+        <span class="inline-flex items-center space-x-1 bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+          <i class="fa-solid fa-unlock-keyhole"></i>
+          <span>Lupa Kata Sandi</span>
+        </span>
+        <h3 class="text-sm font-black text-gray-900">Ajukan Reset Password ke Owner</h3>
+        <p class="text-[11px] text-gray-500 leading-snug">Masukkan Email/No. WA terdaftar dan kata sandi baru yang diinginkan. Owner akan memverifikasi &amp; meng-ACC permintaan Anda.</p>
+      </div>
+
+      <form onsubmit="submitForgotPasswordRequest(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="text-[10px] font-bold text-gray-700 block mb-1">Email atau Nomor WhatsApp Akun <span class="text-red-500">*</span></label>
+          <input type="text" id="forgotPassIdentifier" required placeholder="nama@gmail.com / 0812..." class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-gray-700 block mb-1">Kata Sandi Baru yang Diinginkan <span class="text-red-500">*</span></label>
+          <div class="flex items-center border border-gray-300 rounded-xl px-3 py-1.5 focus-within:border-amber-500">
+            <input type="password" id="forgotPassNewSecret" required minlength="6" placeholder="Minimal 6 karakter" class="w-full bg-transparent text-xs font-bold outline-none">
+            <button type="button" onclick="togglePasswordVisibility('forgotPassNewSecret', 'forgotPassEye')" class="text-gray-400 hover:text-gray-600 p-1">
+              <i id="forgotPassEye" class="fa-solid fa-eye-slash text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-gray-700 block mb-1">Catatan Singkat (Opsional)</label>
+          <input type="text" id="forgotPassNote" placeholder="Contoh: Ganti HP / lupa password lama" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-xs outline-none focus:border-amber-500">
+        </div>
+
+        <div id="forgotPassFeedback" class="hidden rounded-xl p-2.5 text-[11px] leading-snug border"></div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="submit" id="btnSubmitForgotPass" class="flex-1 bg-gradient-to-r from-amber-500 to-red-600 hover:opacity-95 text-white font-black py-2.5 rounded-xl text-xs shadow transition active:scale-95">
+            Kirim ke Owner
+          </button>
+          <button type="button" onclick="checkForgotPasswordStatus()" class="px-3 py-2.5 rounded-xl border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold text-[11px] transition shrink-0">
+            Cek ACC
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1739,6 +1799,103 @@
         }
       } catch (err) {
         alert('Gagal menghubungi server untuk verifikasi kata sandi.');
+      }
+    }
+
+    function openForgotPasswordModal(source = 'cover') {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (!modal) return;
+      const sourceInput = source === 'modal'
+        ? document.getElementById('modalLoginIdentifier')
+        : document.getElementById('coverPassIdentifier');
+      const idInput = document.getElementById('forgotPassIdentifier');
+      if (idInput && sourceInput && sourceInput.value.trim()) {
+        idInput.value = sourceInput.value.trim();
+      }
+      const fb = document.getElementById('forgotPassFeedback');
+      if (fb) fb.classList.add('hidden');
+      modal.classList.remove('hidden');
+    }
+
+    function closeForgotPasswordModal() {
+      const modal = document.getElementById('forgotPasswordModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function showForgotPasswordFeedback(type, htmlMsg) {
+      const fb = document.getElementById('forgotPassFeedback');
+      if (!fb) return;
+      const clsMap = {
+        success: 'rounded-xl p-2.5 text-[11px] leading-snug border bg-emerald-50 border-emerald-200 text-emerald-800',
+        pending: 'rounded-xl p-2.5 text-[11px] leading-snug border bg-amber-50 border-amber-200 text-amber-900',
+        error: 'rounded-xl p-2.5 text-[11px] leading-snug border bg-rose-50 border-rose-200 text-rose-800'
+      };
+      fb.className = clsMap[type] || clsMap.pending;
+      fb.innerHTML = htmlMsg;
+    }
+
+    async function submitForgotPasswordRequest(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('forgotPassIdentifier').value.trim();
+      const new_password = document.getElementById('forgotPassNewSecret').value;
+      const note = document.getElementById('forgotPassNote').value.trim();
+      const btn = document.getElementById('btnSubmitForgotPass');
+
+      if (!identifier || !new_password || new_password.trim().length < 6) {
+        showForgotPasswordFeedback('error', 'Email/No. WhatsApp dan kata sandi baru minimal 6 karakter wajib diisi.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Mengirim...';
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, new_password, note })
+        }).then(r => r.json());
+
+        if (res.success) {
+          showForgotPasswordFeedback('pending', `<b>Terkirim ke Owner!</b> ${res.message}`);
+        } else {
+          showForgotPasswordFeedback('error', res.message || 'Gagal mengajukan reset password.');
+        }
+      } catch (err) {
+        showForgotPasswordFeedback('error', 'Gagal menghubungi server.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Kirim ke Owner';
+      }
+    }
+
+    async function checkForgotPasswordStatus() {
+      const identifier = document.getElementById('forgotPassIdentifier').value.trim();
+      if (!identifier) {
+        showForgotPasswordFeedback('error', 'Masukkan Email atau Nomor WhatsApp akun Anda untuk mengecek status.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/forgot-password/status?identifier=${encodeURIComponent(identifier)}`).then(r => r.json());
+        if (!res.success) {
+          showForgotPasswordFeedback('error', res.message || 'Akun tidak ditemukan.');
+          return;
+        }
+        if (!res.data) {
+          showForgotPasswordFeedback('pending', res.message || 'Belum ada pengajuan reset kata sandi.');
+          return;
+        }
+
+        const st = res.data.status;
+        if (st === 'approved') {
+          showForgotPasswordFeedback('success', '<b>Sudah di-ACC Owner!</b> Kata sandi baru Anda sudah aktif. Silakan tutup jendela ini dan login dengan kata sandi baru tersebut.');
+        } else if (st === 'rejected') {
+          showForgotPasswordFeedback('error', `<b>Pengajuan ditolak Owner.</b> ${res.data.rejected_reason || 'Silakan hubungi admin atau ajukan ulang.'}`);
+        } else {
+          showForgotPasswordFeedback('pending', '<b>Menunggu ACC Owner.</b> Permintaan Anda sedang dalam antrean verifikasi Owner.');
+        }
+      } catch (err) {
+        showForgotPasswordFeedback('error', 'Gagal mengecek status pengajuan.');
       }
     }
 

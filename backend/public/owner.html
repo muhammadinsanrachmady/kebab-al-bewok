@@ -104,6 +104,7 @@
         <button type="button" data-owner-tab="costumer" onclick="switchOwnerTab('costumer')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
           <i class="fa-solid fa-users text-[11px]"></i>
           <span>Costumer</span>
+          <span id="badgeCostumerPending" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
         </button>
 
         <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
@@ -440,22 +441,105 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 4: COSTUMER                                                     -->
+    <!-- TAB 4: COSTUMER (PROFIL COSTUMER & ACC LUPA PASSWORD)               -->
     <!-- =================================================================== -->
-    <section id="tabView-costumer" class="owner-tab-view hidden">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Data Costumer</h2>
-            <p class="text-[11px] text-slate-500">Pelanggan terdaftar, kontak & riwayat order</p>
+    <section id="tabView-costumer" class="owner-tab-view hidden space-y-3.5">
+
+      <!-- 4 KPI RINGKAS COSTUMER -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Total Costumer</span>
+            <p id="kpiCustTotal" class="text-base md:text-lg font-extrabold text-slate-100 mt-0.5 tabular-nums">0</p>
+            <span id="kpiCustProfileSub" class="text-[10px] text-slate-500 block truncate">0 profil lengkap</span>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
+            <i class="fa-solid fa-users"></i>
+          </div>
         </div>
-        <div class="text-center py-8 text-xs text-slate-500">
-          <i class="fa-solid fa-users text-xl text-slate-600 mb-1.5 block"></i>
-          Wadah Tab Costumer siap diisi pada langkah selanjutnya.
+
+        <div class="bg-slate-900/75 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Pernah Order</span>
+            <p id="kpiCustRepeat" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums">0</p>
+            <span id="kpiCustPasswordSub" class="text-[10px] text-slate-500 block truncate">0 akun berpassword</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+            <i class="fa-solid fa-bag-shopping"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/75 border border-sky-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Total Saldo Dompet</span>
+            <p id="kpiCustBalance" class="text-base md:text-lg font-extrabold text-sky-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span class="text-[10px] text-slate-500 block truncate">Akumulasi deposit user</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xs shrink-0">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+        </div>
+
+        <button type="button" onclick="scrollToCustomerResets()" id="kpiCustResetCard" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Lupa Password</span>
+            <p id="kpiCustResetPending" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums">0 Menunggu</p>
+            <span class="text-[10px] text-slate-500 block truncate">Klik untuk ACC reset</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
+            <i class="fa-solid fa-key"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- PANEL ACC LUPA PASSWORD COSTUMER -->
+      <div id="custResetSection" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+          <div>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100 flex items-center gap-1.5">
+              <i class="fa-solid fa-unlock-keyhole text-amber-400 text-xs"></i>
+              <span>Persetujuan Lupa Password Costumer</span>
+            </h2>
+            <p class="text-[11px] text-slate-500">Permintaan reset kata sandi dari aplikasi customer menunggu ACC Owner agar aktif</p>
+          </div>
+          <span id="custResetBadgePill" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">0 Antrean</span>
+        </div>
+
+        <div id="custResetRequestsContainer" class="space-y-2">
+          <div class="text-center py-5 text-xs text-slate-500">Memuat antrean lupa password...</div>
         </div>
       </div>
+
+      <!-- DIREKTORI & PROFIL PARA COSTUMER -->
+      <div id="custDirectorySection" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Profil Para Costumer</h2>
+            <p class="text-[11px] text-slate-500">Biodata, kontak WhatsApp, alamat GPS, riwayat order &amp; kontrol password akun</p>
+          </div>
+          <span id="custDirectoryCount" class="text-[11px] text-slate-400 font-semibold tabular-nums">0 Costumer</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass text-[11px] text-slate-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="custSearchInput" oninput="renderCustomerDirectory()" placeholder="Cari nama, email, no. WhatsApp, atau alamat..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500/60 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 outline-none transition">
+          </div>
+
+          <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar shrink-0">
+            <button type="button" data-cust-filter="all" onclick="setCustomerFilter('all')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 transition shrink-0">Semua</button>
+            <button type="button" data-cust-filter="completed" onclick="setCustomerFilter('completed')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Profil Lengkap</button>
+            <button type="button" data-cust-filter="incomplete" onclick="setCustomerFilter('incomplete')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Belum Lengkap</button>
+            <button type="button" data-cust-filter="ordered" onclick="setCustomerFilter('ordered')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Pernah Order</button>
+            <button type="button" data-cust-filter="password" onclick="setCustomerFilter('password')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Berpassword</button>
+          </div>
+        </div>
+
+        <div id="custProfilesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div class="md:col-span-2 text-center py-8 text-xs text-slate-500">Memuat profil pelanggan...</div>
+        </div>
+      </div>
+
     </section>
 
     <!-- =================================================================== -->
@@ -613,6 +697,28 @@
     </div>
   </div>
 
+  <!-- MODAL DETAIL PROFIL COSTUMER & ATUR ULANG PASSWORD -->
+  <div id="customerDetailModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-4 space-y-3 max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <img id="custModalAvatar" src="" alt="Avatar" class="w-10 h-10 rounded-xl object-cover bg-slate-950 border border-slate-700 shrink-0">
+          <div class="min-w-0">
+            <h3 id="custModalName" class="text-sm font-extrabold text-slate-100 truncate">Detail Costumer</h3>
+            <p id="custModalSub" class="text-[11px] text-slate-400 truncate">-</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCustomerDetailModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition shrink-0">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="custModalBody" class="space-y-3 text-xs">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
   <script>
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
     const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
@@ -640,6 +746,11 @@
     let activeRadarDriverId = null;
     let isRenderingRadarMap = false;
     let courierFinanceSubtab = 'withdrawals';
+
+    // State Tab Costumer
+    let cachedCustomersData = null;
+    let currentCustomerFilter = 'all';
+    let activeCustomerModalKey = null;
 
     const RADAR_STATUS_META = {
       TO_CUSTOMER: {
@@ -844,6 +955,9 @@
         }, 150);
       } else {
         stopCourierRadarPolling();
+        if (targetTab === 'costumer') {
+          fetchCustomersData();
+        }
       }
     }
 
@@ -886,7 +1000,7 @@
     }
 
     async function fetchAllData() {
-      await Promise.all([fetchSummary(), fetchStockOpnames()]);
+      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData()]);
     }
 
     async function fetchSummary() {
@@ -901,6 +1015,9 @@
           renderOmzetMetricsAndOpnames();
           renderBranchesTable();
           renderCourierFinanceSection();
+          if (typeof cachedSummary.customer_password_resets_pending === 'number') {
+            updateCustomerPendingBadge(cachedSummary.customer_password_resets_pending);
+          }
         }
       } catch (err) {
         console.error('Gagal mengambil ringkasan:', err);
@@ -2295,15 +2412,469 @@
       toggleAccordionSection(expandedOpnameDetails, id, 'details', 'icon_toggle');
     }
 
-    function sendInvoiceWA(branchName, amount, phone = '') {
-      const msg = `Halo Kasir ${branchName}, rekap sistem Kebab AL Bewok mencatat titipan ongkir kurir sebesar ${formatRp(amount)} dari transaksi QRIS cabang Anda. Mohon disetorkan ke rekening Pusat. Terima kasih!`;
+    function openWhatsAppChat(phone, msg, fallbackPrefix = 'Pesan WhatsApp') {
       let digits = String(phone || '').replace(/[^0-9]/g, '');
       if (digits.startsWith('0')) digits = '62' + digits.slice(1);
       if (digits.length >= 10) {
         window.open(`https://wa.me/${digits}?text=${encodeURIComponent(msg)}`, '_blank');
       } else {
-        alert(`Pesan WhatsApp ke kasir:\n\n"${msg}"`);
+        alert(`${fallbackPrefix}:\n\n"${msg}"`);
       }
+    }
+
+    function sendInvoiceWA(branchName, amount, phone = '') {
+      const msg = `Halo Kasir ${branchName}, rekap sistem Kebab AL Bewok mencatat titipan ongkir kurir sebesar ${formatRp(amount)} dari transaksi QRIS cabang Anda. Mohon disetorkan ke rekening Pusat. Terima kasih!`;
+      openWhatsAppChat(phone, msg, 'Pesan WhatsApp ke kasir');
+    }
+
+    function contactCustomerWA(phone, name, preset = '') {
+      const msg = preset || `Halo Kak ${name || 'Pelanggan'}, ini dari Admin/Owner Kebab AL Bewok.`;
+      openWhatsAppChat(phone, msg, `Nomor WA pelanggan (${name || '-'}) belum tersedia. Draft pesan`);
+    }
+
+    // =========================================================================
+    // TAB COSTUMER: PROFIL PELANGGAN & ACC LUPA PASSWORD
+    // =========================================================================
+    function updateCustomerPendingBadge(pendingCount) {
+      const badge = document.getElementById('badgeCostumerPending');
+      if (badge) {
+        badge.innerText = pendingCount;
+        badge.classList.toggle('hidden', pendingCount <= 0);
+      }
+    }
+
+    async function fetchCustomersData() {
+      try {
+        const res = await fetch('/api/super-admin/customers').then(r => r.json());
+        if (res.success && res.data) {
+          cachedCustomersData = res.data;
+          renderCustomerHub();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil data costumer:', err);
+      }
+    }
+
+    function scrollToCustomerResets() {
+      const sec = document.getElementById('custResetSection');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function setCustomerFilter(filterKey) {
+      currentCustomerFilter = filterKey || 'all';
+      document.querySelectorAll('[data-cust-filter]').forEach(btn => {
+        const isActive = btn.dataset.custFilter === currentCustomerFilter;
+        btn.className = isActive
+          ? 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 transition shrink-0'
+          : 'px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0';
+      });
+      renderCustomerDirectory();
+    }
+
+    function renderCustomerHub() {
+      if (!cachedCustomersData) return;
+      const stats = cachedCustomersData.stats || {};
+      const pendingCount = Number(stats.pending_password_resets) || 0;
+
+      updateCustomerPendingBadge(pendingCount);
+
+      const elTotal = document.getElementById('kpiCustTotal');
+      const elProfileSub = document.getElementById('kpiCustProfileSub');
+      const elRepeat = document.getElementById('kpiCustRepeat');
+      const elPassSub = document.getElementById('kpiCustPasswordSub');
+      const elBalance = document.getElementById('kpiCustBalance');
+      const elResetPending = document.getElementById('kpiCustResetPending');
+      const elResetCard = document.getElementById('kpiCustResetCard');
+      const elResetSection = document.getElementById('custResetSection');
+      const elResetPill = document.getElementById('custResetBadgePill');
+
+      if (elTotal) elTotal.innerText = stats.total_customers || 0;
+      if (elProfileSub) elProfileSub.innerText = `${stats.completed_profiles || 0} profil lengkap`;
+      if (elRepeat) elRepeat.innerText = stats.repeat_buyers || 0;
+      if (elPassSub) elPassSub.innerText = `${stats.with_password || 0} akun berpassword`;
+      if (elBalance) elBalance.innerText = formatRp(stats.total_customer_balance || 0);
+      if (elResetPending) elResetPending.innerText = `${pendingCount} Menunggu`;
+
+      if (elResetCard) {
+        elResetCard.className = pendingCount > 0
+          ? 'text-left bg-amber-500/10 hover:bg-amber-500/15 border border-amber-500/40 rounded-2xl p-3 flex items-center justify-between gap-2 transition'
+          : 'text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition';
+      }
+      if (elResetSection) {
+        elResetSection.className = pendingCount > 0
+          ? 'bg-slate-900/80 border border-amber-500/35 rounded-2xl p-3.5 space-y-2.5'
+          : 'bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5';
+      }
+      if (elResetPill) {
+        elResetPill.innerText = `${pendingCount} Menunggu ACC`;
+        elResetPill.className = pendingCount > 0
+          ? 'text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40'
+          : 'text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+      }
+
+      renderCustomerResetRequests();
+      renderCustomerDirectory();
+
+      if (activeCustomerModalKey) {
+        openCustomerDetailModal(activeCustomerModalKey, true);
+      }
+    }
+
+    function renderCustomerResetRequests() {
+      const container = document.getElementById('custResetRequestsContainer');
+      if (!container || !cachedCustomersData) return;
+
+      const reqs = cachedCustomersData.password_reset_requests || [];
+      if (reqs.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada pengajuan lupa password dari costumer.</div>`;
+        return;
+      }
+
+      const statusMeta = {
+        pending: { label: 'Menunggu ACC', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+        approved: { label: 'Di-ACC / Aktif', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+        rejected: { label: 'Ditolak', cls: 'bg-rose-500/15 text-rose-400 border-rose-500/30' }
+      };
+
+      container.innerHTML = reqs.map(r => {
+        const meta = statusMeta[r.status] || statusMeta.pending;
+        const safeId = escapeJsArg(r.id);
+        const safeName = escapeJsArg(r.customer_name || 'Costumer');
+        const safePhone = escapeJsArg(r.customer_phone || '');
+        const hasNewPass = Boolean(r.has_requested_password);
+        const contactStr = [r.customer_email, r.customer_phone].filter(Boolean).join(' • ') || r.customer_key;
+        const waPreset = r.status === 'approved'
+          ? `Halo Kak ${r.customer_name}, pengajuan reset kata sandi akun Kebab AL Bewok sudah di-ACC Owner! Silakan login memakai kata sandi baru Anda.`
+          : `Halo Kak ${r.customer_name}, kami memverifikasi pengajuan reset kata sandi akun Kebab AL Bewok Anda.`;
+
+        return `
+          <div class="bg-slate-950/70 border ${r.status === 'pending' ? 'border-amber-500/30' : 'border-slate-800/80'} rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5">
+            <div class="min-w-0 space-y-0.5 flex-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-100">${escapeHtml(r.customer_name || 'Pelanggan')}</span>
+                <span class="px-2 py-0.5 rounded-md border text-[9px] font-bold ${meta.cls}">${meta.label}</span>
+                <span class="text-[10px] text-slate-500">• ${escapeHtml(formatTimeAgo(r.requested_at))}</span>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">${escapeHtml(contactStr)}</p>
+              <p class="text-[10px] text-slate-500 italic truncate">"${escapeHtml(r.note || 'Lupa kata sandi akun')}" • ${hasNewPass ? '<span class="text-sky-400 not-italic font-semibold">Kata sandi baru siap di-ACC</span>' : '<span class="text-amber-300 not-italic">Butuh password sementara</span>'}</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+              ${r.customer_phone ? `
+                <button type="button" onclick="contactCustomerWA('${safePhone}', '${safeName}', '${escapeJsArg(waPreset)}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-emerald-600/20 text-emerald-400 border border-slate-800 hover:border-emerald-500/40 text-[10px] font-semibold transition" title="Konfirmasi via WhatsApp">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </button>
+              ` : ''}
+              ${r.status === 'pending' ? `
+                <button type="button" onclick="approveCustomerPasswordReset('${safeId}', ${hasNewPass}, '${safeName}')" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-extrabold transition">
+                  <i class="fa-solid fa-check mr-1"></i>ACC Password
+                </button>
+                <button type="button" onclick="rejectCustomerPasswordReset('${safeId}', '${safeName}')" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/30 text-[10px] font-semibold transition">
+                  Tolak
+                </button>
+              ` : `
+                <span class="text-[10px] text-slate-500">${escapeHtml(formatTimeAgo(r.approved_at || r.rejected_at))}</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderCustomerDirectory() {
+      const grid = document.getElementById('custProfilesGrid');
+      const countEl = document.getElementById('custDirectoryCount');
+      if (!grid || !cachedCustomersData) return;
+
+      const searchEl = document.getElementById('custSearchInput');
+      const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+
+      const filterPredicates = {
+        all: () => true,
+        completed: c => Boolean(c.profile_completed),
+        incomplete: c => !c.profile_completed,
+        ordered: c => (Number(c.order_count) || 0) > 0,
+        password: c => Boolean(c.has_password)
+      };
+      const predicate = filterPredicates[currentCustomerFilter] || filterPredicates.all;
+
+      const filtered = (cachedCustomersData.customers || []).filter(c => {
+        if (!predicate(c)) return false;
+        if (!query) return true;
+        const haystack = [
+          c.name, c.email, c.whatsapp, c.phone, c.home_address, c.office_address, c.delivery_address
+        ].filter(Boolean).join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+
+      if (countEl) countEl.innerText = `${filtered.length} Costumer`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="md:col-span-2 text-center py-8 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-xs text-slate-500">Tidak ada profil costumer yang cocok dengan pencarian/filter.</div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(c => {
+        const safeKey = escapeJsArg(c.customer_key);
+        const safeName = escapeJsArg(c.name || 'Pelanggan');
+        const safePhone = escapeJsArg(c.phone_display || '');
+        const avatarUrl = escapeHtml(c.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(c.email || c.name || c.customer_key)}`);
+        const mainAddr = c.home_address || c.delivery_address || c.office_address || 'Alamat belum dilengkapi';
+
+        return `
+          <div class="bg-slate-950/70 border ${c.pending_password_reset ? 'border-amber-500/45' : 'border-slate-800/90'} rounded-xl p-3 space-y-2.5 hover:border-slate-700 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <img src="${avatarUrl}" onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=kebab'" alt="Avatar" class="w-9 h-9 rounded-xl object-cover bg-slate-900 border border-slate-700 shrink-0">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-100 truncate">${escapeHtml(c.name || 'Pelanggan')}</span>
+                    ${c.pending_password_reset ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/35 text-[8px] font-extrabold shrink-0">Lupa Pass</span>' : ''}
+                  </div>
+                  <p class="text-[10px] text-slate-400 truncate">${escapeHtml(c.email || c.phone_display || c.customer_key)}</p>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-end gap-1 shrink-0">
+                <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${c.has_password ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+                  ${c.has_password ? '<i class="fa-solid fa-key mr-0.5"></i>Password Aktif' : 'Belum Password'}
+                </span>
+                <span class="text-[9px] ${c.profile_completed ? 'text-sky-400' : 'text-slate-500'} font-semibold">
+                  ${c.profile_completed ? 'Profil Lengkap' : 'Profil Belum Lengkap'}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1.5 text-center bg-slate-900/75 border border-slate-800/80 rounded-lg p-1.5">
+              <div>
+                <span class="text-[9px] text-slate-500 block">Order</span>
+                <span class="text-[11px] font-bold text-slate-100 tabular-nums">${c.order_count || 0}x</span>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-500 block">Belanja</span>
+                <span class="text-[11px] font-bold text-amber-400 tabular-nums">${formatRp(c.total_spent || 0)}</span>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-500 block">Saldo</span>
+                <span class="text-[11px] font-bold text-emerald-400 tabular-nums">${formatRp(c.balance || 0)}</span>
+              </div>
+            </div>
+
+            <div class="text-[10px] text-slate-400 space-y-0.5">
+              <p class="truncate"><i class="fa-brands fa-whatsapp text-emerald-400 mr-1"></i>${escapeHtml(c.phone_display || 'Belum isi WA')}</p>
+              <p class="truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>${escapeHtml(mainAddr)}</p>
+            </div>
+
+            <div class="flex items-center justify-between gap-1.5 pt-1.5 border-t border-slate-800/70">
+              <button type="button" onclick="openCustomerDetailModal('${safeKey}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
+                <i class="fa-solid fa-id-card mr-1"></i>Detail Profil
+              </button>
+              <div class="flex items-center gap-1">
+                ${c.phone_display ? `
+                  <button type="button" onclick="contactCustomerWA('${safePhone}', '${safeName}')" class="px-2 py-1 rounded-lg bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 text-[10px] font-semibold transition">
+                    <i class="fa-brands fa-whatsapp mr-1"></i>WA
+                  </button>
+                ` : ''}
+                <button type="button" onclick="ownerDirectResetCustomerPassword('${safeKey}', '${safeName}')" class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-[10px] font-semibold transition">
+                  Atur Password
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveCustomerPasswordReset(id, hasRequestedPassword, custName) {
+      let bodyPayload = {};
+      if (!hasRequestedPassword) {
+        const tempPass = prompt(`Masukkan kata sandi baru (minimal 6 karakter) untuk "${custName}":`);
+        if (tempPass === null) return;
+        if (tempPass.trim().length < 6) {
+          alert('❌ Kata sandi minimal 6 karakter.');
+          return;
+        }
+        bodyPayload = { temporary_password: tempPass.trim() };
+      } else if (!confirm(`ACC pengajuan lupa password untuk "${custName}"? Kata sandi baru yang diajukan pelanggan akan langsung aktif.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/super-admin/customers/password-resets/${encodeURIComponent(id)}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyPayload)
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchCustomersData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyetujui reset password'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function rejectCustomerPasswordReset(id, custName) {
+      const reason = prompt(`Alasan penolakan reset password "${custName}" (opsional):`, '');
+      if (reason === null) return;
+      try {
+        const res = await fetch(`/api/super-admin/customers/password-resets/${encodeURIComponent(id)}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchCustomersData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menolak reset password'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function submitOwnerCustomerPasswordReset(customerKey, newPassword) {
+      const cleanPass = String(newPassword || '').trim();
+      if (cleanPass.length < 6) {
+        alert('❌ Kata sandi minimal 6 karakter.');
+        return false;
+      }
+      try {
+        const res = await fetch(`/api/super-admin/customers/${encodeURIComponent(customerKey)}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ new_password: cleanPass })
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          await fetchCustomersData();
+          return true;
+        }
+        alert('❌ ' + (res.message || 'Gagal mengatur kata sandi'));
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+      return false;
+    }
+
+    function ownerDirectResetCustomerPassword(customerKey, custName) {
+      const newPass = prompt(`Atur kata sandi baru (minimal 6 karakter) untuk "${custName}":`);
+      if (newPass === null) return;
+      submitOwnerCustomerPasswordReset(customerKey, newPass);
+    }
+
+    function formatAddressBlock(label, address, lat, lng) {
+      const hasCoords = lat != null && lng != null && !Number.isNaN(Number(lat)) && !Number.isNaN(Number(lng));
+      const mapsLink = hasCoords
+        ? `<a href="https://maps.google.com/?q=${Number(lat)},${Number(lng)}" target="_blank" class="text-[10px] text-sky-400 hover:underline font-semibold shrink-0"><i class="fa-solid fa-map-pin mr-1"></i>Buka Maps</a>`
+        : '';
+      return `
+        <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-2.5 space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">${label}</span>
+            ${mapsLink}
+          </div>
+          <p class="text-[11px] text-slate-200 leading-snug">${escapeHtml(address || 'Belum diisi')}</p>
+        </div>
+      `;
+    }
+
+    function openCustomerDetailModal(customerKey, preserveScroll = false) {
+      if (!cachedCustomersData) return;
+      const c = (cachedCustomersData.customers || []).find(item => item.customer_key === customerKey);
+      if (!c) return;
+
+      activeCustomerModalKey = customerKey;
+      const modal = document.getElementById('customerDetailModal');
+      const avatarUrl = c.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(c.email || c.name || c.customer_key)}`;
+
+      document.getElementById('custModalAvatar').src = avatarUrl;
+      document.getElementById('custModalName').innerText = c.name || 'Pelanggan';
+      document.getElementById('custModalSub').innerText = `${c.email || '-'} • WA: ${c.phone_display || '-'}`;
+
+      const ordersHtml = (c.recent_orders && c.recent_orders.length > 0)
+        ? c.recent_orders.map(o => `
+            <div class="flex items-center justify-between gap-2 py-1.5 border-b border-slate-800/70 last:border-0 text-[11px]">
+              <div class="min-w-0">
+                <span class="font-bold text-slate-200">${escapeHtml(o.id)}</span>
+                <span class="text-slate-500">• ${escapeHtml(shortBranchLabel(o.branch_name))}</span>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-bold text-amber-400 tabular-nums">${formatRp(o.total_price)}</span>
+                <span class="text-[9px] text-slate-500 block">${escapeHtml(o.status)}</span>
+              </div>
+            </div>
+          `).join('')
+        : `<p class="text-[11px] text-slate-500 text-center py-2">Belum ada riwayat transaksi delivery/app.</p>`;
+
+      const safeKey = escapeJsArg(c.customer_key);
+      document.getElementById('custModalBody').innerHTML = `
+        <div class="grid grid-cols-3 gap-2 text-center bg-slate-950/75 border border-slate-800 rounded-xl p-2">
+          <div>
+            <span class="text-[10px] text-slate-500 block">Total Order</span>
+            <span class="text-xs font-extrabold text-slate-100 tabular-nums">${c.order_count || 0}x</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 block">Total Belanja</span>
+            <span class="text-xs font-extrabold text-amber-400 tabular-nums">${formatRp(c.total_spent || 0)}</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 block">Saldo Dompet</span>
+            <span class="text-xs font-extrabold text-emerald-400 tabular-nums">${formatRp(c.balance || 0)}</span>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          ${formatAddressBlock('Alamat Rumah (Utama)', c.home_address || c.delivery_address, c.home_latitude ?? c.latitude, c.home_longitude ?? c.longitude)}
+          ${formatAddressBlock('Alamat Kantor / Tambahan', c.office_address, c.office_latitude, c.office_longitude)}
+        </div>
+
+        <form onsubmit="submitModalCustomerDirectPassword(event, '${safeKey}')" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] font-bold text-slate-200"><i class="fa-solid fa-key text-amber-400 mr-1"></i>Atur / Reset Kata Sandi Costumer</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded border ${c.has_password ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}">
+              ${c.has_password ? 'Password Aktif' : 'Belum Diatur'}
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <input type="text" id="custModalNewPassInput" required minlength="6" placeholder="Ketik password baru (min. 6 karakter)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] shrink-0 transition">
+              Simpan Password
+            </button>
+          </div>
+        </form>
+
+        <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-2.5 space-y-1">
+          <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase pb-1 border-b border-slate-800/80">
+            <span>5 Transaksi Terakhir</span>
+            <span>Terdaftar: ${c.registered_at ? new Date(c.registered_at).toLocaleDateString('id-ID') : '-'}</span>
+          </div>
+          ${ordersHtml}
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+      if (!preserveScroll) {
+        const inner = modal.firstElementChild;
+        if (inner) inner.scrollTop = 0;
+      }
+    }
+
+    function closeCustomerDetailModal() {
+      activeCustomerModalKey = null;
+      const modal = document.getElementById('customerDetailModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function submitModalCustomerDirectPassword(e, customerKey) {
+      e.preventDefault();
+      const input = document.getElementById('custModalNewPassInput');
+      if (!input) return;
+      const ok = await submitOwnerCustomerPasswordReset(customerKey, input.value);
+      if (ok) input.value = '';
     }
 
     async function approveWithdrawal(id) {
