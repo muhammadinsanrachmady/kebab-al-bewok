@@ -147,14 +147,14 @@
 
       <!-- DAFTAR CLOSING & SETORAN OMZET -->
       <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+        <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
           <div>
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Rekap Closing & Setoran Harian</h2>
-            <p class="text-[11px] text-slate-500">Omzet multi-channel dan sisa fisik 21 bahan</p>
+            <p class="text-[11px] text-slate-500">Klik baris closing untuk buka/tutup rincian omzet & 21 bahan</p>
           </div>
-          <span id="opnameBranchBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
-            Semua Lapak
-          </span>
+          <select id="opnameBranchSelect" onchange="selectOwnerBranch(this.value)" aria-label="Filter Lapak Closing" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 border border-slate-700 outline-none cursor-pointer transition shrink-0">
+            <option value="all" class="bg-slate-900 text-slate-100">Semua Lapak</option>
+          </select>
         </div>
 
         <div id="opnameContainer" class="space-y-2.5">
@@ -317,6 +317,8 @@
     let selectedBranchId = 'all';
     let cachedSummary = null;
     let cachedOpnames = [];
+    const expandedOpnameCards = new Set();
+    const expandedOpnameDetails = new Set();
 
     function escapeHtml(str) {
       return String(str ?? '')
@@ -379,25 +381,27 @@
     }
 
     /**
-     * Mengisi opsi dropdown pilih lapak (rapi & skalabel meski jumlah cabang terus bertambah).
+     * Mengisi dan menyinkronkan kedua dropdown pilih lapak (filter atas & header rekap closing).
      */
     function renderBranchSelectOptions() {
-      const select = document.getElementById('ownerBranchSelect');
       const badge = document.getElementById('ownerBranchBadge');
       const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
+      const optionsHtml = [
+        `<option value="all" class="bg-slate-900 text-slate-100">Semua Lapak (${branches.length} Cabang)</option>`,
+        ...branches.map(b => `
+          <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
+            ${escapeHtml(shortBranchLabel(b.branch_name))}
+          </option>
+        `)
+      ].join('');
 
-      if (select) {
-        const options = [
-          `<option value="all" class="bg-slate-900 text-slate-100">Semua Lapak (${branches.length} Cabang)</option>`,
-          ...branches.map(b => `
-            <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
-              ${escapeHtml(shortBranchLabel(b.branch_name))}
-            </option>
-          `)
-        ];
-        select.innerHTML = options.join('');
-        select.value = selectedBranchId;
-      }
+      ['ownerBranchSelect', 'opnameBranchSelect'].forEach(selectId => {
+        const selectEl = document.getElementById(selectId);
+        if (selectEl) {
+          selectEl.innerHTML = optionsHtml;
+          selectEl.value = selectedBranchId;
+        }
+      });
 
       if (badge) {
         badge.innerText = selectedBranchId === 'all' ? `${branches.length} LAPAK` : 'TERPILIH';
@@ -445,11 +449,6 @@
       document.getElementById('statTotalDelivery').innerText = formatRp(totalDelivery);
       document.getElementById('statTotalOrders').innerText = `${totalOrders}`;
       document.getElementById('statTotalOpname').innerText = `${filteredOpnames.length}`;
-
-      const badge = document.getElementById('opnameBranchBadge');
-      if (badge) {
-        badge.innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : 'Semua Lapak';
-      }
 
       renderOpnameList(filteredOpnames);
     }
@@ -603,107 +602,113 @@
         const cashOpening = Number(op.cash_opening) || 100000;
         const omzetCash = Number(op.omzet_cash) || 0;
         const setorKas = Number(op.total_setor_kas) || (cashOpening + omzetCash);
+        const isCardOpen = expandedOpnameCards.has(op.id);
+        const isDetailsOpen = expandedOpnameDetails.has(op.id);
+
+        const channels = [
+          { label: 'Opening', value: cashOpening, colorClass: 'text-slate-200' },
+          { label: 'Cash', value: omzetCash, colorClass: 'text-emerald-400' },
+          { label: 'BCA/QRIS', value: op.omzet_bca, colorClass: 'text-sky-400' },
+          { label: 'GoFood', value: op.omzet_gofood, colorClass: 'text-slate-200' },
+          { label: 'GrabFood', value: op.omzet_grabfood, colorClass: 'text-slate-200' },
+          { label: 'Shopee', value: op.omzet_shopeefood, colorClass: 'text-slate-200' }
+        ];
 
         return `
-          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl p-3 space-y-2.5 hover:border-slate-700 transition">
-            <!-- HEADER COMPACT -->
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl overflow-hidden hover:border-slate-700 transition">
+            <!-- BARIS RINGKAS DROPDOWN CLOSING (KLIK UNTUK BUKA/TUTUP) -->
+            <button type="button" onclick="toggleOpnameCard('${op.id}')" class="w-full px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 text-left hover:bg-slate-900/70 transition">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0">
                 <span class="font-bold text-amber-400">${escapeHtml(op.closing_date || 'Closing Harian')}</span>
                 <span class="text-slate-600">•</span>
                 <span class="font-semibold text-slate-200">${escapeHtml(shortBranchLabel(op.branch_name || 'Kalisari'))}</span>
                 <span class="text-[11px] text-slate-500">(${escapeHtml(op.staff_name || 'Kasir')})</span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+                <span class="text-[11px] text-slate-400">Omzet <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
                 <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold ${isLocked ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/15 text-emerald-400'}">
                   ${isLocked ? 'Terkunci' : 'Aktif'}
                 </span>
+                <i id="card_chevron_${op.id}" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform ${isCardOpen ? 'rotate-180' : ''}"></i>
               </div>
-            </div>
+            </button>
 
-            <!-- RINGKASAN CHANNEL MINIMALIS -->
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-left">
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">Opening</span>
-                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(cashOpening)}</span>
+            <!-- ISI RINCIAN CLOSING (MUNCUL SAAT DROPDOWN DIBUKA) -->
+            <div id="card_body_${op.id}" class="${isCardOpen ? '' : 'hidden'} px-3 pb-3 pt-2 border-t border-slate-800/70 space-y-2.5">
+              <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-left">
+                ${channels.map(ch => `
+                  <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                    <span class="text-[10px] text-slate-500 block">${ch.label}</span>
+                    <span class="text-[11px] font-bold ${ch.colorClass} tabular-nums">${formatRp(ch.value)}</span>
+                  </div>
+                `).join('')}
               </div>
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">Cash</span>
-                <span class="text-[11px] font-bold text-emerald-400 tabular-nums">${formatRp(omzetCash)}</span>
-              </div>
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">BCA/QRIS</span>
-                <span class="text-[11px] font-bold text-sky-400 tabular-nums">${formatRp(op.omzet_bca)}</span>
-              </div>
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">GoFood</span>
-                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_gofood)}</span>
-              </div>
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">GrabFood</span>
-                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_grabfood)}</span>
-              </div>
-              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
-                <span class="text-[10px] text-slate-500 block">Shopee</span>
-                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_shopeefood)}</span>
-              </div>
-            </div>
 
-            <!-- FOOTER TOTAL & AKORDION BAHAN -->
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70 text-[11px]">
-              <div class="flex flex-wrap items-center gap-3">
-                <span class="text-slate-400">Total Omzet: <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
-                <span class="text-slate-400">Setor Kas: <b class="text-emerald-400 tabular-nums">${formatRp(setorKas)}</b></span>
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70 text-[11px]">
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="text-slate-400">Total Omzet: <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
+                  <span class="text-slate-400">Setor Kas: <b class="text-emerald-400 tabular-nums">${formatRp(setorKas)}</b></span>
+                </div>
+                <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
+                  <span>${itemKeys.length} Bahan</span>
+                  <i class="fa-solid fa-chevron-down text-[9px] transition-transform ${isDetailsOpen ? 'rotate-180' : ''}" id="icon_toggle_${op.id}"></i>
+                </button>
               </div>
-              <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
-                <span>${itemKeys.length} Bahan</span>
-                <i class="fa-solid fa-chevron-down text-[9px] transition-transform" id="icon_toggle_${op.id}"></i>
-              </button>
-            </div>
 
-            ${op.notes ? `<p class="text-[11px] text-slate-400 italic bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60">"${escapeHtml(op.notes)}"</p>` : ''}
+              ${op.notes ? `<p class="text-[11px] text-slate-400 italic bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60">"${escapeHtml(op.notes)}"</p>` : ''}
 
-            <div id="details_${op.id}" class="hidden overflow-x-auto bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
-              <table class="w-full text-[11px] text-left">
-                <thead class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
-                  <tr>
-                    <th class="py-1.5 px-2">#</th>
-                    <th class="py-1.5 px-2">Bahan Baku</th>
-                    <th class="py-1.5 px-2 text-center">Terjual POS</th>
-                    <th class="py-1.5 px-2 text-right">Sisa Fisik</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-800/70 text-slate-300">
-                  ${itemKeys.map((k, i) => {
-                    const item = items[k] || {};
-                    return `
-                      <tr>
-                        <td class="py-1.5 px-2 text-slate-500 tabular-nums">${i + 1}</td>
-                        <td class="py-1.5 px-2 font-medium text-slate-200">${escapeHtml(item.name || k)}</td>
-                        <td class="py-1.5 px-2 text-center text-amber-400 tabular-nums">
-                          ${item.system_sold !== null && item.system_sold !== undefined ? `${item.system_sold} ${escapeHtml(item.unit)}` : '-'}
-                        </td>
-                        <td class="py-1.5 px-2 text-right font-bold text-emerald-400 tabular-nums">
-                          ${Number(item.physical_count || 0).toLocaleString('id-ID')} ${escapeHtml(item.unit || '')}
-                        </td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
+              <div id="details_${op.id}" class="${isDetailsOpen ? '' : 'hidden'} overflow-x-auto bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+                <table class="w-full text-[11px] text-left">
+                  <thead class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                    <tr>
+                      <th class="py-1.5 px-2">#</th>
+                      <th class="py-1.5 px-2">Bahan Baku</th>
+                      <th class="py-1.5 px-2 text-center">Terjual POS</th>
+                      <th class="py-1.5 px-2 text-right">Sisa Fisik</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                    ${itemKeys.map((k, i) => {
+                      const item = items[k] || {};
+                      return `
+                        <tr>
+                          <td class="py-1.5 px-2 text-slate-500 tabular-nums">${i + 1}</td>
+                          <td class="py-1.5 px-2 font-medium text-slate-200">${escapeHtml(item.name || k)}</td>
+                          <td class="py-1.5 px-2 text-center text-amber-400 tabular-nums">
+                            ${item.system_sold !== null && item.system_sold !== undefined ? `${item.system_sold} ${escapeHtml(item.unit)}` : '-'}
+                          </td>
+                          <td class="py-1.5 px-2 text-right font-bold text-emerald-400 tabular-nums">
+                            ${Number(item.physical_count || 0).toLocaleString('id-ID')} ${escapeHtml(item.unit || '')}
+                          </td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    function toggleOpnameDetails(id) {
-      const el = document.getElementById(`details_${id}`);
-      const icon = document.getElementById(`icon_toggle_${id}`);
+    function toggleAccordionSection(stateSet, id, bodyPrefix, iconPrefix) {
+      const el = document.getElementById(`${bodyPrefix}_${id}`);
+      const icon = document.getElementById(`${iconPrefix}_${id}`);
       if (!el) return;
-      const isHidden = el.classList.contains('hidden');
-      el.classList.toggle('hidden', !isHidden);
-      if (icon) icon.classList.toggle('rotate-180', isHidden);
+      const shouldOpen = el.classList.contains('hidden');
+      el.classList.toggle('hidden', !shouldOpen);
+      if (icon) icon.classList.toggle('rotate-180', shouldOpen);
+      if (shouldOpen) stateSet.add(id);
+      else stateSet.delete(id);
+    }
+
+    function toggleOpnameCard(id) {
+      toggleAccordionSection(expandedOpnameCards, id, 'card_body', 'card_chevron');
+    }
+
+    function toggleOpnameDetails(id) {
+      toggleAccordionSection(expandedOpnameDetails, id, 'details', 'icon_toggle');
     }
 
     function sendInvoiceWA(branchName, amount) {
