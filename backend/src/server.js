@@ -2803,6 +2803,115 @@ app.post('/api/super-admin/customers/:key/reset-password', (req, res) => {
   });
 });
 
+// Helper Evaluasi Sesi Harian Per Cabang (Opening Harian Owner + Kiriman Gudang + Closing Opname Kasir)
+function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpenings) {
+  const closingOp = sortedOpnames.find(op => op.business_date === sessionDate) || null;
+  const closingIdx = closingOp ? sortedOpnames.findIndex(op => op.id === closingOp.id) : -1;
+  const prevClosingOp = closingIdx > 0 ? sortedOpnames[closingIdx - 1] : null;
+  const ownerOpening = branchOpenings.find(o => o.business_date === sessionDate) || null;
+
+  const restockByItem = {};
+  (wh.ledger || []).forEach(tx => {
+    if (tx.type !== 'branch_transfer' || tx.branch_id !== branch.id) return;
+    if (ownerOpening && tx.source_opening_id === ownerOpening.id) return;
+    const txDate = tx.date || getWibDateISO(tx.created_at);
+    const matchesWindow = ownerOpening
+      ? txDate === sessionDate
+      : (closingOp && prevClosingOp
+          ? (txDate > prevClosingOp.business_date && txDate <= sessionDate)
+          : txDate === sessionDate);
+    if (matchesWindow) {
+      (tx.items || []).forEach(r => {
+        restockByItem[r.item_id] = (restockByItem[r.item_id] || 0) + (Number(r.qty) || 0);
+      });
+    }
+  });
+
+  const catHppMap = new Map(WAREHOUSE_CATEGORIES.map(c => [c, 0]));
+  let totalHpp = 0;
+  let comparableItemCount = 0;
+
+  const materialUsageRows = wh.items.map(it => {
+    const openingFromOwner = ownerOpening && ownerOpening.stock_items && ownerOpening.stock_items[it.id] != null
+      ? Number(ownerOpening.stock_items[it.id].opening_count ?? ownerOpening.stock_items[it.id].physical_count)
+      : null;
+    const openingQty = openingFromOwner !== null
+      ? openingFromOwner
+      : (prevClosingOp && prevClosingOp.stock_items && prevClosingOp.stock_items[it.id] != null
+          ? Number(prevClosingOp.stock_items[it.id].physical_count)
+          : null);
+    const closingQty = closingOp && closingOp.stock_items && closingOp.stock_items[it.id] != null
+      ? Number(closingOp.stock_items[it.id].physical_count)
+      : null;
+    const restockQty = restockByItem[it.id] || 0;
+    const unitCost = Number(it.unit_cost) || 0;
+
+    const effectiveOpening = openingQty !== null ? openingQty : (restockQty > 0 ? 0 : null);
+    let usageQty = null;
+    let subtotalHpp = 0;
+    if (effectiveOpening !== null && closingQty !== null) {
+      usageQty = Math.max(0, effectiveOpening + restockQty - closingQty);
+      subtotalHpp = usageQty * unitCost;
+      comparableItemCount += 1;
+    }
+
+    totalHpp += subtotalHpp;
+    catHppMap.set(it.category, (catHppMap.get(it.category) || 0) + subtotalHpp);
+
+    return {
+      item_id: it.id,
+      category: it.category,
+      name: it.name,
+      unit: it.unit,
+      opening_qty: effectiveOpening,
+      restock_qty: restockQty,
+      closing_qty: closingQty,
+      usage_qty: usageQty,
+      unit_cost: unitCost,
+      subtotal_hpp: subtotalHpp
+    };
+  });
+
+  const omzet = closingOp ? (Number(closingOp.total_omzet) || 0) : 0;
+  const grossProfit = closingOp ? (omzet - totalHpp) : 0;
+  const foodCostRatio = omzet > 0 && comparableItemCount > 0 ? Number(((totalHpp / omzet) * 100).toFixed(1)) : null;
+
+  const hppByCategory = WAREHOUSE_CATEGORIES.map(cat => {
+    const val = catHppMap.get(cat) || 0;
+    return {
+      category: cat,
+      hpp: val,
+      share_pct: totalHpp > 0 ? Number(((val / totalHpp) * 100).toFixed(1)) : 0
+    };
+  });
+
+  const prettyDate = formatClosingDateId(new Date(`${sessionDate}T12:00:00Z`), '').trim();
+  const statusTag = ownerOpening && closingOp
+    ? 'Opening & Closing Lengkap'
+    : ownerOpening
+      ? 'Opening Terisi (Menunggu Closing)'
+      : closingOp
+        ? 'Closing Tercatat'
+        : 'Kirim Gudang';
+
+  return {
+    business_date: sessionDate,
+    session_label: `${prettyDate} • ${statusTag}`,
+    has_opening: Boolean(ownerOpening),
+    has_closing: Boolean(closingOp),
+    has_opname_pair: Boolean((ownerOpening || prevClosingOp) && closingOp),
+    has_latest_opname: Boolean(closingOp),
+    opening_date: ownerOpening ? ownerOpening.opening_date : (prevClosingOp ? prevClosingOp.closing_date : null),
+    closing_date: closingOp ? closingOp.closing_date : null,
+    gross_sales: omzet,
+    total_hpp: totalHpp,
+    gross_profit: grossProfit,
+    food_cost_ratio: foodCostRatio,
+    hpp_by_category: hppByCategory,
+    items: materialUsageRows
+  };
+}
+
 // ============================================================================
 // PORTAL OWNER TAB GUDANG: MUTASI STOK PUSAT, PO & EVALUASI HPP CABANG
 // ============================================================================
@@ -2948,119 +3057,9 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     };
   });
 
-  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Mendukung Sesi Harian: Opening Harian Owner + Kiriman Gudang + Closing Opname Kasir)
+  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Memakai helper evaluateBranchSession bersama Tab Statistik)
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
   const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
-
-  function evaluateBranchSession(branch, sessionDate, sortedOpnames, branchOpenings) {
-    const closingOp = sortedOpnames.find(op => op.business_date === sessionDate) || null;
-    const closingIdx = closingOp ? sortedOpnames.findIndex(op => op.id === closingOp.id) : -1;
-    const prevClosingOp = closingIdx > 0 ? sortedOpnames[closingIdx - 1] : null;
-    const ownerOpening = branchOpenings.find(o => o.business_date === sessionDate) || null;
-
-    const restockByItem = {};
-    (wh.ledger || []).forEach(tx => {
-      if (tx.type !== 'branch_transfer' || tx.branch_id !== branch.id) return;
-      // Jangan gandakan auto-transfer milik Opening Harian karena sudah masuk ke ownerOpening
-      if (ownerOpening && tx.source_opening_id === ownerOpening.id) return;
-      const txDate = tx.date || getWibDateISO(tx.created_at);
-      const matchesWindow = ownerOpening
-        ? txDate === sessionDate
-        : (closingOp && prevClosingOp
-            ? (txDate > prevClosingOp.business_date && txDate <= sessionDate)
-            : txDate === sessionDate);
-      if (matchesWindow) {
-        (tx.items || []).forEach(r => {
-          restockByItem[r.item_id] = (restockByItem[r.item_id] || 0) + (Number(r.qty) || 0);
-        });
-      }
-    });
-
-    const catHppMap = new Map(WAREHOUSE_CATEGORIES.map(c => [c, 0]));
-    let totalHpp = 0;
-    let comparableItemCount = 0;
-
-    const materialUsageRows = wh.items.map(it => {
-      const openingFromOwner = ownerOpening && ownerOpening.stock_items && ownerOpening.stock_items[it.id] != null
-        ? Number(ownerOpening.stock_items[it.id].opening_count ?? ownerOpening.stock_items[it.id].physical_count)
-        : null;
-      const openingQty = openingFromOwner !== null
-        ? openingFromOwner
-        : (prevClosingOp && prevClosingOp.stock_items && prevClosingOp.stock_items[it.id] != null
-            ? Number(prevClosingOp.stock_items[it.id].physical_count)
-            : null);
-      const closingQty = closingOp && closingOp.stock_items && closingOp.stock_items[it.id] != null
-        ? Number(closingOp.stock_items[it.id].physical_count)
-        : null;
-      const restockQty = restockByItem[it.id] || 0;
-      const unitCost = Number(it.unit_cost) || 0;
-
-      // Jika hanya Opening / Kirim Tambahan belum ada Closing -> Opening / Awal tetap tampil penuh!
-      const effectiveOpening = openingQty !== null ? openingQty : (restockQty > 0 ? 0 : null);
-      let usageQty = null;
-      let subtotalHpp = 0;
-      if (effectiveOpening !== null && closingQty !== null) {
-        usageQty = Math.max(0, effectiveOpening + restockQty - closingQty);
-        subtotalHpp = usageQty * unitCost;
-        comparableItemCount += 1;
-      }
-
-      totalHpp += subtotalHpp;
-      catHppMap.set(it.category, (catHppMap.get(it.category) || 0) + subtotalHpp);
-
-      return {
-        item_id: it.id,
-        category: it.category,
-        name: it.name,
-        unit: it.unit,
-        opening_qty: effectiveOpening,
-        restock_qty: restockQty,
-        closing_qty: closingQty,
-        usage_qty: usageQty,
-        unit_cost: unitCost,
-        subtotal_hpp: subtotalHpp
-      };
-    });
-
-    const omzet = closingOp ? (Number(closingOp.total_omzet) || 0) : 0;
-    const grossProfit = closingOp ? (omzet - totalHpp) : 0;
-    const foodCostRatio = omzet > 0 && comparableItemCount > 0 ? Number(((totalHpp / omzet) * 100).toFixed(1)) : null;
-
-    const hppByCategory = WAREHOUSE_CATEGORIES.map(cat => {
-      const val = catHppMap.get(cat) || 0;
-      return {
-        category: cat,
-        hpp: val,
-        share_pct: totalHpp > 0 ? Number(((val / totalHpp) * 100).toFixed(1)) : 0
-      };
-    });
-
-    const prettyDate = formatClosingDateId(new Date(`${sessionDate}T12:00:00Z`), '').trim();
-    const statusTag = ownerOpening && closingOp
-      ? 'Opening & Closing Lengkap'
-      : ownerOpening
-        ? 'Opening Terisi (Menunggu Closing)'
-        : closingOp
-          ? 'Closing Tercatat'
-          : 'Kirim Gudang';
-
-    return {
-      business_date: sessionDate,
-      session_label: `${prettyDate} • ${statusTag}`,
-      has_opening: Boolean(ownerOpening),
-      has_closing: Boolean(closingOp),
-      has_opname_pair: Boolean((ownerOpening || prevClosingOp) && closingOp),
-      has_latest_opname: Boolean(closingOp),
-      opening_date: ownerOpening ? ownerOpening.opening_date : (prevClosingOp ? prevClosingOp.closing_date : null),
-      closing_date: closingOp ? closingOp.closing_date : null,
-      gross_sales: omzet,
-      total_hpp: totalHpp,
-      gross_profit: grossProfit,
-      food_cost_ratio: foodCostRatio,
-      hpp_by_category: hppByCategory,
-      items: materialUsageRows
-    };
-  }
 
   const branchEvaluations = branches.map(b => {
     const sortedOpnames = enrichedOpnames
@@ -3084,8 +3083,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       : allDatesDesc;
     const sessionDates = filteredDatesDesc.length > 0 ? filteredDatesDesc : allDatesDesc;
 
-    const sessions = sessionDates.map(d => evaluateBranchSession(b, d, sortedOpnames, branchOpenings));
-    const activeEval = sessions[0] || evaluateBranchSession(b, getWibDateISO(new Date()), sortedOpnames, branchOpenings);
+    const sessions = sessionDates.map(d => evaluateBranchSession(wh, b, d, sortedOpnames, branchOpenings));
+    const activeEval = sessions[0] || evaluateBranchSession(wh, b, getWibDateISO(new Date()), sortedOpnames, branchOpenings);
 
     return {
       branch_id: b.id,
@@ -3510,6 +3509,381 @@ app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
   });
 
   res.json({ success: true, message: `Opening "${removed.opening_date}" berhasil dihapus & kiriman gudang terkait dibatalkan.` });
+});
+
+// ============================================================================
+// PORTAL OWNER TAB STATISTIK: TREN HARIAN, LEADERBOARD, MENU, PEAK HOURS & RETENTION
+// ============================================================================
+app.get('/api/super-admin/statistics', (req, res) => {
+  const { branch_id = 'all', start_date, end_date } = req.query;
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const ordersAll = readJSON(ORDERS_FILE) || [];
+  const opnamesRaw = readJSON(STOCK_OPNAME_FILE, []);
+  const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
+  const wallets = readJSON(WALLETS_FILE, {});
+  const wh = getOrInitWarehouse();
+
+  const validOrders = ordersAll.filter(o =>
+    o.status !== 'pending_payment' && o.status !== 'cancelled' && o.status !== 'rejected'
+  );
+  const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, validOrders));
+
+  const inRange = iso => isDateInRange(iso, start_date, end_date);
+  const matchesBranch = (itemBranchId, targetId) => !targetId || targetId === 'all' || itemBranchId === targetId;
+
+  const periodOrdersAll = validOrders.filter(o => inRange(getWibDateISO(o.created_at)));
+  const periodOpnamesAll = enrichedOpnames.filter(op => inRange(op.business_date));
+
+  const scopedOrders = periodOrdersAll.filter(o => matchesBranch(o.branch_id, branch_id));
+  const scopedOpnames = periodOpnamesAll.filter(op => matchesBranch(op.branch_id, branch_id));
+
+  // Helper ringkas menghitung omzet, HPP, order & profit untuk 1 cabang dalam periode
+  function summarizeBranchMetrics(b) {
+    const bSortedOpnames = enrichedOpnames
+      .filter(op => op.branch_id === b.id)
+      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
+    const bOpenings = openingsRaw.filter(o => o.branch_id === b.id);
+    const bPeriodOpnames = periodOpnamesAll.filter(op => op.branch_id === b.id);
+    const bPeriodOrders = periodOrdersAll.filter(o => o.branch_id === b.id);
+
+    const bDates = new Set();
+    bPeriodOpnames.forEach(op => { if (op.business_date) bDates.add(op.business_date); });
+    bPeriodOrders.forEach(o => {
+      const d = getWibDateISO(o.created_at);
+      if (d) bDates.add(d);
+    });
+
+    let omzet = 0;
+    let hpp = 0;
+    let closedOmzetWithHpp = 0;
+    bDates.forEach(d => {
+      const cl = bPeriodOpnames.find(op => op.business_date === d);
+      const dayOrdRev = bPeriodOrders
+        .filter(o => getWibDateISO(o.created_at) === d)
+        .reduce((s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)), 0);
+      const clRev = cl ? (Number(cl.total_omzet) || 0) : 0;
+      const dayOmzet = cl ? Math.max(clRev, dayOrdRev) : dayOrdRev;
+      omzet += dayOmzet;
+
+      const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
+      if (ev.total_hpp > 0) {
+        hpp += ev.total_hpp;
+        closedOmzetWithHpp += dayOmzet;
+      }
+    });
+
+    const ordFoodSum = bPeriodOrders.reduce(
+      (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+      0
+    );
+    const ordersCount = bPeriodOrders.length;
+    const avgOrderValue = ordersCount > 0 ? Math.round(ordFoodSum / ordersCount) : 0;
+    const profit = omzet - hpp;
+    const ratio = closedOmzetWithHpp > 0 && hpp > 0 ? Number(((hpp / closedOmzetWithHpp) * 100).toFixed(1)) : null;
+
+    return {
+      branch_id: b.id,
+      branch_name: b.name,
+      omzet,
+      hpp,
+      profit,
+      food_cost_ratio: ratio,
+      orders_count: ordersCount,
+      avg_order_value: avgOrderValue,
+      closing_count: bPeriodOpnames.length
+    };
+  }
+
+  const branchSummaries = branches.map(summarizeBranchMetrics);
+  const grandAllBranchesOmzet = branchSummaries.reduce((s, b) => s + b.omzet, 0);
+  const branch_leaderboard = branchSummaries
+    .map(b => ({
+      ...b,
+      share_pct: grandAllBranchesOmzet > 0 ? Number(((b.omzet / grandAllBranchesOmzet) * 100).toFixed(1)) : 0
+    }))
+    .sort((a, z) => z.omzet - a.omzet);
+
+  // Agregasi KPI sesuai filter branch_id
+  const activeBranches = branch_id && branch_id !== 'all'
+    ? branchSummaries.filter(b => b.branch_id === branch_id)
+    : branchSummaries;
+
+  const total_omzet = activeBranches.reduce((s, b) => s + b.omzet, 0);
+  const total_hpp = activeBranches.reduce((s, b) => s + b.hpp, 0);
+  const gross_profit = total_omzet - total_hpp;
+  const scopedFoodTotal = scopedOrders.reduce(
+    (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+    0
+  );
+  const total_orders = scopedOrders.length;
+  const avg_order_value = total_orders > 0 ? Math.round(scopedFoodTotal / total_orders) : 0;
+  const delivery_count = scopedOrders.filter(o => o.order_type === 'delivery').length;
+  const pos_count = total_orders - delivery_count;
+  const food_cost_ratio = total_omzet > 0 && total_hpp > 0 ? Number(((total_hpp / total_omzet) * 100).toFixed(1)) : null;
+
+  // Tren Harian (Omzet vs HPP vs Laba Kotor)
+  const dailyMap = new Map();
+  const targetBranchesList = branch_id && branch_id !== 'all'
+    ? branches.filter(b => b.id === branch_id)
+    : branches;
+
+  targetBranchesList.forEach(b => {
+    const bSortedOpnames = enrichedOpnames
+      .filter(op => op.branch_id === b.id)
+      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
+    const bOpenings = openingsRaw.filter(o => o.branch_id === b.id);
+
+    const bDates = new Set();
+    periodOpnamesAll.filter(op => op.branch_id === b.id).forEach(op => { if (op.business_date) bDates.add(op.business_date); });
+    periodOrdersAll.filter(o => o.branch_id === b.id).forEach(o => {
+      const d = getWibDateISO(o.created_at);
+      if (d) bDates.add(d);
+    });
+
+    bDates.forEach(d => {
+      if (!dailyMap.has(d)) {
+        const pretty = formatClosingDateId(new Date(`${d}T12:00:00Z`), '').trim();
+        const parts = pretty.split(' ');
+        dailyMap.set(d, {
+          date: d,
+          label: parts.length >= 2 ? `${parts[0]} ${parts[1].slice(0, 3)}` : d,
+          omzet: 0,
+          hpp: 0,
+          profit: 0,
+          orders_count: 0
+        });
+      }
+      const bucket = dailyMap.get(d);
+      const cl = periodOpnamesAll.find(op => op.branch_id === b.id && op.business_date === d);
+      const dayOrders = periodOrdersAll.filter(o => o.branch_id === b.id && getWibDateISO(o.created_at) === d);
+      const dayOrdRev = dayOrders.reduce(
+        (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+        0
+      );
+      const dayOmzet = cl ? Math.max(Number(cl.total_omzet) || 0, dayOrdRev) : dayOrdRev;
+      const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
+
+      bucket.omzet += dayOmzet;
+      bucket.hpp += ev.total_hpp || 0;
+      bucket.profit = bucket.omzet - bucket.hpp;
+      bucket.orders_count += dayOrders.length;
+    });
+  });
+
+  const daily_trend = Array.from(dailyMap.values()).sort((a, z) => a.date.localeCompare(z.date));
+
+  // Komposisi Channel Pembayaran (Sales Mix)
+  const channelAcc = {
+    cash: 0,
+    bca_qris: 0,
+    gofood: 0,
+    grabfood: 0,
+    shopeefood: 0,
+    live_unclosed: 0
+  };
+  const closedKeys = new Set(scopedOpnames.map(op => `${op.branch_id}__${op.business_date}`));
+  scopedOpnames.forEach(op => {
+    channelAcc.cash += Number(op.omzet_cash) || 0;
+    channelAcc.bca_qris += Number(op.omzet_bca) || 0;
+    channelAcc.gofood += Number(op.omzet_gofood) || 0;
+    channelAcc.grabfood += Number(op.omzet_grabfood) || 0;
+    channelAcc.shopeefood += Number(op.omzet_shopeefood) || 0;
+  });
+  scopedOrders.forEach(o => {
+    const key = `${o.branch_id}__${getWibDateISO(o.created_at)}`;
+    if (!closedKeys.has(key)) {
+      const amt = Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0));
+      if (o.payment_method === 'cash') channelAcc.cash += amt;
+      else if (o.payment_method === 'qris_statis' || o.payment_method === 'customer_balance') channelAcc.bca_qris += amt;
+      else channelAcc.live_unclosed += amt;
+    }
+  });
+
+  const channelDefs = [
+    { key: 'cash', label: 'Tunai / Cash', color: '#34d399' },
+    { key: 'bca_qris', label: 'QRIS / BCA & App', color: '#38bdf8' },
+    { key: 'gofood', label: 'GoFood', color: '#f87171' },
+    { key: 'grabfood', label: 'GrabFood', color: '#4ade80' },
+    { key: 'shopeefood', label: 'ShopeeFood', color: '#fb923c' },
+    { key: 'live_unclosed', label: 'POS/App Belum Closing', color: '#fbbf24' }
+  ];
+  const totalChannelAmt = Object.values(channelAcc).reduce((s, v) => s + v, 0);
+  const channel_mix = channelDefs
+    .map(def => {
+      const amount = channelAcc[def.key] || 0;
+      return {
+        ...def,
+        amount,
+        share_pct: totalChannelAmt > 0 ? Number(((amount / totalChannelAmt) * 100).toFixed(1)) : 0
+      };
+    })
+    .filter(c => c.amount > 0 || c.key !== 'live_unclosed');
+
+  // Menu Engineering (Menu Terlaris, Ukuran, Protein & Topping)
+  const menuQtyMap = new Map();
+  const sizeCounts = { Jumbo: 0, Reguler: 0, Small: 0, Lainnya: 0 };
+  const proteinCounts = { Beef: 0, Ayam: 0, Lainnya: 0 };
+  const toppingMap = new Map();
+
+  scopedOrders.forEach(o => {
+    (o.items || []).forEach(it => {
+      const qty = Number(it.quantity) || 1;
+      const itemRev = (Number(it.subtotal) || ((Number(it.price) || 0) * qty));
+      const baseName = String(it.name || 'Kebab');
+      const sizeStr = String(it.size || '');
+      const fullLabel = sizeStr && !baseName.toLowerCase().includes(sizeStr.toLowerCase())
+        ? `${baseName} (${sizeStr})`
+        : baseName;
+
+      if (!menuQtyMap.has(fullLabel)) {
+        menuQtyMap.set(fullLabel, { name: fullLabel, qty: 0, revenue: 0 });
+      }
+      const rec = menuQtyMap.get(fullLabel);
+      rec.qty += qty;
+      rec.revenue += itemRev;
+
+      const lower = `${baseName} ${sizeStr}`.toLowerCase();
+      if (lower.includes('jumbo')) sizeCounts.Jumbo += qty;
+      else if (lower.includes('small')) sizeCounts.Small += qty;
+      else if (lower.includes('reguler') || lower.includes('regular')) sizeCounts.Reguler += qty;
+      else sizeCounts.Lainnya += qty;
+
+      const meatLower = `${it.meat_type || ''} ${baseName}`.toLowerCase();
+      if (meatLower.includes('ayam') || meatLower.includes('chicken')) proteinCounts.Ayam += qty;
+      else if (meatLower.includes('beef') || meatLower.includes('sapi')) proteinCounts.Beef += qty;
+      else proteinCounts.Lainnya += qty;
+
+      (it.toppings || []).forEach(top => {
+        const tName = top.name || top.id || 'Topping';
+        toppingMap.set(tName, (toppingMap.get(tName) || 0) + qty);
+      });
+    });
+  });
+
+  const topItemsRaw = Array.from(menuQtyMap.values()).sort((a, z) => z.qty - a.qty || z.revenue - a.revenue);
+  const totalPorsi = topItemsRaw.reduce((s, x) => s + x.qty, 0);
+  const top_items = topItemsRaw.slice(0, 10).map(x => ({
+    ...x,
+    share_pct: totalPorsi > 0 ? Number(((x.qty / totalPorsi) * 100).toFixed(1)) : 0
+  }));
+
+  const sizesTotal = Object.values(sizeCounts).reduce((s, v) => s + v, 0);
+  const sizes = Object.entries(sizeCounts)
+    .filter(([, q]) => q > 0)
+    .map(([label, qty]) => ({ label, qty, share_pct: sizesTotal > 0 ? Number(((qty / sizesTotal) * 100).toFixed(1)) : 0 }));
+
+  const proteinsTotal = Object.values(proteinCounts).reduce((s, v) => s + v, 0);
+  const proteins = Object.entries(proteinCounts)
+    .filter(([, q]) => q > 0)
+    .map(([label, qty]) => ({ label, qty, share_pct: proteinsTotal > 0 ? Number(((qty / proteinsTotal) * 100).toFixed(1)) : 0 }));
+
+  const toppings = Array.from(toppingMap.entries())
+    .map(([name, qty]) => ({ name, qty }))
+    .sort((a, z) => z.qty - a.qty)
+    .slice(0, 6);
+
+  // Peak Hours (Jam Sibuk WIB 09:00 - 23:00)
+  const hourBuckets = new Map();
+  for (let h = 9; h <= 23; h += 1) {
+    hourBuckets.set(h, { hour: h, label: `${String(h).padStart(2, '0')}:00`, order_count: 0, revenue: 0 });
+  }
+  scopedOrders.forEach(o => {
+    const wib = getLocalWibDate(o.created_at);
+    const hr = wib.getUTCHours();
+    if (!hourBuckets.has(hr)) {
+      hourBuckets.set(hr, { hour: hr, label: `${String(hr).padStart(2, '0')}:00`, order_count: 0, revenue: 0 });
+    }
+    const b = hourBuckets.get(hr);
+    b.order_count += 1;
+    b.revenue += Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0));
+  });
+  const peak_hours = Array.from(hourBuckets.values()).sort((a, z) => a.hour - z.hour);
+
+  // Top Kurir
+  const driverOrderAgg = new Map();
+  scopedOrders.forEach(o => {
+    if (o.driver_id) {
+      if (!driverOrderAgg.has(o.driver_id)) driverOrderAgg.set(o.driver_id, { period_orders: 0, period_fee: 0 });
+      const d = driverOrderAgg.get(o.driver_id);
+      d.period_orders += 1;
+      d.period_fee += Number(o.delivery_fee) || 0;
+    }
+  });
+  const courier_top = Object.values(wallets.drivers || {})
+    .map(d => {
+      const agg = driverOrderAgg.get(d.id) || { period_orders: 0, period_fee: 0 };
+      return {
+        id: d.id,
+        name: d.name || 'Kurir',
+        vehicle: d.vehicle || 'Motor',
+        trips: Number(d.trips) || 0,
+        balance: Number(d.balance) || 0,
+        period_orders: agg.period_orders,
+        period_fee: agg.period_fee
+      };
+    })
+    .sort((a, z) => z.period_orders - a.period_orders || z.trips - a.trips)
+    .slice(0, 6);
+
+  // Insight Costumer & Repeat Order
+  const allCustomers = Object.values(wallets.customers || {});
+  const custOrderAgg = new Map();
+  validOrders.forEach(o => {
+    const key = (o.customer_email || normalizePhone(o.customer_phone) || o.customer_id || o.customer_name || '').toString().toLowerCase();
+    if (!key || key === 'pelanggan langsung') return;
+    if (!custOrderAgg.has(key)) {
+      custOrderAgg.set(key, {
+        name: o.customer_name || 'Pelanggan',
+        contact: o.customer_email || o.customer_phone || '-',
+        order_count: 0,
+        total_spent: 0
+      });
+    }
+    const c = custOrderAgg.get(key);
+    c.order_count += 1;
+    c.total_spent += Number(o.total_price) || 0;
+  });
+  const buyersList = Array.from(custOrderAgg.values());
+  const repeatCount = buyersList.filter(b => b.order_count > 1).length;
+  const repeat_rate_pct = buyersList.length > 0 ? Number(((repeatCount / buyersList.length) * 100).toFixed(1)) : 0;
+  const top_customers = buyersList.sort((a, z) => z.total_spent - a.total_spent || z.order_count - a.order_count).slice(0, 5);
+
+  res.json({
+    success: true,
+    data: {
+      scope: { branch_id, start_date: start_date || null, end_date: end_date || null },
+      kpis: {
+        total_omzet,
+        total_hpp,
+        gross_profit,
+        food_cost_ratio,
+        total_orders,
+        avg_order_value,
+        delivery_count,
+        pos_count,
+        closing_count: scopedOpnames.length
+      },
+      daily_trend,
+      branch_leaderboard,
+      channel_mix,
+      menu_insights: {
+        total_porsi: totalPorsi,
+        top_items,
+        sizes,
+        proteins,
+        toppings
+      },
+      peak_hours,
+      courier_top,
+      customer_insights: {
+        total_customers: allCustomers.length,
+        active_buyers: buyersList.length,
+        repeat_buyers: repeatCount,
+        repeat_rate_pct,
+        top_customers
+      }
+    }
+  });
 });
 
 // Mulai Server

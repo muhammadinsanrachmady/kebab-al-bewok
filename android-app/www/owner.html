@@ -947,22 +947,188 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 6: STATISTIK                                                    -->
+    <!-- TAB 6: STATISTIK (PERFORMA, TREN HARIAN, MENU, PEAK HOURS & LAPAK)   -->
     <!-- =================================================================== -->
-    <section id="tabView-statistik" class="owner-tab-view hidden">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Statistik Penjualan</h2>
-            <p class="text-[11px] text-slate-500">Tren omzet, menu terlaris & perbandingan lapak</p>
-          </div>
-          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
+    <section id="tabView-statistik" class="owner-tab-view hidden space-y-3.5">
+
+      <!-- TOOLBAR PERIODE STATISTIK -->
+      <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+          <button type="button" data-stat-period="7d" onclick="setStatPeriod('7d')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">7 Hari</button>
+          <button type="button" data-stat-period="month" onclick="setStatPeriod('month')" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">Bulan Ini</button>
+          <button type="button" data-stat-period="90d" onclick="setStatPeriod('90d')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">3 Bulan</button>
+          <button type="button" data-stat-period="all" onclick="setStatPeriod('all')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">Semua</button>
         </div>
-        <div class="text-center py-8 text-xs text-slate-500">
-          <i class="fa-solid fa-chart-line text-xl text-slate-600 mb-1.5 block"></i>
-          Wadah Tab Statistik siap diisi pada langkah selanjutnya.
+
+        <div class="flex items-center gap-2">
+          <span id="statScopeHint" class="text-[11px] text-slate-400 hidden sm:inline">Semua Lapak</span>
+          <button type="button" onclick="exportStatCsv()" class="text-[11px] font-semibold bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 px-2.5 py-1 rounded-lg flex items-center gap-1 transition">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
+
+      <!-- 4 KARTU KPI STATISTIK EKSEKUTIF -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Total Omzet Periode</span>
+            <p id="kpiStatOmzet" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiStatOmzetSub" class="text-[10px] text-slate-500 block truncate">0 transaksi • 0 closing</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
+            <i class="fa-solid fa-sack-dollar"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/75 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Laba Kotor (vs HPP)</span>
+            <p id="kpiStatProfit" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiStatProfitSub" class="text-[10px] text-slate-500 block truncate">HPP Rp 0 • Food Cost -</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+            <i class="fa-solid fa-coins"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/75 border border-sky-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Rata-Rata Order (AOV)</span>
+            <p id="kpiStatAov" class="text-base md:text-lg font-extrabold text-sky-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiStatAovSub" class="text-[10px] text-slate-500 block truncate">POS 0 • Delivery 0</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xs shrink-0">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Repeat Order Costumer</span>
+            <p id="kpiStatRepeatRate" class="text-base md:text-lg font-extrabold text-slate-100 mt-0.5 tabular-nums">0%</p>
+            <span id="kpiStatRepeatSub" class="text-[10px] text-slate-500 block truncate">0 dari 0 pembeli</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-300 text-xs shrink-0">
+            <i class="fa-solid fa-rotate"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: TREN OMZET HARIAN VS HPP + PORSI CHANNEL PENJUALAN -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+            <div>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Tren Omzet Harian vs HPP Bahan</h2>
+              <p class="text-[11px] text-slate-500">Perbandingan omzet penjualan &amp; modal bahan per tanggal</p>
+            </div>
+            <div class="flex items-center gap-3 text-[10px] text-slate-400">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-amber-400 inline-block"></span>Omzet</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-rose-400 inline-block"></span>HPP</span>
+            </div>
+          </div>
+          <div id="statDailyTrendChart" class="min-h-[190px] flex items-center justify-center text-xs text-slate-500">
+            Memuat grafik tren harian...
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="border-b border-slate-800/80 pb-2">
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Porsi Channel Penjualan</h2>
+            <p class="text-[11px] text-slate-500">Distribusi omzet dari Tunai, QRIS/App &amp; Ojol</p>
+          </div>
+          <div id="statChannelMixList" class="space-y-2.5">
+            <div class="text-center py-8 text-xs text-slate-500">Memuat saluran penjualan...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: PERINGKAT & PERBANDINGAN ANTAR LAPAK -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+          <div>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Perbandingan Performa Antar Lapak</h2>
+            <p class="text-[11px] text-slate-500">Ranking omzet, rata-rata order (AOV), HPP &amp; estimasi laba kotor cabang</p>
+          </div>
+          <span class="text-[10px] text-slate-500">Diurutkan dari omzet tertinggi</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800 whitespace-nowrap">
+              <tr>
+                <th class="py-2 px-2">Peringkat / Lapak</th>
+                <th class="py-2 px-2 text-right">Order</th>
+                <th class="py-2 px-2 text-right">Rata Order</th>
+                <th class="py-2 px-2 text-right">Total Omzet</th>
+                <th class="py-2 px-2 text-right">Porsi</th>
+                <th class="py-2 px-2 text-right">HPP Bahan</th>
+                <th class="py-2 px-2 text-right">Food Cost</th>
+                <th class="py-2 px-2 text-right">Laba Kotor</th>
+              </tr>
+            </thead>
+            <tbody id="statBranchLeaderboardBody" class="divide-y divide-slate-800/70 text-slate-200">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ROW 4: MENU TERLARIS & JAM SIBUK (PEAK HOURS) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div class="lg:col-span-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Menu &amp; Varian Terlaris</h2>
+              <p class="text-[11px] text-slate-500">Porsi terjual, ukuran, daging &amp; topping favorit</p>
+            </div>
+            <span id="statTotalPorsiBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">0 Porsi</span>
+          </div>
+
+          <div id="statMenuMixBadges" class="flex flex-wrap gap-1.5 text-[10px]">
+            <!-- Ukuran, Protein & Topping badges -->
+          </div>
+
+          <div id="statTopMenuList" class="space-y-1.5">
+            <!-- Top Menu items -->
+          </div>
+        </div>
+
+        <div class="lg:col-span-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Jam Sibuk Operasional (Peak Hours)</h2>
+              <p class="text-[11px] text-slate-500">Distribusi transaksi per jam (WIB) untuk atur jadwal &amp; stok</p>
+            </div>
+            <span id="statPeakHourPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30">Puncak: -</span>
+          </div>
+
+          <div id="statPeakHoursChart" class="min-h-[190px] flex items-center justify-center text-xs text-slate-500">
+            Memuat grafik jam ramai...
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 5: TOP KURIR & TOP COSTUMER LOYAL -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+          <div class="border-b border-slate-800/80 pb-2">
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Performa Kurir Teratas</h2>
+            <p class="text-[11px] text-slate-500">Berdasarkan order pengantaran &amp; total trip selesai</p>
+          </div>
+          <div id="statTopCouriersList" class="space-y-1.5"></div>
+        </div>
+
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+          <div class="border-b border-slate-800/80 pb-2">
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Costumer Paling Loyal</h2>
+            <p class="text-[11px] text-slate-500">Pelanggan dengan frekuensi order &amp; total belanja tertinggi</p>
+          </div>
+          <div id="statTopCustomersList" class="space-y-1.5"></div>
+        </div>
+      </div>
+
     </section>
 
     <!-- =================================================================== -->
@@ -1286,6 +1452,10 @@
     const openingDraftValues = new Map();
     const expandedOpeningCards = new Set();
 
+    // State Tab Statistik
+    let cachedStatData = null;
+    let currentStatPeriod = 'month';
+
     const RADAR_STATUS_META = {
       TO_CUSTOMER: {
         label: 'ANTAR KONSUMEN',
@@ -1472,7 +1642,7 @@
         }
       });
 
-      const showBranchFilter = targetTab === 'omzet' || targetTab === 'lapak';
+      const showBranchFilter = targetTab === 'omzet' || targetTab === 'lapak' || targetTab === 'statistik';
       const filterWrap = document.getElementById('branchFilterWrapper');
       if (filterWrap) filterWrap.classList.toggle('hidden', !showBranchFilter);
 
@@ -1495,6 +1665,8 @@
           fetchCustomersData();
         } else if (targetTab === 'gudang') {
           fetchWarehouseData();
+        } else if (targetTab === 'statistik') {
+          fetchStatisticsData();
         }
       }
     }
@@ -1517,6 +1689,9 @@
         }
       }
       renderOpeningHistoryList();
+      if (currentOwnerTab === 'statistik') {
+        fetchStatisticsData();
+      }
     }
 
     /**
@@ -1565,7 +1740,14 @@
     }
 
     async function fetchAllData() {
-      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData(), fetchWarehouseData(), fetchOpeningHistory()]);
+      await Promise.all([
+        fetchSummary(),
+        fetchStockOpnames(),
+        fetchCustomersData(),
+        fetchWarehouseData(),
+        fetchOpeningHistory(),
+        fetchStatisticsData()
+      ]);
     }
 
     async function fetchSummary() {
@@ -4669,6 +4851,342 @@
       } catch (err) {
         alert('❌ Gagal menghapus opening harian');
       }
+    }
+
+    // =========================================================================
+    // TAB STATISTIK: TREN OMZET, HPP, MENU TERLARIS, PEAK HOURS & LEADERBOARD
+    // =========================================================================
+    function getStatQueryParams() {
+      const today = getWibTodayISO();
+      const params = new URLSearchParams();
+      params.set('branch_id', selectedBranchId || 'all');
+      if (currentStatPeriod === '7d') {
+        params.set('start_date', shiftIsoDays(today, -6));
+        params.set('end_date', today);
+      } else if (currentStatPeriod === 'month') {
+        params.set('start_date', `${today.slice(0, 8)}01`);
+        params.set('end_date', today);
+      } else if (currentStatPeriod === '90d') {
+        params.set('start_date', shiftIsoDays(today, -89));
+        params.set('end_date', today);
+      }
+      return `?${params.toString()}`;
+    }
+
+    function setStatPeriod(period) {
+      currentStatPeriod = period || 'month';
+      document.querySelectorAll('[data-stat-period]').forEach(btn => {
+        const active = btn.dataset.statPeriod === currentStatPeriod;
+        btn.className = active
+          ? 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition'
+          : 'px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition';
+      });
+      fetchStatisticsData();
+    }
+
+    async function fetchStatisticsData() {
+      try {
+        const res = await fetch(`/api/super-admin/statistics${getStatQueryParams()}`).then(r => r.json());
+        if (res.success && res.data) {
+          cachedStatData = res.data;
+          renderStatisticsHub();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil statistik:', err);
+      }
+    }
+
+    function renderStatisticsHub() {
+      if (!cachedStatData) return;
+      const k = cachedStatData.kpis || {};
+      const ci = cachedStatData.customer_insights || {};
+      const branches = (cachedSummary && cachedSummary.branches) || [];
+      const activeBranch = selectedBranchId === 'all'
+        ? null
+        : branches.find(b => b.branch_id === selectedBranchId);
+
+      const scopeHint = document.getElementById('statScopeHint');
+      if (scopeHint) {
+        scopeHint.innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : `Semua Lapak (${branches.length})`;
+      }
+
+      document.getElementById('kpiStatOmzet').innerText = formatRp(k.total_omzet || 0);
+      document.getElementById('kpiStatOmzetSub').innerText = `${k.total_orders || 0} transaksi • ${k.closing_count || 0} closing`;
+
+      document.getElementById('kpiStatProfit').innerText = formatRp(k.gross_profit || 0);
+      document.getElementById('kpiStatProfitSub').innerText = `HPP ${formatRp(k.total_hpp || 0)} • Food Cost ${k.food_cost_ratio !== null ? `${k.food_cost_ratio}%` : '-'}`;
+
+      document.getElementById('kpiStatAov').innerText = formatRp(k.avg_order_value || 0);
+      document.getElementById('kpiStatAovSub').innerText = `POS ${k.pos_count || 0} • Delivery ${k.delivery_count || 0}`;
+
+      document.getElementById('kpiStatRepeatRate').innerText = `${ci.repeat_rate_pct || 0}%`;
+      document.getElementById('kpiStatRepeatSub').innerText = `${ci.repeat_buyers || 0} dari ${ci.active_buyers || 0} pembeli repeat`;
+
+      renderStatDailyTrendSvg();
+      renderStatChannelMix();
+      renderStatLeaderboard();
+      renderStatMenuInsights();
+      renderStatPeakHoursSvg();
+      renderStatPeopleHighlights();
+    }
+
+    function renderStatDailyTrendSvg() {
+      const container = document.getElementById('statDailyTrendChart');
+      if (!container || !cachedStatData) return;
+      const rows = (cachedStatData.daily_trend || []).slice(-14);
+
+      if (rows.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Belum ada data transaksi / closing pada periode ini.</div>`;
+        return;
+      }
+
+      const maxVal = Math.max(1000, ...rows.map(r => Math.max(Number(r.omzet) || 0, Number(r.hpp) || 0)));
+      const chartW = Math.max(360, rows.length * 48);
+      const chartH = 165;
+      const plotTop = 18;
+      const plotBottom = 136;
+      const plotH = plotBottom - plotTop;
+      const groupW = chartW / rows.length;
+
+      const barsSvg = rows.map((r, i) => {
+        const cx = i * groupW + groupW / 2;
+        const omzH = Math.max(r.omzet > 0 ? 4 : 0, Math.round((r.omzet / maxVal) * plotH));
+        const hppH = Math.max(r.hpp > 0 ? 4 : 0, Math.round((r.hpp / maxVal) * plotH));
+        const omzY = plotBottom - omzH;
+        const hppY = plotBottom - hppH;
+        const tip = `${r.label}: Omzet ${formatRp(r.omzet)} | HPP ${formatRp(r.hpp)} | Order ${r.orders_count}`;
+
+        return `
+          <g>
+            <title>${escapeHtml(tip)}</title>
+            <rect x="${cx - 12}" y="${omzY}" width="11" height="${omzH}" rx="3" fill="#fbbf24" opacity="0.9"></rect>
+            <rect x="${cx + 1}" y="${hppY}" width="11" height="${hppH}" rx="3" fill="#fb7185" opacity="0.85"></rect>
+            ${r.omzet > 0 ? `<text x="${cx - 6}" y="${Math.max(11, omzY - 4)}" text-anchor="middle" fill="#cbd5e1" font-size="8" font-weight="700">${r.omzet >= 1000000 ? `${(r.omzet / 1000000).toFixed(1)}jt` : `${Math.round(r.omzet / 1000)}rb`}</text>` : ''}
+            <text x="${cx}" y="154" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600">${escapeHtml(r.label)}</text>
+          </g>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="w-full overflow-x-auto no-scrollbar">
+          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[320px] h-[175px]">
+            <line x1="0" y1="${plotBottom}" x2="${chartW}" y2="${plotBottom}" stroke="#334155" stroke-width="1"></line>
+            <line x1="0" y1="${plotTop + plotH / 2}" x2="${chartW}" y2="${plotTop + plotH / 2}" stroke="#1e293b" stroke-dasharray="3,4" stroke-width="1"></line>
+            ${barsSvg}
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderStatChannelMix() {
+      const container = document.getElementById('statChannelMixList');
+      if (!container || !cachedStatData) return;
+      const mix = cachedStatData.channel_mix || [];
+      if (mix.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Belum ada data channel penjualan pada periode ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = mix.map(ch => `
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full inline-block" style="background:${ch.color};"></span>
+              ${escapeHtml(ch.label)}
+            </span>
+            <span class="font-bold text-slate-100 tabular-nums">${formatRp(ch.amount)} <span class="text-[10px] text-slate-400">(${ch.share_pct}%)</span></span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all" style="width:${Math.min(100, ch.share_pct)}%; background:${ch.color};"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStatLeaderboard() {
+      const tbody = document.getElementById('statBranchLeaderboardBody');
+      if (!tbody || !cachedStatData) return;
+      const list = cachedStatData.branch_leaderboard || [];
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Belum ada data cabang.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((b, idx) => {
+        const isFocus = selectedBranchId !== 'all' && selectedBranchId === b.branch_id;
+        const fcColor = b.food_cost_ratio === null
+          ? 'text-slate-500'
+          : (b.food_cost_ratio <= 40 ? 'text-emerald-400' : b.food_cost_ratio <= 48 ? 'text-amber-400' : 'text-rose-400');
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition ${isFocus ? 'bg-amber-500/10' : ''}">
+            <td class="py-2 px-2 font-semibold text-slate-100 whitespace-nowrap">
+              <span class="inline-flex items-center justify-center w-5 h-5 rounded-md ${idx === 0 ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-800 text-slate-400'} text-[10px] mr-1.5">${idx + 1}</span>
+              ${escapeHtml(shortBranchLabel(b.branch_name))}
+            </td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-300">${b.orders_count}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-sky-400">${formatRp(b.avg_order_value)}</td>
+            <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums">${formatRp(b.omzet)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-400">${b.share_pct}%</td>
+            <td class="py-2 px-2 text-right tabular-nums text-rose-400">${formatRp(b.hpp)}</td>
+            <td class="py-2 px-2 text-right font-bold tabular-nums ${fcColor}">${b.food_cost_ratio !== null ? `${b.food_cost_ratio}%` : '-'}</td>
+            <td class="py-2 px-2 text-right font-bold text-emerald-400 tabular-nums">${formatRp(b.profit)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderStatMenuInsights() {
+      const mi = (cachedStatData && cachedStatData.menu_insights) || {};
+      const badgeEl = document.getElementById('statTotalPorsiBadge');
+      const mixEl = document.getElementById('statMenuMixBadges');
+      const listEl = document.getElementById('statTopMenuList');
+      if (!listEl) return;
+
+      if (badgeEl) badgeEl.innerText = `${mi.total_porsi || 0} Porsi`;
+
+      if (mixEl) {
+        const chips = [
+          ...(mi.sizes || []).map(s => `<span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">Ukuran <b class="text-amber-400">${escapeHtml(s.label)}</b>: ${s.qty} (${s.share_pct}%)</span>`),
+          ...(mi.proteins || []).map(p => `<span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300"><b class="text-sky-400">${escapeHtml(p.label)}</b>: ${p.qty} (${p.share_pct}%)</span>`),
+          ...(mi.toppings || []).map(t => `<span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-emerald-400">+${escapeHtml(t.name)}: ${t.qty}x</span>`)
+        ];
+        mixEl.innerHTML = chips.join('');
+      }
+
+      const items = mi.top_items || [];
+      if (items.length === 0) {
+        listEl.innerHTML = `<div class="text-center py-6 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-xs text-slate-500">Belum ada penjualan item menu pada periode ini.</div>`;
+        return;
+      }
+
+      const maxQty = Math.max(1, ...items.map(i => i.qty));
+      listEl.innerHTML = items.map((item, idx) => `
+        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-2.5 py-2 space-y-1">
+          <div class="flex items-center justify-between gap-2 text-[11px]">
+            <span class="font-bold text-slate-100 truncate">${idx + 1}. ${escapeHtml(item.name)}</span>
+            <span class="shrink-0 tabular-nums"><b class="text-amber-400">${item.qty} porsi</b> <span class="text-slate-500">• ${formatRp(item.revenue)}</span></span>
+          </div>
+          <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-amber-400 rounded-full" style="width:${Math.round((item.qty / maxQty) * 100)}%"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderStatPeakHoursSvg() {
+      const container = document.getElementById('statPeakHoursChart');
+      const pill = document.getElementById('statPeakHourPill');
+      if (!container || !cachedStatData) return;
+
+      const hours = cachedStatData.peak_hours || [];
+      const maxOrders = Math.max(0, ...hours.map(h => h.order_count));
+      const peakBucket = hours.reduce((best, h) => (h.order_count > (best ? best.order_count : -1) ? h : best), null);
+
+      if (pill) {
+        pill.innerText = peakBucket && peakBucket.order_count > 0
+          ? `Puncak: ${peakBucket.label} WIB (${peakBucket.order_count}x)`
+          : 'Puncak: -';
+      }
+
+      if (maxOrders === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Belum ada aktivitas order per jam pada periode ini.</div>`;
+        return;
+      }
+
+      const chartW = Math.max(360, hours.length * 28);
+      const chartH = 160;
+      const plotBottom = 132;
+      const plotH = 110;
+      const colW = chartW / hours.length;
+
+      const bars = hours.map((h, i) => {
+        const cx = i * colW + colW / 2;
+        const barH = h.order_count > 0 ? Math.max(6, Math.round((h.order_count / maxOrders) * plotH)) : 2;
+        const barY = plotBottom - barH;
+        const isPeak = h.order_count === maxOrders && maxOrders > 0;
+        const color = isPeak ? '#fbbf24' : (h.order_count > 0 ? '#38bdf8' : '#1e293b');
+        const hrLabel = h.label.slice(0, 2);
+
+        return `
+          <g>
+            <title>${h.label} WIB: ${h.order_count} transaksi (${formatRp(h.revenue)})</title>
+            <rect x="${cx - 8}" y="${barY}" width="16" height="${barH}" rx="3" fill="${color}"></rect>
+            ${h.order_count > 0 ? `<text x="${cx}" y="${Math.max(12, barY - 4)}" text-anchor="middle" fill="#e2e8f0" font-size="8" font-weight="700">${h.order_count}</text>` : ''}
+            <text x="${cx}" y="149" text-anchor="middle" fill="#94a3b8" font-size="8.5">${hrLabel}</text>
+          </g>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <div class="w-full overflow-x-auto no-scrollbar">
+          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[320px] h-[170px]">
+            <line x1="0" y1="${plotBottom}" x2="${chartW}" y2="${plotBottom}" stroke="#334155" stroke-width="1"></line>
+            ${bars}
+          </svg>
+        </div>
+      `;
+    }
+
+    function renderStatPeopleHighlights() {
+      const couriersEl = document.getElementById('statTopCouriersList');
+      const custsEl = document.getElementById('statTopCustomersList');
+      if (!cachedStatData) return;
+
+      const couriers = cachedStatData.courier_top || [];
+      if (couriersEl) {
+        couriersEl.innerHTML = couriers.length === 0
+          ? `<div class="text-center py-4 text-xs text-slate-500">Belum ada data kurir.</div>`
+          : couriers.map((d, idx) => `
+              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-2.5 py-2 flex items-center justify-between gap-2 text-xs">
+                <div class="min-w-0">
+                  <span class="font-bold text-slate-100">${idx + 1}. ${escapeHtml(d.name)}</span>
+                  <span class="text-[10px] text-slate-500 block">${escapeHtml(d.vehicle)} • Total ${d.trips} trip</span>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-bold text-sky-400 tabular-nums block">${d.period_orders} antar</span>
+                  <span class="text-[10px] text-emerald-400 tabular-nums">${formatRp(d.period_fee || d.balance)}</span>
+                </div>
+              </div>
+            `).join('');
+      }
+
+      const custs = (cachedStatData.customer_insights && cachedStatData.customer_insights.top_customers) || [];
+      if (custsEl) {
+        custsEl.innerHTML = custs.length === 0
+          ? `<div class="text-center py-4 text-xs text-slate-500">Belum ada transaksi pelanggan app tercatat.</div>`
+          : custs.map((c, idx) => `
+              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-2.5 py-2 flex items-center justify-between gap-2 text-xs">
+                <div class="min-w-0">
+                  <span class="font-bold text-slate-100 truncate block">${idx + 1}. ${escapeHtml(c.name)}</span>
+                  <span class="text-[10px] text-slate-500 truncate block">${escapeHtml(c.contact)}</span>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="font-bold text-amber-400 tabular-nums block">${formatRp(c.total_spent)}</span>
+                  <span class="text-[10px] text-emerald-400 tabular-nums">${c.order_count}x order</span>
+                </div>
+              </div>
+            `).join('');
+      }
+    }
+
+    function exportStatCsv() {
+      if (!cachedStatData || !cachedStatData.branch_leaderboard) return;
+      const headers = ['Peringkat', 'Lapak Cabang', 'Jumlah Order', 'Rata Order (AOV)', 'Total Omzet', 'Porsi (%)', 'HPP Bahan', 'Food Cost (%)', 'Laba Kotor'];
+      const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = cachedStatData.branch_leaderboard.map((b, i) => [
+        i + 1, b.branch_name, b.orders_count, b.avg_order_value, b.omzet, b.share_pct, b.hpp, b.food_cost_ratio ?? '-', b.profit
+      ].map(csvCell).join(','));
+      const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `statistik-kebab-${selectedBranchId}-${getWibTodayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     async function approveWithdrawal(id) {
