@@ -88,17 +88,18 @@
       </div>
     </nav>
 
-    <!-- FILTER PILIH LAPAK (SLIM BAR) -->
-    <div id="branchFilterWrapper" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-      <span class="text-[11px] text-slate-500 font-medium shrink-0 flex items-center gap-1">
-        <i class="fa-solid fa-location-dot text-amber-500/80 text-[10px]"></i>
-        <span>Lapak:</span>
-      </span>
-      <div id="branchFilterPills" class="flex items-center gap-1.5">
-        <button type="button" onclick="selectOwnerBranch('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/40 shrink-0">
-          Semua Lapak
-        </button>
+    <!-- PILIH LAPAK (DROPDOWN COMPACT SEPERTI APP CUSTOMER) -->
+    <div id="branchFilterWrapper" class="bg-slate-900/90 border border-slate-800 rounded-xl px-3 py-2 flex items-center justify-between gap-3">
+      <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+        <i class="fa-solid fa-location-dot text-amber-400 text-xs shrink-0"></i>
+        <div class="min-w-0 flex-1">
+          <span class="text-slate-500 text-[10px] block leading-tight">Pilih Lapak:</span>
+          <select id="ownerBranchSelect" onchange="selectOwnerBranch(this.value)" class="w-full font-bold text-xs text-slate-100 bg-transparent outline-none cursor-pointer">
+            <option value="all" class="bg-slate-900 text-slate-100">Semua Lapak</option>
+          </select>
+        </div>
       </div>
+      <span id="ownerBranchBadge" class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 font-bold px-2 py-0.5 rounded-md text-[10px] shrink-0">0 LAPAK</span>
     </div>
 
     <!-- =================================================================== -->
@@ -311,8 +312,6 @@
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
     const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
     const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative';
-    const FILTER_PILL_ACTIVE = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/40 shrink-0 transition';
-    const FILTER_PILL_INACTIVE = 'px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200 hover:border-slate-700 shrink-0 transition';
 
     let currentOwnerTab = 'omzet';
     let selectedBranchId = 'all';
@@ -374,25 +373,35 @@
      */
     function selectOwnerBranch(branchId) {
       selectedBranchId = branchId || 'all';
-      renderBranchFilterPills();
+      renderBranchSelectOptions();
       renderOmzetMetricsAndOpnames();
       renderBranchesTable();
     }
 
-    function renderBranchFilterPills() {
-      const container = document.getElementById('branchFilterPills');
-      if (!container) return;
-
+    /**
+     * Mengisi opsi dropdown pilih lapak (rapi & skalabel meski jumlah cabang terus bertambah).
+     */
+    function renderBranchSelectOptions() {
+      const select = document.getElementById('ownerBranchSelect');
+      const badge = document.getElementById('ownerBranchBadge');
       const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
-      const pills = [
-        `<button type="button" onclick="selectOwnerBranch('all')" class="${selectedBranchId === 'all' ? FILTER_PILL_ACTIVE : FILTER_PILL_INACTIVE}">Semua Lapak</button>`,
-        ...branches.map(b => `
-          <button type="button" onclick="selectOwnerBranch('${escapeHtml(b.branch_id)}')" class="${selectedBranchId === b.branch_id ? FILTER_PILL_ACTIVE : FILTER_PILL_INACTIVE}">
-            ${escapeHtml(shortBranchLabel(b.branch_name))}
-          </button>
-        `)
-      ];
-      container.innerHTML = pills.join('');
+
+      if (select) {
+        const options = [
+          `<option value="all" class="bg-slate-900 text-slate-100">Semua Lapak (${branches.length} Cabang)</option>`,
+          ...branches.map(b => `
+            <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
+              ${escapeHtml(shortBranchLabel(b.branch_name))}
+            </option>
+          `)
+        ];
+        select.innerHTML = options.join('');
+        select.value = selectedBranchId;
+      }
+
+      if (badge) {
+        badge.innerText = selectedBranchId === 'all' ? `${branches.length} LAPAK` : 'TERPILIH';
+      }
     }
 
     async function fetchAllData() {
@@ -408,7 +417,7 @@
           if (selectedBranchId !== 'all' && !(cachedSummary.branches || []).some(b => b.branch_id === selectedBranchId)) {
             selectedBranchId = 'all';
           }
-          renderBranchFilterPills();
+          renderBranchSelectOptions();
           renderOmzetMetricsAndOpnames();
           renderBranchesTable();
           renderWithdrawalsTable();
