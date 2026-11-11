@@ -1108,6 +1108,19 @@
               <input type="number" id="opnameOmzetShopeefood" placeholder="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono">
             </div>
           </div>
+
+          <!-- PENGELUARAN KAS KECIL (PETTY CASH LAPAK) -->
+          <div class="p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-1.5">
+            <label class="text-[11px] font-extrabold text-rose-800 flex items-center justify-between">
+              <span><i class="fa-solid fa-fire-flame-simple text-rose-600 mr-1"></i> Kas Kecil / Belanja Laci:</span>
+              <span class="text-[9px] bg-rose-100 text-rose-700 font-black px-1.5 py-0.2 rounded">Potong Kas</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-2 text-xs font-bold text-rose-400">Rp</span>
+              <input type="number" id="opnamePettyCash" placeholder="0" min="0" oninput="calculateOpnameTotals()" class="w-full bg-white border border-rose-300 rounded-xl pl-9 pr-3 py-1.5 text-xs font-black text-rose-900 outline-none focus:border-rose-500 font-mono">
+            </div>
+            <input type="text" id="opnamePettyCashNote" placeholder="Keterangan (mis: Isi Gas LPG 3kg &amp; Es)" class="w-full bg-white border border-rose-200 rounded-lg px-2.5 py-1 text-[10px] text-slate-700 outline-none focus:border-rose-400">
+          </div>
         </div>
 
         <!-- REKAPITULASI TOTAL KALKULASI REAL-TIME -->
@@ -1123,7 +1136,7 @@
           <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-2xl shadow-sm space-y-1">
             <span class="text-[11px] font-extrabold uppercase tracking-wider block text-slate-300">Total Uang Fisik Kasir (Setoran Gerai):</span>
             <div class="text-2xl font-black font-mono tracking-tight text-emerald-400" id="opnameTotalSetorKasDisplay">Rp 100.000</div>
-            <p class="text-[10px] font-semibold text-slate-400">Cash Opening (Rp 100.000) + Omzet Cash Hari Ini</p>
+            <p class="text-[10px] font-semibold text-slate-400" id="opnameSetorHint">Cash Opening + Omzet Cash − Pengeluaran Kas Kecil</p>
           </div>
         </div>
       </div>
@@ -4158,15 +4171,21 @@
       const omzetGofood = Number(document.getElementById('opnameOmzetGofood').value) || 0;
       const omzetGrabfood = Number(document.getElementById('opnameOmzetGrabfood').value) || 0;
       const omzetShopeefood = Number(document.getElementById('opnameOmzetShopeefood').value) || 0;
+      const pettyCash = Math.max(0, Number(document.getElementById('opnamePettyCash')?.value) || 0);
 
       const totalOmzet = omzetCash + omzetBca + omzetGofood + omzetGrabfood + omzetShopeefood;
-      const totalSetorKas = cashOpening + omzetCash;
+      const totalSetorKas = cashOpening + omzetCash - pettyCash;
 
       const elTotalOmzet = document.getElementById('opnameTotalOmzetDisplay');
       if (elTotalOmzet) elTotalOmzet.innerText = 'Rp ' + totalOmzet.toLocaleString('id-ID');
 
       const elTotalSetor = document.getElementById('opnameTotalSetorKasDisplay');
       if (elTotalSetor) elTotalSetor.innerText = 'Rp ' + totalSetorKas.toLocaleString('id-ID');
+
+      const elHint = document.getElementById('opnameSetorHint');
+      if (elHint) {
+        elHint.innerText = `Opening (Rp ${cashOpening.toLocaleString('id-ID')}) + Cash − Kas Kecil (Rp ${pettyCash.toLocaleString('id-ID')})`;
+      }
     }
 
     function autoFillOpnameFromSystem() {
@@ -4385,8 +4404,10 @@
         const omzetGofood = Number(document.getElementById('opnameOmzetGofood').value) || 0;
         const omzetGrabfood = Number(document.getElementById('opnameOmzetGrabfood').value) || 0;
         const omzetShopeefood = Number(document.getElementById('opnameOmzetShopeefood').value) || 0;
+        const pettyCash = Math.max(0, Number(document.getElementById('opnamePettyCash')?.value) || 0);
+        const pettyCashNote = (document.getElementById('opnamePettyCashNote')?.value || '').trim();
         const totalOmzet = omzetCash + omzetBca + omzetGofood + omzetGrabfood + omzetShopeefood;
-        const totalSetorKas = cashOpening + omzetCash;
+        const totalSetorKas = cashOpening + omzetCash - pettyCash;
         const notes = document.getElementById('opnameNotesInput').value.trim();
 
         const payload = {
@@ -4401,6 +4422,8 @@
           omzet_gofood: omzetGofood,
           omzet_grabfood: omzetGrabfood,
           omzet_shopeefood: omzetShopeefood,
+          petty_cash: pettyCash,
+          petty_cash_note: pettyCashNote,
           total_omzet: totalOmzet,
           total_setor_kas: totalSetorKas,
           stock_items: stockItems,
@@ -4415,7 +4438,7 @@
         }).then(r => r.json());
 
         if (res.success) {
-          alert(`✅ Laporan Closing ${closingDate} Berhasil Dikirim ke Dashboard Owner!\nTotal Omzet: Rp ${totalOmzet.toLocaleString('id-ID')}\nTotal Kas Disetor: Rp ${totalSetorKas.toLocaleString('id-ID')}\n\n(Catatan: Data dapat disesuaikan kembali sebelum jam 15:00 WIB hari berikutnya)`);
+          alert(`✅ Laporan Closing ${closingDate} Berhasil Dikirim ke Dashboard Owner!\nTotal Omzet: Rp ${totalOmzet.toLocaleString('id-ID')}\nKas Kecil (Belanja Laci): Rp ${pettyCash.toLocaleString('id-ID')}\nTotal Kas Disetor: Rp ${totalSetorKas.toLocaleString('id-ID')}\n\n(Catatan: Data dapat disesuaikan kembali sebelum jam 15:00 WIB hari berikutnya)`);
           fetchOpnameHistory();
         } else {
           alert('Gagal mengirim: ' + (res.message || 'Kesalahan server'));
@@ -4478,9 +4501,12 @@
                   </div>
                 </div>
 
-                <div class="flex flex-wrap justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-200">
+                <div class="flex flex-wrap justify-between items-center text-[11px] text-slate-500 pt-1 border-t border-slate-200 gap-1">
                   <span>Online Apps: Gofood (Rp ${(op.omzet_gofood || 0).toLocaleString('id-ID')}) • Grab (Rp ${(op.omzet_grabfood || 0).toLocaleString('id-ID')}) • Shopee (Rp ${(op.omzet_shopeefood || 0).toLocaleString('id-ID')})</span>
-                  <span class="font-bold text-slate-700">Setoran Kas: Rp ${(op.total_setor_kas || 0).toLocaleString('id-ID')}</span>
+                  <div class="flex items-center gap-3">
+                    ${(Number(op.petty_cash) || 0) > 0 ? `<span class="font-bold text-rose-600">Kas Kecil: -Rp ${Number(op.petty_cash).toLocaleString('id-ID')}${op.petty_cash_note ? ` (${op.petty_cash_note})` : ''}</span>` : ''}
+                    <span class="font-bold text-slate-700">Setoran Kas: Rp ${(op.total_setor_kas ?? ((op.cash_opening || 100000) + (op.omzet_cash || 0))).toLocaleString('id-ID')}</span>
+                  </div>
                 </div>
 
                 ${op.notes ? `<div class="text-[11px] text-slate-600 italic bg-white p-2 rounded-lg border">Catatan: "${op.notes}"</div>` : ''}

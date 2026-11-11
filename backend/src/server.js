@@ -966,6 +966,52 @@ app.get('/api/branches/:id', (req, res) => {
   res.json({ success: true, data: branch });
 });
 
+// Helper Biaya Tetap Bulanan Cabang & Kalkulasi Laba Bersih (Terpusat)
+function normalizeFixedExpenses(raw = {}) {
+  const src = raw && typeof raw === 'object' ? raw : {};
+  const monthly_salary = Math.max(0, Number(src.monthly_salary) || 0);
+  const monthly_rent = Math.max(0, Number(src.monthly_rent) || 0);
+  const monthly_utilities = Math.max(0, Number(src.monthly_utilities) || 0);
+  const ojol_commission_pct = Math.min(50, Math.max(0, Number(src.ojol_commission_pct) || 0));
+  const monthly_total = monthly_salary + monthly_rent + monthly_utilities;
+  return {
+    monthly_salary,
+    monthly_rent,
+    monthly_utilities,
+    ojol_commission_pct,
+    monthly_total,
+    daily_prorata: Math.round(monthly_total / 30)
+  };
+}
+
+function computeBranchProfitMetrics({ branch, omzet = 0, totalHpp = 0, closingOp = null }) {
+  const exp = normalizeFixedExpenses(branch && branch.fixed_expenses);
+  const pettyCash = closingOp ? Math.max(0, Number(closingOp.petty_cash) || 0) : 0;
+  const pettyCashNote = closingOp ? String(closingOp.petty_cash_note || '').trim() : '';
+  const ojolGross = closingOp
+    ? (Number(closingOp.omzet_gofood) || 0) + (Number(closingOp.omzet_grabfood) || 0) + (Number(closingOp.omzet_shopeefood) || 0)
+    : 0;
+  const ojolCommission = exp.ojol_commission_pct > 0
+    ? Math.round(ojolGross * (exp.ojol_commission_pct / 100))
+    : 0;
+  const fixedProrata = exp.daily_prorata;
+  const totalOpex = pettyCash + ojolCommission + fixedProrata;
+  const grossProfit = omzet - totalHpp;
+  const netProfit = grossProfit - totalOpex;
+  const netMarginPct = omzet > 0 ? Number(((netProfit / omzet) * 100).toFixed(1)) : null;
+
+  return {
+    gross_profit: grossProfit,
+    petty_cash: pettyCash,
+    petty_cash_note: pettyCashNote,
+    ojol_commission: ojolCommission,
+    fixed_prorata: fixedProrata,
+    total_opex: totalOpex,
+    net_profit: netProfit,
+    net_margin_pct: netMarginPct
+  };
+}
+
 // Update Profil Lapak: Nama, Lokasi (Alamat, Lat, Lng), Nomor Telepon & QRIS Lapak
 app.put('/api/admin/branches/:id', (req, res) => {
   const { id } = req.params;
@@ -981,7 +1027,8 @@ app.put('/api/admin/branches/:id', (req, res) => {
     open_hours,
     staff_pin,
     out_of_stock,
-    cash_opening
+    cash_opening,
+    fixed_expenses
   } = req.body;
 
   const branches = readJSON(BRANCHES_FILE);
@@ -1015,6 +1062,15 @@ app.put('/api/admin/branches/:id', (req, res) => {
   if (cash_opening !== undefined && cash_opening !== null && !isNaN(Number(cash_opening))) {
     branches[idx].cash_opening = Math.max(0, Number(cash_opening));
   }
+  if (fixed_expenses !== undefined && fixed_expenses !== null && typeof fixed_expenses === 'object') {
+    const norm = normalizeFixedExpenses(fixed_expenses);
+    branches[idx].fixed_expenses = {
+      monthly_salary: norm.monthly_salary,
+      monthly_rent: norm.monthly_rent,
+      monthly_utilities: norm.monthly_utilities,
+      ojol_commission_pct: norm.ojol_commission_pct
+    };
+  }
 
   writeJSON(BRANCHES_FILE, branches);
   console.log(`[BRANCH UPDATE] Profil Cabang ${id} (${branches[idx].name}) berhasil diperbarui.`);
@@ -1038,7 +1094,8 @@ app.post('/api/admin/branches', (req, res) => {
     open_hours = '15:00 - 23:00',
     staff_pin = '1234',
     cash_opening = 100000,
-    is_open = true
+    is_open = true,
+    fixed_expenses
   } = req.body;
 
   if (!name || !address) {
@@ -1061,6 +1118,7 @@ app.post('/api/admin/branches', (req, res) => {
   const parsedLat = parseFloat(latitude);
   const parsedLng = parseFloat(longitude);
   const parsedCashOpening = Number(cash_opening);
+  const normFixed = normalizeFixedExpenses(fixed_expenses);
 
   const newBranch = {
     id: newId,
@@ -1075,7 +1133,13 @@ app.post('/api/admin/branches', (req, res) => {
     open_hours: String(open_hours || '15:00 - 23:00').trim(),
     staff_pin: String(staff_pin || '1234').trim() || '1234',
     out_of_stock: [],
-    cash_opening: !isNaN(parsedCashOpening) ? Math.max(0, parsedCashOpening) : 100000
+    cash_opening: !isNaN(parsedCashOpening) ? Math.max(0, parsedCashOpening) : 100000,
+    fixed_expenses: {
+      monthly_salary: normFixed.monthly_salary,
+      monthly_rent: normFixed.monthly_rent,
+      monthly_utilities: normFixed.monthly_utilities,
+      ojol_commission_pct: normFixed.ojol_commission_pct
+    }
   };
 
   branches.push(newBranch);
@@ -1585,8 +1649,10 @@ app.post('/api/admin/stock-opname', (req, res) => {
     omzet_gofood = 0,
     omzet_grabfood = 0,
     omzet_shopeefood = 0,
+    petty_cash = 0,
+    petty_cash_note = '',
     total_omzet = 0,
-    total_setor_kas = 0,
+    total_setor_kas,
     stock_items,
     notes,
     is_bypass = false
@@ -1628,6 +1694,14 @@ app.post('/api/admin/stock-opname', (req, res) => {
   }
 
   const prev = existingIndex >= 0 ? list[existingIndex] : {};
+  const cleanCashOpening = Number(cash_opening) || 100000;
+  const cleanOmzetCash = Number(omzet_cash) || 0;
+  const cleanPettyCash = Math.max(0, Number(petty_cash) || 0);
+  const cleanPettyNote = String(petty_cash_note || '').trim();
+  const computedSetorKas = (total_setor_kas !== undefined && total_setor_kas !== null && !isNaN(Number(total_setor_kas)))
+    ? Number(total_setor_kas)
+    : (cleanCashOpening + cleanOmzetCash - cleanPettyCash);
+
   const opnameRecord = {
     id: prev.id || `opname-${Date.now()}`,
     branch_id,
@@ -1643,14 +1717,16 @@ app.post('/api/admin/stock-opname', (req, res) => {
     manual_locked: Boolean(prev.manual_locked),
     owner_verified: Boolean(prev.owner_verified),
     owner_verified_at: prev.owner_verified_at || null,
-    cash_opening: Number(cash_opening) || 100000,
-    omzet_cash: Number(omzet_cash) || 0,
+    cash_opening: cleanCashOpening,
+    omzet_cash: cleanOmzetCash,
     omzet_bca: Number(omzet_bca) || 0,
     omzet_gofood: Number(omzet_gofood) || 0,
     omzet_grabfood: Number(omzet_grabfood) || 0,
     omzet_shopeefood: Number(omzet_shopeefood) || 0,
+    petty_cash: cleanPettyCash,
+    petty_cash_note: cleanPettyNote,
     total_omzet: Number(total_omzet) || 0,
-    total_setor_kas: Number(total_setor_kas) || 0,
+    total_setor_kas: computedSetorKas,
     stock_items,
     notes: notes || '',
     is_bypass: Boolean(is_bypass),
@@ -1684,6 +1760,36 @@ app.post('/api/admin/stock-opname', (req, res) => {
     message: 'Laporan Stock Opname Harian berhasil dikirim ke Dashboard Owner & sisa bahan otomatis dicatat kembali ke Gudang Pusat!',
     data: opnameRecord,
     warehouse_sync: warehouseReturnSync
+  });
+});
+
+// Owner Koreksi / Input Pengeluaran Kas Kecil (Petty Cash) pada Laporan Closing
+app.post('/api/super-admin/stock-opname/:id/petty-cash', (req, res) => {
+  const { id } = req.params;
+  const { petty_cash = 0, petty_cash_note = '' } = req.body || {};
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const idx = list.findIndex(op => op.id === id);
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan.' });
+  }
+
+  const cleanPetty = Math.max(0, Number(petty_cash) || 0);
+  const cleanNote = String(petty_cash_note || '').trim();
+  const op = list[idx];
+  const cashOpening = Number(op.cash_opening) || 100000;
+  const omzetCash = Number(op.omzet_cash) || 0;
+
+  op.petty_cash = cleanPetty;
+  op.petty_cash_note = cleanNote;
+  op.total_setor_kas = cashOpening + omzetCash - cleanPetty;
+  op.updated_at = new Date().toISOString();
+
+  writeJSON(STOCK_OPNAME_FILE, list);
+  res.json({
+    success: true,
+    message: 'Pengeluaran kas kecil harian berhasil diperbarui.',
+    data: op
   });
 });
 
@@ -2396,6 +2502,7 @@ app.get('/api/super-admin/summary', (req, res) => {
       has_qris: Boolean(b.qris_image),
       is_open: b.is_open !== false,
       cash_opening: b.cash_opening !== undefined ? b.cash_opening : 100000,
+      fixed_expenses: normalizeFixedExpenses(b.fixed_expenses),
       order_count: pos.order_count,
       food_revenue: pos.food_revenue,
       delivery_fee_held: pos.delivery_fee_held,
@@ -2892,7 +2999,19 @@ function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpe
   });
 
   const omzet = closingOp ? (Number(closingOp.total_omzet) || 0) : 0;
-  const grossProfit = closingOp ? (omzet - totalHpp) : 0;
+  const profitMetrics = closingOp
+    ? computeBranchProfitMetrics({ branch, omzet, totalHpp, closingOp })
+    : {
+        gross_profit: 0,
+        petty_cash: 0,
+        petty_cash_note: '',
+        ojol_commission: 0,
+        fixed_prorata: 0,
+        total_opex: 0,
+        net_profit: 0,
+        net_margin_pct: null
+      };
+  const grossProfit = profitMetrics.gross_profit;
   const foodCostRatio = omzet > 0 && comparableItemCount > 0 ? Number(((totalHpp / omzet) * 100).toFixed(1)) : null;
 
   const hppByCategory = WAREHOUSE_CATEGORIES.map(cat => {
@@ -2925,6 +3044,14 @@ function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpe
     gross_sales: omzet,
     total_hpp: totalHpp,
     gross_profit: grossProfit,
+    petty_cash: profitMetrics.petty_cash,
+    petty_cash_note: profitMetrics.petty_cash_note,
+    ojol_commission: profitMetrics.ojol_commission,
+    fixed_prorata: profitMetrics.fixed_prorata,
+    total_opex: profitMetrics.total_opex,
+    net_profit: profitMetrics.net_profit,
+    net_margin_pct: profitMetrics.net_margin_pct,
+    fixed_expenses: normalizeFixedExpenses(branch && branch.fixed_expenses),
     food_cost_ratio: foodCostRatio,
     hpp_by_category: hppByCategory,
     items: materialUsageRows
@@ -3575,6 +3702,11 @@ app.get('/api/super-admin/statistics', (req, res) => {
     let omzet = 0;
     let hpp = 0;
     let closedOmzetWithHpp = 0;
+    let pettyCash = 0;
+    let ojolCommission = 0;
+    let fixedProrata = 0;
+    let totalOpex = 0;
+
     bDates.forEach(d => {
       const cl = bPeriodOpnames.find(op => op.business_date === d);
       const dayOrdRev = bPeriodOrders
@@ -3585,10 +3717,22 @@ app.get('/api/super-admin/statistics', (req, res) => {
       omzet += dayOmzet;
 
       const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
-      if (ev.total_hpp > 0) {
-        hpp += ev.total_hpp;
+      const dayHpp = ev.total_hpp || 0;
+      if (dayHpp > 0) {
+        hpp += dayHpp;
         closedOmzetWithHpp += dayOmzet;
       }
+
+      const dayFin = computeBranchProfitMetrics({
+        branch: b,
+        omzet: dayOmzet,
+        totalHpp: dayHpp,
+        closingOp: cl || null
+      });
+      pettyCash += dayFin.petty_cash;
+      ojolCommission += dayFin.ojol_commission;
+      fixedProrata += dayFin.fixed_prorata;
+      totalOpex += dayFin.total_opex;
     });
 
     const ordFoodSum = bPeriodOrders.reduce(
@@ -3598,6 +3742,8 @@ app.get('/api/super-admin/statistics', (req, res) => {
     const ordersCount = bPeriodOrders.length;
     const avgOrderValue = ordersCount > 0 ? Math.round(ordFoodSum / ordersCount) : 0;
     const profit = omzet - hpp;
+    const net_profit = profit - totalOpex;
+    const net_margin_pct = omzet > 0 ? Number(((net_profit / omzet) * 100).toFixed(1)) : null;
     const ratio = closedOmzetWithHpp > 0 && hpp > 0 ? Number(((hpp / closedOmzetWithHpp) * 100).toFixed(1)) : null;
 
     return {
@@ -3606,6 +3752,14 @@ app.get('/api/super-admin/statistics', (req, res) => {
       omzet,
       hpp,
       profit,
+      petty_cash: pettyCash,
+      ojol_commission: ojolCommission,
+      fixed_prorata: fixedProrata,
+      total_opex: totalOpex,
+      net_profit,
+      net_margin_pct,
+      active_days: bDates.size,
+      monthly_fixed_total: normalizeFixedExpenses(b.fixed_expenses).monthly_total,
       food_cost_ratio: ratio,
       orders_count: ordersCount,
       avg_order_value: avgOrderValue,
@@ -3630,6 +3784,13 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const total_omzet = activeBranches.reduce((s, b) => s + b.omzet, 0);
   const total_hpp = activeBranches.reduce((s, b) => s + b.hpp, 0);
   const gross_profit = total_omzet - total_hpp;
+  const total_petty_cash = activeBranches.reduce((s, b) => s + (b.petty_cash || 0), 0);
+  const total_ojol_commission = activeBranches.reduce((s, b) => s + (b.ojol_commission || 0), 0);
+  const total_fixed_prorata = activeBranches.reduce((s, b) => s + (b.fixed_prorata || 0), 0);
+  const total_opex = activeBranches.reduce((s, b) => s + (b.total_opex || 0), 0);
+  const net_profit = gross_profit - total_opex;
+  const net_margin_pct = total_omzet > 0 ? Number(((net_profit / total_omzet) * 100).toFixed(1)) : null;
+
   const scopedFoodTotal = scopedOrders.reduce(
     (s, o) => s + getOrderFoodAmount(o),
     0
@@ -3640,7 +3801,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const pos_count = total_orders - delivery_count;
   const food_cost_ratio = total_omzet > 0 && total_hpp > 0 ? Number(((total_hpp / total_omzet) * 100).toFixed(1)) : null;
 
-  // Tren Harian (Omzet vs HPP vs Laba Kotor)
+  // Tren Harian (Omzet vs HPP vs Biaya Ops vs Laba Bersih)
   const dailyMap = new Map();
   const targetBranchesList = branch_id && branch_id !== 'all'
     ? branches.filter(b => b.id === branch_id)
@@ -3668,7 +3829,9 @@ app.get('/api/super-admin/statistics', (req, res) => {
           label: parts.length >= 2 ? `${parts[0]} ${parts[1].slice(0, 3)}` : d,
           omzet: 0,
           hpp: 0,
+          opex: 0,
           profit: 0,
+          net_profit: 0,
           orders_count: 0
         });
       }
@@ -3681,10 +3844,19 @@ app.get('/api/super-admin/statistics', (req, res) => {
       );
       const dayOmzet = cl ? Math.max(Number(cl.total_omzet) || 0, dayOrdRev) : dayOrdRev;
       const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
+      const dayHpp = ev.total_hpp || 0;
+      const dayFin = computeBranchProfitMetrics({
+        branch: b,
+        omzet: dayOmzet,
+        totalHpp: dayHpp,
+        closingOp: cl || null
+      });
 
       bucket.omzet += dayOmzet;
-      bucket.hpp += ev.total_hpp || 0;
+      bucket.hpp += dayHpp;
+      bucket.opex += dayFin.total_opex;
       bucket.profit = bucket.omzet - bucket.hpp;
+      bucket.net_profit = bucket.profit - bucket.opex;
       bucket.orders_count += dayOrders.length;
     });
   });
@@ -3875,6 +4047,12 @@ app.get('/api/super-admin/statistics', (req, res) => {
         total_omzet,
         total_hpp,
         gross_profit,
+        total_petty_cash,
+        total_ojol_commission,
+        total_fixed_prorata,
+        total_opex,
+        net_profit,
+        net_margin_pct,
         food_cost_ratio,
         total_orders,
         avg_order_value,

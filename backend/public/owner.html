@@ -875,8 +875,8 @@
             <span id="whEvalWindowLabel" class="text-[11px] text-slate-400 truncate">-</span>
           </div>
 
-          <!-- 4 Kartu Keuangan Outlet vs HPP -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          <!-- 6 Kartu Keuangan Outlet vs HPP & Laba Bersih -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
               <span class="text-[10px] text-slate-500 block">Omzet Closing Outlet</span>
               <p id="whEvalOmzet" class="text-sm font-extrabold text-amber-400 tabular-nums mt-0.5">Rp 0</p>
@@ -886,12 +886,22 @@
               <p id="whEvalHpp" class="text-sm font-extrabold text-rose-400 tabular-nums mt-0.5">Rp 0</p>
             </div>
             <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
-              <span class="text-[10px] text-slate-500 block">Estimasi Laba Kotor</span>
-              <p id="whEvalProfit" class="text-sm font-extrabold text-emerald-400 tabular-nums mt-0.5">Rp 0</p>
+              <span class="text-[10px] text-slate-500 block">Food Cost (35–40%)</span>
+              <p id="whEvalRatio" class="text-sm font-extrabold text-sky-400 tabular-nums mt-0.5">-</p>
             </div>
             <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
-              <span class="text-[10px] text-slate-500 block">Food Cost Ratio (35–40%)</span>
-              <p id="whEvalRatio" class="text-sm font-extrabold text-sky-400 tabular-nums mt-0.5">-</p>
+              <span class="text-[10px] text-slate-500 block">Estimasi Laba Kotor</span>
+              <p id="whEvalProfit" class="text-sm font-extrabold text-emerald-300 tabular-nums mt-0.5">Rp 0</p>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+              <span class="text-[10px] text-slate-500 block">Biaya Operasional</span>
+              <p id="whEvalOpex" class="text-sm font-extrabold text-orange-400 tabular-nums mt-0.5">Rp 0</p>
+              <span id="whEvalOpexSub" class="text-[9px] text-slate-500 block truncate mt-0.5">Kas Kecil + Tetap</span>
+            </div>
+            <div class="bg-slate-950/70 border border-emerald-500/30 rounded-xl p-2.5">
+              <span class="text-[10px] text-emerald-300/90 font-semibold block">Estimasi Laba Bersih</span>
+              <p id="whEvalNetProfit" class="text-sm font-extrabold text-emerald-400 tabular-nums mt-0.5">Rp 0</p>
+              <span id="whEvalNetMarginSub" class="text-[9px] text-slate-500 block truncate mt-0.5">Margin Bersih -</span>
             </div>
           </div>
 
@@ -969,8 +979,8 @@
         </div>
       </div>
 
-      <!-- 4 KARTU KPI STATISTIK EKSEKUTIF -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+      <!-- 5 KARTU KPI STATISTIK EKSEKUTIF (TERMASUK LABA BERSIH) -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <div class="bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
           <div class="min-w-0">
             <span class="text-[11px] font-medium text-slate-400 block truncate">Total Omzet Periode</span>
@@ -982,14 +992,25 @@
           </div>
         </div>
 
-        <div class="bg-slate-900/75 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+        <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2">
           <div class="min-w-0">
             <span class="text-[11px] font-medium text-slate-400 block truncate">Laba Kotor (vs HPP)</span>
-            <p id="kpiStatProfit" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <p id="kpiStatProfit" class="text-base md:text-lg font-extrabold text-emerald-300 mt-0.5 tabular-nums truncate">Rp 0</p>
             <span id="kpiStatProfitSub" class="text-[10px] text-slate-500 block truncate">HPP Rp 0 • Food Cost -</span>
           </div>
-          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+          <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-300 text-xs shrink-0">
             <i class="fa-solid fa-coins"></i>
+          </div>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1 bg-slate-900/80 border border-emerald-500/35 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-bold text-emerald-300 block truncate">Laba Bersih (Net Profit)</span>
+            <p id="kpiStatNetProfit" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiStatNetProfitSub" class="text-[10px] text-slate-500 block truncate">Biaya Ops Rp 0 • Margin -</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+            <i class="fa-solid fa-chart-line"></i>
           </div>
         </div>
 
@@ -1016,17 +1037,29 @@
         </div>
       </div>
 
+      <!-- RUMUS & BREAKDOWN LABA BERSIH AKTIF -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <div id="statProfitFormulaBar" class="text-slate-300 leading-relaxed tabular-nums">
+          <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
+          Memuat rincian komponen omzet, HPP, dan biaya operasional...
+        </div>
+        <button type="button" onclick="switchOwnerTab('lapak')" class="text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded-lg border border-slate-700 shrink-0 transition">
+          <i class="fa-solid fa-sliders mr-1"></i>Atur Gaji/Sewa Cabang
+        </button>
+      </div>
+
       <!-- ROW 2: DUA GRAFIK UTAMA BERSEBELAHAN (TREN OMZET VS HPP + JAM SIBUK) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 flex flex-col justify-between">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
             <div>
-              <h2 class="text-xs md:text-sm font-bold text-slate-100">Tren Omzet Harian vs HPP Bahan</h2>
-              <p class="text-[11px] text-slate-500">Perbandingan omzet penjualan &amp; modal bahan per tanggal</p>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Tren Omzet, HPP &amp; Laba Bersih</h2>
+              <p class="text-[11px] text-slate-500">Perbandingan omzet, modal bahan &amp; profit bersih per tanggal</p>
             </div>
-            <div class="flex items-center gap-3 text-[10px] text-slate-400">
+            <div class="flex items-center gap-2.5 text-[10px] text-slate-400">
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-amber-400 inline-block"></span>Omzet</span>
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-rose-400 inline-block"></span>HPP</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-emerald-400 inline-block"></span>Laba Bersih</span>
             </div>
           </div>
           <div id="statDailyTrendChart" class="min-h-[185px] flex items-center justify-center text-xs text-slate-500">
@@ -1100,6 +1133,8 @@
                 <th class="py-2 px-2 text-right">HPP Bahan</th>
                 <th class="py-2 px-2 text-right">Food Cost</th>
                 <th class="py-2 px-2 text-right">Laba Kotor</th>
+                <th class="py-2 px-2 text-right text-orange-300">Biaya Ops</th>
+                <th class="py-2 px-2 text-right text-emerald-300">Laba Bersih</th>
               </tr>
             </thead>
             <tbody id="statBranchLeaderboardBody" class="divide-y divide-slate-800/70 text-slate-200">
@@ -1196,6 +1231,31 @@
           <div>
             <label class="text-[11px] font-semibold text-slate-300 block mb-1">PIN Masuk Kasir</label>
             <input type="text" id="branchFormStaffPin" value="1234" placeholder="1234" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-1">
+            <span class="text-[11px] font-semibold text-emerald-300"><i class="fa-solid fa-calculator text-emerald-400 mr-1"></i>Biaya Operasional Tetap (Hitung Laba Bersih)</span>
+            <span id="branchFixedProrataHint" class="text-[10px] text-slate-400 font-semibold tabular-nums">Prorata Harian: Rp 0/hr</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Gaji &amp; Bonus / Bln (Rp)</label>
+              <input type="number" id="branchFormSalary" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Sewa Lapak / Bln (Rp)</label>
+              <input type="number" id="branchFormRent" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Listrik, Air &amp; Kuota / Bln (Rp)</label>
+              <input type="number" id="branchFormUtilities" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
+            </div>
+            <div>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Potongan Ojol % (0 = sdh bersih)</label>
+              <input type="number" id="branchFormOjolPct" min="0" max="50" step="0.5" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
+            </div>
           </div>
         </div>
 
@@ -1518,7 +1578,8 @@
     }
 
     function formatRp(num) {
-      return `Rp ${(Number(num) || 0).toLocaleString('id-ID')}`;
+      const n = Number(num) || 0;
+      return n < 0 ? `-Rp ${Math.abs(n).toLocaleString('id-ID')}` : `Rp ${n.toLocaleString('id-ID')}`;
     }
 
     function getWibTodayISO() {
@@ -1796,15 +1857,19 @@
       const closingTotals = filteredOpnames.reduce((acc, op) => {
         const open = Number(op.cash_opening) || 100000;
         const cash = Number(op.omzet_cash) || 0;
+        const petty = Number(op.petty_cash) || 0;
         const bca = Number(op.omzet_bca) || 0;
         const go = Number(op.omzet_gofood) || 0;
         const grab = Number(op.omzet_grabfood) || 0;
         const shopee = Number(op.omzet_shopeefood) || 0;
         const omzet = Number(op.total_omzet) || (cash + bca + go + grab + shopee);
-        const setor = Number(op.total_setor_kas) || (open + cash);
+        const setor = (op.total_setor_kas !== undefined && op.total_setor_kas !== null)
+          ? Number(op.total_setor_kas)
+          : (open + cash - petty);
 
         acc.omzet += omzet;
         acc.setor += setor;
+        acc.petty += petty;
         acc.opening += open;
         acc.cash += cash;
         acc.bca += bca;
@@ -1813,7 +1878,7 @@
         acc.shopeefood += shopee;
         if (op.owner_verified) acc.verified++;
         return acc;
-      }, { omzet: 0, setor: 0, opening: 0, cash: 0, bca: 0, gofood: 0, grabfood: 0, shopee: 0, verified: 0 });
+      }, { omzet: 0, setor: 0, petty: 0, opening: 0, cash: 0, bca: 0, gofood: 0, grabfood: 0, shopee: 0, verified: 0 });
 
       document.getElementById('statTotalClosingOmzet').innerText = formatRp(closingTotals.omzet);
       document.getElementById('statPosHint').innerText = `POS Sistem: ${formatRp(posFood)}`;
@@ -1879,6 +1944,7 @@
                   <span><i class="fa-regular fa-clock mr-1 text-slate-600"></i>${escapeHtml(b.open_hours || '15:00 - 23:00')}</span>
                   <span><i class="fa-solid fa-phone mr-1 text-slate-600"></i>${escapeHtml(b.phone || '-')}</span>
                   <span><i class="fa-solid fa-key mr-1 text-slate-600"></i>PIN: <b class="text-slate-300 font-mono">${escapeHtml(b.staff_pin || '1234')}</b></span>
+                  <span><i class="fa-solid fa-calculator mr-1 text-emerald-500/80"></i>Biaya Tetap: <b class="${(b.fixed_expenses && b.fixed_expenses.monthly_total > 0) ? 'text-emerald-400' : 'text-slate-400'} tabular-nums">${(b.fixed_expenses && b.fixed_expenses.monthly_total > 0) ? `${formatRp(b.fixed_expenses.monthly_total)}/bln` : 'Rp 0'}</b></span>
                 </div>
               </div>
 
@@ -1960,11 +2026,17 @@
           document.getElementById('branchFormOpenHours').value = b.open_hours || '15:00 - 23:00';
           document.getElementById('branchFormCashOpening').value = b.cash_opening !== undefined ? b.cash_opening : 100000;
           document.getElementById('branchFormStaffPin').value = b.staff_pin || '1234';
+          const fx = b.fixed_expenses || {};
+          document.getElementById('branchFormSalary').value = fx.monthly_salary || 0;
+          document.getElementById('branchFormRent').value = fx.monthly_rent || 0;
+          document.getElementById('branchFormUtilities').value = fx.monthly_utilities || 0;
+          document.getElementById('branchFormOjolPct').value = fx.ojol_commission_pct || 0;
           document.getElementById('branchFormLat').value = b.latitude ?? -6.2088;
           document.getElementById('branchFormLng').value = b.longitude ?? 106.8456;
           document.getElementById('branchFormBankInfo').value = b.bank_info || '';
           document.getElementById('branchFormQrisUrl').value = b.qris_image || '';
           document.getElementById('branchFormIsOpen').checked = b.is_open !== false;
+          updateBranchFixedExpensePreview();
           updateBranchQrisPreview(b.qris_image || '');
         } catch (err) {
           console.error(err);
@@ -1981,15 +2053,32 @@
         document.getElementById('branchFormOpenHours').value = '15:00 - 23:00';
         document.getElementById('branchFormCashOpening').value = 100000;
         document.getElementById('branchFormStaffPin').value = '1234';
+        document.getElementById('branchFormSalary').value = 0;
+        document.getElementById('branchFormRent').value = 0;
+        document.getElementById('branchFormUtilities').value = 0;
+        document.getElementById('branchFormOjolPct').value = 0;
         document.getElementById('branchFormLat').value = -6.2088;
         document.getElementById('branchFormLng').value = 106.8456;
         document.getElementById('branchFormBankInfo').value = 'BCA a/n Kebab AL Bewok';
         document.getElementById('branchFormQrisUrl').value = '';
         document.getElementById('branchFormIsOpen').checked = true;
+        updateBranchFixedExpensePreview();
         updateBranchQrisPreview('');
       }
 
       modal.classList.remove('hidden');
+    }
+
+    function updateBranchFixedExpensePreview() {
+      const sal = Math.max(0, Number(document.getElementById('branchFormSalary')?.value) || 0);
+      const rent = Math.max(0, Number(document.getElementById('branchFormRent')?.value) || 0);
+      const util = Math.max(0, Number(document.getElementById('branchFormUtilities')?.value) || 0);
+      const totalMonth = sal + rent + util;
+      const daily = Math.round(totalMonth / 30);
+      const el = document.getElementById('branchFixedProrataHint');
+      if (el) {
+        el.innerText = `Total ${formatRp(totalMonth)}/bln • Prorata: ${formatRp(daily)}/hr`;
+      }
     }
 
     function closeBranchModal() {
@@ -2080,7 +2169,13 @@
         longitude: parseFloat(document.getElementById('branchFormLng').value),
         bank_info: document.getElementById('branchFormBankInfo').value.trim(),
         qris_image: document.getElementById('branchFormQrisUrl').value.trim(),
-        is_open: document.getElementById('branchFormIsOpen').checked
+        is_open: document.getElementById('branchFormIsOpen').checked,
+        fixed_expenses: {
+          monthly_salary: Math.max(0, Number(document.getElementById('branchFormSalary')?.value) || 0),
+          monthly_rent: Math.max(0, Number(document.getElementById('branchFormRent')?.value) || 0),
+          monthly_utilities: Math.max(0, Number(document.getElementById('branchFormUtilities')?.value) || 0),
+          ojol_commission_pct: Math.min(50, Math.max(0, Number(document.getElementById('branchFormOjolPct')?.value) || 0))
+        }
       };
 
       try {
@@ -2947,7 +3042,11 @@
         const itemKeys = Object.keys(items);
         const cashOpening = Number(op.cash_opening) || 100000;
         const omzetCash = Number(op.omzet_cash) || 0;
-        const setorKas = Number(op.total_setor_kas) || (cashOpening + omzetCash);
+        const pettyCash = Number(op.petty_cash) || 0;
+        const pettyNote = String(op.petty_cash_note || '').trim();
+        const setorKas = (op.total_setor_kas !== undefined && op.total_setor_kas !== null)
+          ? Number(op.total_setor_kas)
+          : (cashOpening + omzetCash - pettyCash);
         const isCardOpen = expandedOpnameCards.has(opId);
         const isDetailsOpen = expandedOpnameDetails.has(opId);
 
@@ -2955,6 +3054,7 @@
         const hasPosOrders = (audit.order_count || 0) > 0;
         const hasDiscrepancy = hasPosOrders && ((audit.diff_cash || 0) !== 0 || (audit.diff_bca || 0) !== 0);
         const safeLabel = escapeHtml(op.closing_date || 'Closing Harian').replace(/'/g, "\\'");
+        const safePettyNote = escapeHtml(pettyNote).replace(/'/g, "\\'");
 
         const channels = [
           { label: 'Opening', value: cashOpening, colorClass: 'text-slate-200' },
@@ -3018,6 +3118,7 @@
               <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70 text-[11px]">
                 <div class="flex flex-wrap items-center gap-3">
                   <span class="text-slate-400">Total Omzet: <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
+                  ${pettyCash > 0 ? `<span class="text-slate-400">Kas Kecil: <b class="text-rose-400 tabular-nums">-${formatRp(pettyCash)}</b>${pettyNote ? ` <span class="text-[10px] text-slate-500">(${escapeHtml(pettyNote)})</span>` : ''}</span>` : ''}
                   <span class="text-slate-400">Setor Kas: <b class="text-emerald-400 tabular-nums">${formatRp(setorKas)}</b></span>
                 </div>
                 <button type="button" onclick="toggleOpnameDetails('${opId}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
@@ -3030,6 +3131,9 @@
 
               <!-- AKSI OWNER PADA CLOSING INI -->
               <div class="flex flex-wrap items-center justify-end gap-1.5 pt-1">
+                <button type="button" onclick="editOpnamePettyCash('${opId}', ${pettyCash}, '${safePettyNote}')" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-900 text-rose-300 border border-slate-700 hover:border-rose-500/40 hover:text-rose-200 transition">
+                  <i class="fa-solid fa-fire-flame-simple mr-1"></i>${pettyCash > 0 ? 'Ubah Kas Kecil' : 'Input Kas Kecil'}
+                </button>
                 <button type="button" onclick="verifyOpnameReport('${opId}', ${!isVerified})" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition ${isVerified ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/40 hover:text-emerald-400'}">
                   <i class="fa-solid ${isVerified ? 'fa-circle-check' : 'fa-check'} mr-1"></i>${isVerified ? 'Terverifikasi Owner' : 'Verifikasi Setoran'}
                 </button>
@@ -3094,6 +3198,18 @@
       }
     }
 
+    async function editOpnamePettyCash(id, currentAmount = 0, currentNote = '') {
+      const amtStr = prompt('Masukkan nominal Pengeluaran Kas Kecil harian (misal LPG 3kg / Es / Plastik) dalam Rupiah:', String(currentAmount || 0));
+      if (amtStr === null) return;
+      const cleanAmt = Math.max(0, Number(String(amtStr).replace(/[^0-9.-]/g, '')) || 0);
+      const note = prompt('Keterangan pengeluaran kas kecil (contoh: Gas LPG 3kg & Es Kristal):', currentNote || '');
+      if (note === null) return;
+      await runOwnerOpnameAction(`/api/super-admin/stock-opname/${encodeURIComponent(id)}/petty-cash`, 'POST', {
+        petty_cash: cleanAmt,
+        petty_cash_note: note.trim()
+      });
+    }
+
     function verifyOpnameReport(id, nextVerified) {
       runOwnerOpnameAction(`/api/super-admin/stock-opname/${encodeURIComponent(id)}/verify`, 'POST', { verified: nextVerified });
     }
@@ -3114,7 +3230,7 @@
         return;
       }
 
-      const headers = ['Tanggal Bisnis', 'Closing Label', 'Cabang', 'Petugas', 'Opening', 'Omzet Cash', 'BCA/QRIS', 'GoFood', 'GrabFood', 'ShopeeFood', 'Total Omzet', 'Setor Kas', 'Terverifikasi', 'Catatan'];
+      const headers = ['Tanggal Bisnis', 'Closing Label', 'Cabang', 'Petugas', 'Opening', 'Omzet Cash', 'BCA/QRIS', 'GoFood', 'GrabFood', 'ShopeeFood', 'Total Omzet', 'Kas Kecil (Petty)', 'Ket. Kas Kecil', 'Setor Kas', 'Terverifikasi', 'Catatan'];
       const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const rows = list.map(op => [
         op.business_date || op.date || '',
@@ -3128,7 +3244,11 @@
         Number(op.omzet_grabfood) || 0,
         Number(op.omzet_shopeefood) || 0,
         Number(op.total_omzet) || 0,
-        Number(op.total_setor_kas) || 0,
+        Number(op.petty_cash) || 0,
+        op.petty_cash_note || '',
+        (op.total_setor_kas !== undefined && op.total_setor_kas !== null)
+          ? Number(op.total_setor_kas)
+          : ((Number(op.cash_opening) || 100000) + (Number(op.omzet_cash) || 0) - (Number(op.petty_cash) || 0)),
         op.owner_verified ? 'Ya' : 'Belum',
         op.notes || ''
       ].map(csvCell).join(','));
@@ -3974,6 +4094,10 @@
       const hppEl = document.getElementById('whEvalHpp');
       const profitEl = document.getElementById('whEvalProfit');
       const ratioEl = document.getElementById('whEvalRatio');
+      const opexEl = document.getElementById('whEvalOpex');
+      const opexSubEl = document.getElementById('whEvalOpexSub');
+      const netProfitEl = document.getElementById('whEvalNetProfit');
+      const netMarginSubEl = document.getElementById('whEvalNetMarginSub');
       const catBars = document.getElementById('whEvalCategoryBars');
       const tbody = document.getElementById('whEvalTableBody');
 
@@ -4006,6 +4130,27 @@
           ratioEl.innerText = `${r}%`;
           ratioEl.className = `text-sm font-extrabold tabular-nums mt-0.5 ${r <= 40 ? 'text-emerald-400' : r <= 48 ? 'text-amber-400' : 'text-rose-400'}`;
         }
+      }
+
+      const opexVal = Number(ev.total_opex) || 0;
+      const pettyVal = Number(ev.petty_cash) || 0;
+      const fixedVal = Number(ev.fixed_prorata) || 0;
+      const ojolVal = Number(ev.ojol_commission) || 0;
+      const netVal = Number(ev.net_profit) || 0;
+      if (opexEl) opexEl.innerText = formatRp(opexVal);
+      if (opexSubEl) {
+        const parts = [`Kas ${formatRp(pettyVal)}`, `Tetap ${formatRp(fixedVal)}`];
+        if (ojolVal > 0) parts.push(`Ojol ${formatRp(ojolVal)}`);
+        opexSubEl.innerText = parts.join(' • ');
+      }
+      if (netProfitEl) {
+        netProfitEl.innerText = formatRp(netVal);
+        netProfitEl.className = `text-sm font-extrabold tabular-nums mt-0.5 ${netVal >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      }
+      if (netMarginSubEl) {
+        netMarginSubEl.innerText = ev.net_margin_pct !== null && ev.net_margin_pct !== undefined
+          ? `Margin Bersih: ${ev.net_margin_pct}%`
+          : 'Margin Bersih -';
       }
 
       if (catBars) {
@@ -4915,6 +5060,31 @@
       document.getElementById('kpiStatProfit').innerText = formatRp(k.gross_profit || 0);
       document.getElementById('kpiStatProfitSub').innerText = `HPP ${formatRp(k.total_hpp || 0)} • Food Cost ${k.food_cost_ratio !== null ? `${k.food_cost_ratio}%` : '-'}`;
 
+      const netProfit = Number(k.net_profit) || 0;
+      const netProfitEl = document.getElementById('kpiStatNetProfit');
+      if (netProfitEl) {
+        netProfitEl.innerText = formatRp(netProfit);
+        netProfitEl.className = `text-base md:text-lg font-extrabold mt-0.5 tabular-nums truncate ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      }
+      const netProfitSubEl = document.getElementById('kpiStatNetProfitSub');
+      if (netProfitSubEl) {
+        netProfitSubEl.innerText = `Biaya Ops ${formatRp(k.total_opex || 0)} • Margin ${k.net_margin_pct !== null && k.net_margin_pct !== undefined ? `${k.net_margin_pct}%` : '-'}`;
+      }
+
+      const formulaBarEl = document.getElementById('statProfitFormulaBar');
+      if (formulaBarEl) {
+        const opexParts = [`Kas Kecil ${formatRp(k.total_petty_cash || 0)}`, `Tetap Prorata ${formatRp(k.total_fixed_prorata || 0)}`];
+        if ((k.total_ojol_commission || 0) > 0) opexParts.push(`Ojol ${formatRp(k.total_ojol_commission)}`);
+        formulaBarEl.innerHTML = `
+          <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
+          Omzet <b class="text-amber-300">${formatRp(k.total_omzet || 0)}</b>
+          − HPP <b class="text-rose-300">${formatRp(k.total_hpp || 0)}</b>
+          = Laba Kotor <b class="text-emerald-300">${formatRp(k.gross_profit || 0)}</b>
+          − Biaya Ops <b class="text-orange-300">${formatRp(k.total_opex || 0)}</b> <span class="text-slate-500">(${opexParts.join(' + ')})</span>
+          = <b class="${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">Laba Bersih ${formatRp(netProfit)}</b>
+        `;
+      }
+
       document.getElementById('kpiStatAov').innerText = formatRp(k.avg_order_value || 0);
       document.getElementById('kpiStatAovSub').innerText = `POS ${k.pos_count || 0} • Delivery ${k.delivery_count || 0}`;
 
@@ -4939,8 +5109,8 @@
         return;
       }
 
-      const maxVal = Math.max(1000, ...rows.map(r => Math.max(Number(r.omzet) || 0, Number(r.hpp) || 0)));
-      const chartW = Math.max(360, rows.length * 48);
+      const maxVal = Math.max(1000, ...rows.map(r => Math.max(Number(r.omzet) || 0, Number(r.hpp) || 0, Number(r.net_profit) || 0)));
+      const chartW = Math.max(360, rows.length * 52);
       const chartH = 165;
       const plotTop = 18;
       const plotBottom = 136;
@@ -4951,16 +5121,20 @@
         const cx = i * groupW + groupW / 2;
         const omzH = Math.max(r.omzet > 0 ? 4 : 0, Math.round((r.omzet / maxVal) * plotH));
         const hppH = Math.max(r.hpp > 0 ? 4 : 0, Math.round((r.hpp / maxVal) * plotH));
+        const netRaw = Number(r.net_profit ?? r.profit ?? 0);
+        const netH = netRaw > 0 ? Math.max(4, Math.round((netRaw / maxVal) * plotH)) : 0;
         const omzY = plotBottom - omzH;
         const hppY = plotBottom - hppH;
-        const tip = `${r.label}: Omzet ${formatRp(r.omzet)} | HPP ${formatRp(r.hpp)} | Order ${r.orders_count}`;
+        const netY = plotBottom - netH;
+        const tip = `${r.label}: Omzet ${formatRp(r.omzet)} | HPP ${formatRp(r.hpp)} | Biaya Ops ${formatRp(r.opex || 0)} | Laba Bersih ${formatRp(netRaw)} | Order ${r.orders_count}`;
 
         return `
           <g>
             <title>${escapeHtml(tip)}</title>
-            <rect x="${cx - 12}" y="${omzY}" width="11" height="${omzH}" rx="3" fill="#fbbf24" opacity="0.9"></rect>
-            <rect x="${cx + 1}" y="${hppY}" width="11" height="${hppH}" rx="3" fill="#fb7185" opacity="0.85"></rect>
-            ${r.omzet > 0 ? `<text x="${cx - 6}" y="${Math.max(11, omzY - 4)}" text-anchor="middle" fill="#cbd5e1" font-size="8" font-weight="700">${r.omzet >= 1000000 ? `${(r.omzet / 1000000).toFixed(1)}jt` : `${Math.round(r.omzet / 1000)}rb`}</text>` : ''}
+            <rect x="${cx - 14}" y="${omzY}" width="8" height="${omzH}" rx="2.5" fill="#fbbf24" opacity="0.9"></rect>
+            <rect x="${cx - 4}" y="${hppY}" width="8" height="${hppH}" rx="2.5" fill="#fb7185" opacity="0.85"></rect>
+            <rect x="${cx + 6}" y="${netY}" width="8" height="${netH}" rx="2.5" fill="#34d399" opacity="0.9"></rect>
+            ${r.omzet > 0 ? `<text x="${cx - 10}" y="${Math.max(11, omzY - 4)}" text-anchor="middle" fill="#cbd5e1" font-size="8" font-weight="700">${r.omzet >= 1000000 ? `${(r.omzet / 1000000).toFixed(1)}jt` : `${Math.round(r.omzet / 1000)}rb`}</text>` : ''}
             <text x="${cx}" y="154" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600">${escapeHtml(r.label)}</text>
           </g>
         `;
@@ -5046,7 +5220,7 @@
       if (!tbody || !cachedStatData) return;
       const list = cachedStatData.branch_leaderboard || [];
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Belum ada data cabang.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Belum ada data cabang.</td></tr>`;
         return;
       }
 
@@ -5055,6 +5229,8 @@
         const fcColor = b.food_cost_ratio === null
           ? 'text-slate-500'
           : (b.food_cost_ratio <= 40 ? 'text-emerald-400' : b.food_cost_ratio <= 48 ? 'text-amber-400' : 'text-rose-400');
+        const netVal = Number(b.net_profit ?? b.profit ?? 0);
+        const netColor = netVal >= 0 ? 'text-emerald-400' : 'text-rose-400';
 
         return `
           <tr class="hover:bg-slate-800/40 transition ${isFocus ? 'bg-amber-500/10' : ''}">
@@ -5068,7 +5244,12 @@
             <td class="py-2 px-2 text-right tabular-nums text-slate-400">${b.share_pct}%</td>
             <td class="py-2 px-2 text-right tabular-nums text-rose-400">${formatRp(b.hpp)}</td>
             <td class="py-2 px-2 text-right font-bold tabular-nums ${fcColor}">${b.food_cost_ratio !== null ? `${b.food_cost_ratio}%` : '-'}</td>
-            <td class="py-2 px-2 text-right font-bold text-emerald-400 tabular-nums">${formatRp(b.profit)}</td>
+            <td class="py-2 px-2 text-right font-semibold text-emerald-300 tabular-nums">${formatRp(b.profit)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-orange-400" title="Kas Kecil ${formatRp(b.petty_cash || 0)} + Tetap ${formatRp(b.fixed_prorata || 0)} + Ojol ${formatRp(b.ojol_commission || 0)}">${formatRp(b.total_opex || 0)}</td>
+            <td class="py-2 px-2 text-right font-bold tabular-nums ${netColor}">
+              ${formatRp(netVal)}
+              ${b.net_margin_pct !== null && b.net_margin_pct !== undefined ? `<span class="block text-[9px] text-slate-500 font-normal">${b.net_margin_pct}%</span>` : ''}
+            </td>
           </tr>
         `;
       }).join('');
@@ -5210,10 +5391,10 @@
 
     function exportStatCsv() {
       if (!cachedStatData || !cachedStatData.branch_leaderboard) return;
-      const headers = ['Peringkat', 'Lapak Cabang', 'Jumlah Order', 'Rata Order (AOV)', 'Total Omzet', 'Porsi (%)', 'HPP Bahan', 'Food Cost (%)', 'Laba Kotor'];
+      const headers = ['Peringkat', 'Lapak Cabang', 'Jumlah Order', 'Rata Order (AOV)', 'Total Omzet', 'Porsi (%)', 'HPP Bahan', 'Food Cost (%)', 'Laba Kotor', 'Biaya Operasional', 'Laba Bersih', 'Margin Bersih (%)'];
       const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const rows = cachedStatData.branch_leaderboard.map((b, i) => [
-        i + 1, b.branch_name, b.orders_count, b.avg_order_value, b.omzet, b.share_pct, b.hpp, b.food_cost_ratio ?? '-', b.profit
+        i + 1, b.branch_name, b.orders_count, b.avg_order_value, b.omzet, b.share_pct, b.hpp, b.food_cost_ratio ?? '-', b.profit, b.total_opex || 0, b.net_profit ?? b.profit, b.net_margin_pct ?? '-'
       ].map(csvCell).join(','));
       const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
