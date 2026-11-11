@@ -14,134 +14,150 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-3 md:p-6 antialiased">
 
-  <div class="max-w-6xl mx-auto space-y-5">
+  <div class="max-w-5xl mx-auto space-y-3.5">
 
-    <!-- HEADER OWNER -->
-    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
+    <!-- HEADER COMPACT -->
+    <header class="flex items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
+      <div class="flex items-center space-x-2.5 min-w-0">
+        <div class="w-9 h-9 bg-amber-500/15 border border-amber-500/30 rounded-xl flex items-center justify-center text-base shrink-0">
           👑
         </div>
-        <div>
-          <h1 class="text-xl md:text-2xl font-black text-amber-400">PORTAL PEMILIK (OWNER)</h1>
-          <p class="text-xs text-slate-400">Super Admin Kebab AL Bewok • Kendali Terpusat Multi-Cabang</p>
+        <div class="min-w-0">
+          <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight truncate">Portal Owner</h1>
+          <p class="text-[11px] text-slate-400 truncate">Kebab AL Bewok • Super Admin</p>
         </div>
       </div>
-      <div class="flex items-center space-x-2 text-xs">
-        <a href="/admin.html" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-2 rounded-xl border border-slate-700 transition">
-          <i class="fa-solid fa-cash-register mr-1"></i> Buka Pos / Kasir Lapak
+
+      <div class="flex items-center space-x-1.5 text-[11px] shrink-0">
+        <a href="/admin.html" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 transition flex items-center space-x-1">
+          <i class="fa-solid fa-cash-register text-[10px]"></i>
+          <span class="hidden sm:inline">Kasir</span>
         </a>
-        <button type="button" onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95">
-          <i class="fa-solid fa-arrows-rotate"></i>
-          <span>Segarkan Data</span>
+        <button type="button" onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95">
+          <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+          <span>Refresh</span>
         </button>
       </div>
     </header>
 
-    <!-- NAVIGASI TAB UTAMA OWNER (7 TAB) -->
-    <nav aria-label="Navigasi Dashboard Owner" class="sticky top-2 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-2xl p-1.5 shadow-xl">
-      <div id="ownerTabBar" class="flex md:grid md:grid-cols-7 gap-1.5 overflow-x-auto no-scrollbar">
-        <!-- 1. OMZET -->
-        <button type="button" data-owner-tab="omzet" onclick="switchOwnerTab('omzet')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-black bg-amber-500 text-slate-950 shadow">
-          <i class="fa-solid fa-sack-dollar text-sm"></i>
+    <!-- NAVIGASI 7 TAB MINIMALIS -->
+    <nav aria-label="Navigasi Dashboard Owner" class="sticky top-2 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-1 shadow-lg">
+      <div id="ownerTabBar" class="flex md:grid md:grid-cols-7 gap-1 overflow-x-auto no-scrollbar">
+        <button type="button" data-owner-tab="omzet" onclick="switchOwnerTab('omzet')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative">
+          <i class="fa-solid fa-sack-dollar text-[11px]"></i>
           <span>Omzet</span>
         </button>
 
-        <!-- 2. LAPAK -->
-        <button type="button" data-owner-tab="lapak" onclick="switchOwnerTab('lapak')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
-          <i class="fa-solid fa-store text-sm"></i>
+        <button type="button" data-owner-tab="lapak" onclick="switchOwnerTab('lapak')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-store text-[11px]"></i>
           <span>Lapak</span>
         </button>
 
-        <!-- 3. KURIR -->
-        <button type="button" data-owner-tab="kurir" onclick="switchOwnerTab('kurir')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 relative">
-          <i class="fa-solid fa-motorcycle text-sm"></i>
+        <button type="button" data-owner-tab="kurir" onclick="switchOwnerTab('kurir')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-motorcycle text-[11px]"></i>
           <span>Kurir</span>
-          <span id="badgeKurirPending" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full leading-tight">0</span>
+          <span id="badgeKurirPending" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
         </button>
 
-        <!-- 4. COSTUMER -->
-        <button type="button" data-owner-tab="costumer" onclick="switchOwnerTab('costumer')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
-          <i class="fa-solid fa-users text-sm"></i>
+        <button type="button" data-owner-tab="costumer" onclick="switchOwnerTab('costumer')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-users text-[11px]"></i>
           <span>Costumer</span>
         </button>
 
-        <!-- 5. GUDANG -->
-        <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
-          <i class="fa-solid fa-boxes-stacked text-sm"></i>
+        <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-boxes-stacked text-[11px]"></i>
           <span>Gudang</span>
         </button>
 
-        <!-- 6. STATISTIK -->
-        <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
-          <i class="fa-solid fa-chart-line text-sm"></i>
+        <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-chart-line text-[11px]"></i>
           <span>Statistik</span>
         </button>
 
-        <!-- 7. PROFILE -->
-        <button type="button" data-owner-tab="profile" onclick="switchOwnerTab('profile')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
-          <i class="fa-solid fa-user-shield text-sm"></i>
+        <button type="button" data-owner-tab="profile" onclick="switchOwnerTab('profile')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
+          <i class="fa-solid fa-user-shield text-[11px]"></i>
           <span>Profile</span>
         </button>
       </div>
     </nav>
 
+    <!-- FILTER PILIH LAPAK (SLIM BAR) -->
+    <div id="branchFilterWrapper" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <span class="text-[11px] text-slate-500 font-medium shrink-0 flex items-center gap-1">
+        <i class="fa-solid fa-location-dot text-amber-500/80 text-[10px]"></i>
+        <span>Lapak:</span>
+      </span>
+      <div id="branchFilterPills" class="flex items-center gap-1.5">
+        <button type="button" onclick="selectOwnerBranch('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/40 shrink-0">
+          Semua Lapak
+        </button>
+      </div>
+    </div>
+
     <!-- =================================================================== -->
     <!-- TAB 1: OMZET                                                        -->
     <!-- =================================================================== -->
-    <section id="tabView-omzet" class="owner-tab-view space-y-6">
-      <!-- METRIK UTAMA FINANSIAL -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-          <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab</span>
-          <div id="statTotalFood" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">Rp 0</div>
-          <p class="text-[11px] text-slate-500 mt-1">Akumulasi seluruh lapak cabang</p>
-          <div class="absolute -right-3 -bottom-4 text-6xl text-slate-700/30">🍢</div>
+    <section id="tabView-omzet" class="owner-tab-view space-y-3.5">
+      <!-- METRIK RINGKAS & MINIMALIS -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Omzet Bersih</span>
+            <i class="fa-solid fa-coins text-amber-400/70 text-[11px]"></i>
+          </div>
+          <div id="statTotalFood" class="text-base md:text-lg font-extrabold text-amber-400 tabular-nums mt-1">Rp 0</div>
+          <div id="statFoodHint" class="text-[10px] text-slate-500 truncate mt-0.5">Semua lapak</div>
         </div>
 
-        <div class="bg-slate-800 border border-red-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-          <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Titipan Ongkir di Cabang</span>
-          <div id="statTotalDelivery" class="text-2xl md:text-3xl font-black text-red-400 mt-2">Rp 0</div>
-          <p class="text-[11px] text-red-300/60 mt-1">Wajib disetor cabang ke Pusat</p>
-          <div class="absolute -right-3 -bottom-4 text-6xl text-red-900/20">🛵</div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Titipan Ongkir</span>
+            <i class="fa-solid fa-motorcycle text-rose-400/70 text-[11px]"></i>
+          </div>
+          <div id="statTotalDelivery" class="text-base md:text-lg font-extrabold text-rose-400 tabular-nums mt-1">Rp 0</div>
+          <div class="text-[10px] text-slate-500 truncate mt-0.5">Hak kurir di lapak</div>
         </div>
 
-        <div class="bg-slate-800 border border-emerald-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-          <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Total Transaksi Selesai</span>
-          <div id="statTotalOrders" class="text-2xl md:text-3xl font-black text-emerald-400 mt-2">0 Pesanan</div>
-          <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi penjualan sistem</p>
-          <div class="absolute -right-3 -bottom-4 text-6xl text-emerald-900/20">✅</div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Transaksi</span>
+            <i class="fa-solid fa-receipt text-emerald-400/70 text-[11px]"></i>
+          </div>
+          <div id="statTotalOrders" class="text-base md:text-lg font-extrabold text-emerald-400 tabular-nums mt-1">0</div>
+          <div class="text-[10px] text-slate-500 truncate mt-0.5">Pesanan selesai</div>
         </div>
 
-        <div class="bg-slate-800 border border-amber-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-          <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">Laporan Opname Masuk</span>
-          <div id="statTotalOpname" class="text-2xl md:text-3xl font-black text-amber-300 mt-2">0 Laporan</div>
-          <p class="text-[11px] text-amber-300/60 mt-1">Closing & rekap fisik bahan</p>
-          <div class="absolute -right-3 -bottom-4 text-6xl text-amber-900/20">📦</div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Laporan Closing</span>
+            <i class="fa-solid fa-clipboard-check text-sky-400/70 text-[11px]"></i>
+          </div>
+          <div id="statTotalOpname" class="text-base md:text-lg font-extrabold text-slate-100 tabular-nums mt-1">0</div>
+          <div class="text-[10px] text-slate-500 truncate mt-0.5">Setoran & stok harian</div>
         </div>
       </div>
 
-      <!-- LAPORAN STOCK OPNAME HARIAN & SETORAN OMZET -->
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+      <!-- DAFTAR CLOSING & SETORAN OMZET -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-file-invoice-dollar mr-2 text-amber-400"></i>
-              <span>Laporan Setoran Omzet & Closing Harian Gerai</span>
-            </h2>
-            <p class="text-xs text-slate-400">Data setoran kasir, omzet multi-channel (Cash, BCA/QRIS, Gofood, Grabfood, Shopeefood) & sisa fisik 21 bahan baku</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Rekap Closing & Setoran Harian</h2>
+            <p class="text-[11px] text-slate-500">Omzet multi-channel dan sisa fisik 21 bahan</p>
           </div>
-          <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
-            Sinkronisasi Lapak Real-Time
+          <span id="opnameBranchBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+            Semua Lapak
           </span>
         </div>
 
-        <div id="opnameContainer" class="space-y-4">
-          <div class="text-center py-8 text-slate-500 text-xs">Memuat laporan closing & omzet...</div>
+        <div id="opnameContainer" class="space-y-2.5">
+          <div class="text-center py-6 text-slate-500 text-xs">Memuat laporan closing...</div>
         </div>
       </div>
     </section>
@@ -149,34 +165,31 @@
     <!-- =================================================================== -->
     <!-- TAB 2: LAPAK                                                        -->
     <!-- =================================================================== -->
-    <section id="tabView-lapak" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+    <section id="tabView-lapak" class="owner-tab-view hidden space-y-3.5">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-store mr-2 text-amber-400"></i>
-              <span>Rekapitulasi Cabang & Pengaturan Modal Awal (Cash Opening)</span>
-            </h2>
-            <p class="text-xs text-slate-400">Owner berwenang menetapkan Cash Opening (laci kasir) masing-masing cabang. Lapak hanya dapat membaca nilai ini.</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Daftar Lapak & Modal Awal (Cash Opening)</h2>
+            <p class="text-[11px] text-slate-500">Modal awal hanya bisa diubah di sini (terkunci di aplikasi lapak)</p>
           </div>
-          <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">
-            <i class="fa-solid fa-lock text-[10px] mr-1"></i>Otoritas Khusus Owner
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <i class="fa-solid fa-lock text-[9px] mr-1"></i>Khusus Owner
           </span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
               <tr>
-                <th class="p-3 rounded-l-xl">Nama Lapak Cabang</th>
-                <th class="p-3">Total Order</th>
-                <th class="p-3">Omzet Makanan (Hak Lapak)</th>
-                <th class="p-3 text-red-400">Titipan Ongkir</th>
-                <th class="p-3 text-amber-300">Cash Opening (Modal Awal dari Owner)</th>
-                <th class="p-3 rounded-r-xl text-right">Aksi</th>
+                <th class="py-2 px-2.5">Lapak</th>
+                <th class="py-2 px-2.5">Order</th>
+                <th class="py-2 px-2.5">Omzet</th>
+                <th class="py-2 px-2.5">Titipan Ongkir</th>
+                <th class="py-2 px-2.5">Cash Opening</th>
+                <th class="py-2 px-2.5 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody id="branchTableBody" class="divide-y divide-slate-700 text-slate-200">
+            <tbody id="branchTableBody" class="divide-y divide-slate-800/70 text-slate-200">
               <!-- Render via JS -->
             </tbody>
           </table>
@@ -187,31 +200,28 @@
     <!-- =================================================================== -->
     <!-- TAB 3: KURIR                                                        -->
     <!-- =================================================================== -->
-    <section id="tabView-kurir" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
+    <section id="tabView-kurir" class="owner-tab-view hidden space-y-3.5">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-money-bill-transfer mr-2 text-emerald-400"></i>
-              <span>Antrean Pencairan Saldo Driver</span>
-            </h2>
-            <p class="text-xs text-slate-400">Driver freelance meminta penarikan dana ke rekening atau e-wallet mereka</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Pencairan Saldo Kurir</h2>
+            <p class="text-[11px] text-slate-500">Antrean pengajuan tarik saldo driver freelance</p>
           </div>
-          <span class="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">Kurir Freelance</span>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Driver</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
               <tr>
-                <th class="p-3 rounded-l-xl">Nama Driver</th>
-                <th class="p-3">Nominal Tarik</th>
-                <th class="p-3">Rekening / E-Wallet</th>
-                <th class="p-3">Status</th>
-                <th class="p-3 rounded-r-xl text-right">Aksi</th>
+                <th class="py-2 px-2.5">Nama Driver</th>
+                <th class="py-2 px-2.5">Nominal</th>
+                <th class="py-2 px-2.5">Tujuan</th>
+                <th class="py-2 px-2.5">Status</th>
+                <th class="py-2 px-2.5 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody id="withdrawalTableBody" class="divide-y divide-slate-700 text-slate-200">
+            <tbody id="withdrawalTableBody" class="divide-y divide-slate-800/70 text-slate-200">
               <!-- Render via JS -->
             </tbody>
           </table>
@@ -222,22 +232,18 @@
     <!-- =================================================================== -->
     <!-- TAB 4: COSTUMER                                                     -->
     <!-- =================================================================== -->
-    <section id="tabView-costumer" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+    <section id="tabView-costumer" class="owner-tab-view hidden">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-users mr-2 text-sky-400"></i>
-              <span>Manajemen Costumer (Pelanggan)</span>
-            </h2>
-            <p class="text-xs text-slate-400">Database pelanggan aplikasi, kontak WhatsApp, riwayat pesanan & pelanggan setia</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Data Costumer</h2>
+            <p class="text-[11px] text-slate-500">Pelanggan terdaftar, kontak & riwayat order</p>
           </div>
-          <span class="bg-sky-500/20 text-sky-300 text-xs font-bold px-3 py-1 rounded-full border border-sky-500/30">Tab Siap Diisi</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
         </div>
-        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
-          <i class="fa-solid fa-address-book text-3xl text-sky-400/80"></i>
-          <p class="text-sm font-bold text-slate-200">Area Tab Costumer</p>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Costumer nanti kita akan isi daftar pelanggan, riwayat order, dan ringkasan pelanggan paling loyal.</p>
+        <div class="text-center py-8 text-xs text-slate-500">
+          <i class="fa-solid fa-users text-xl text-slate-600 mb-1.5 block"></i>
+          Wadah Tab Costumer siap diisi pada langkah selanjutnya.
         </div>
       </div>
     </section>
@@ -245,22 +251,18 @@
     <!-- =================================================================== -->
     <!-- TAB 5: GUDANG                                                       -->
     <!-- =================================================================== -->
-    <section id="tabView-gudang" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+    <section id="tabView-gudang" class="owner-tab-view hidden">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-boxes-stacked mr-2 text-amber-400"></i>
-              <span>Manajemen Gudang & 21 Bahan Baku</span>
-            </h2>
-            <p class="text-xs text-slate-400">Kontrol stok gudang pusat, distribusi/restok bahan baku ke lapak & batas minimum stok</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Gudang & Bahan Baku</h2>
+            <p class="text-[11px] text-slate-500">Stok pusat, restok 21 bahan ke lapak & alert stok menipis</p>
           </div>
-          <span class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">Tab Siap Diisi</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
         </div>
-        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
-          <i class="fa-solid fa-warehouse text-3xl text-amber-400/80"></i>
-          <p class="text-sm font-bold text-slate-200">Area Tab Gudang</p>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Gudang nanti kita akan isi stok gudang pusat, pengiriman 21 bahan ke lapak, dan monitoring stok kritis.</p>
+        <div class="text-center py-8 text-xs text-slate-500">
+          <i class="fa-solid fa-boxes-stacked text-xl text-slate-600 mb-1.5 block"></i>
+          Wadah Tab Gudang siap diisi pada langkah selanjutnya.
         </div>
       </div>
     </section>
@@ -268,22 +270,18 @@
     <!-- =================================================================== -->
     <!-- TAB 6: STATISTIK                                                    -->
     <!-- =================================================================== -->
-    <section id="tabView-statistik" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+    <section id="tabView-statistik" class="owner-tab-view hidden">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-chart-line mr-2 text-purple-400"></i>
-              <span>Statistik Penjualan & Performa Bisnis</span>
-            </h2>
-            <p class="text-xs text-slate-400">Grafik tren omzet, menu kebab paling laris, perbandingan saluran bayar & performa cabang</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Statistik Penjualan</h2>
+            <p class="text-[11px] text-slate-500">Tren omzet, menu terlaris & perbandingan lapak</p>
           </div>
-          <span class="bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-500/30">Tab Siap Diisi</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
         </div>
-        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
-          <i class="fa-solid fa-chart-pie text-3xl text-purple-400/80"></i>
-          <p class="text-sm font-bold text-slate-200">Area Tab Statistik</p>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Statistik nanti kita akan isi analisis tren penjualan harian/bulanan, menu favorit, dan perbandingan antar lapak.</p>
+        <div class="text-center py-8 text-xs text-slate-500">
+          <i class="fa-solid fa-chart-line text-xl text-slate-600 mb-1.5 block"></i>
+          Wadah Tab Statistik siap diisi pada langkah selanjutnya.
         </div>
       </div>
     </section>
@@ -291,22 +289,18 @@
     <!-- =================================================================== -->
     <!-- TAB 7: PROFILE                                                      -->
     <!-- =================================================================== -->
-    <section id="tabView-profile" class="owner-tab-view hidden space-y-6">
-      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+    <section id="tabView-profile" class="owner-tab-view hidden">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
           <div>
-            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-              <i class="fa-solid fa-user-shield mr-2 text-emerald-400"></i>
-              <span>Profile Owner & Pengaturan Super Admin</span>
-            </h2>
-            <p class="text-xs text-slate-400">Akun pemilik, keamanan PIN/Login Owner, tarif ongkir global & konfigurasi sistem pusat</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Profile & Pengaturan</h2>
+            <p class="text-[11px] text-slate-500">Keamanan PIN Owner, tarif ongkir & konfigurasi pusat</p>
           </div>
-          <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">Tab Siap Diisi</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
         </div>
-        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
-          <i class="fa-solid fa-id-card-clip text-3xl text-emerald-400/80"></i>
-          <p class="text-sm font-bold text-slate-200">Area Tab Profile</p>
-          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Profile nanti kita akan isi data akun Owner, kunci keamanan login dashboard, serta pengaturan sistem global.</p>
+        <div class="text-center py-8 text-xs text-slate-500">
+          <i class="fa-solid fa-user-shield text-xl text-slate-600 mb-1.5 block"></i>
+          Wadah Tab Profile siap diisi pada langkah selanjutnya.
         </div>
       </div>
     </section>
@@ -315,13 +309,38 @@
 
   <script>
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
-    const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-black bg-amber-500 text-slate-950 shadow relative';
-    const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 relative';
+    const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
+    const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative';
+    const FILTER_PILL_ACTIVE = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/40 shrink-0 transition';
+    const FILTER_PILL_INACTIVE = 'px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200 hover:border-slate-700 shrink-0 transition';
 
     let currentOwnerTab = 'omzet';
+    let selectedBranchId = 'all';
+    let cachedSummary = null;
+    let cachedOpnames = [];
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatRp(num) {
+      return `Rp ${(Number(num) || 0).toLocaleString('id-ID')}`;
+    }
 
     /**
-     * Berpindah antar 7 tab utama Dashboard Owner dan memperbarui status aktif UI & hash URL.
+     * Memperpendek nama cabang untuk pill filter agar ringkas (misal "Kebab AL Bewok - Kalisari 3" -> "Kalisari 3").
+     */
+    function shortBranchLabel(name) {
+      const text = String(name || 'Cabang');
+      return text.includes(' - ') ? text.split(' - ').slice(1).join(' - ') : text;
+    }
+
+    /**
+     * Berpindah antar 7 tab utama Dashboard Owner.
      */
     function switchOwnerTab(tabKey) {
       const targetTab = OWNER_TABS.includes(tabKey) ? tabKey : 'omzet';
@@ -341,105 +360,183 @@
         }
       });
 
+      const showBranchFilter = targetTab === 'omzet' || targetTab === 'lapak';
+      const filterWrap = document.getElementById('branchFilterWrapper');
+      if (filterWrap) filterWrap.classList.toggle('hidden', !showBranchFilter);
+
       if (window.location.hash !== `#${targetTab}`) {
         history.replaceState(null, '', `#${targetTab}`);
       }
     }
 
+    /**
+     * Memilih lapak aktif untuk memfilter ringkasan omzet, tabel lapak, dan riwayat closing.
+     */
+    function selectOwnerBranch(branchId) {
+      selectedBranchId = branchId || 'all';
+      renderBranchFilterPills();
+      renderOmzetMetricsAndOpnames();
+      renderBranchesTable();
+    }
+
+    function renderBranchFilterPills() {
+      const container = document.getElementById('branchFilterPills');
+      if (!container) return;
+
+      const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
+      const pills = [
+        `<button type="button" onclick="selectOwnerBranch('all')" class="${selectedBranchId === 'all' ? FILTER_PILL_ACTIVE : FILTER_PILL_INACTIVE}">Semua Lapak</button>`,
+        ...branches.map(b => `
+          <button type="button" onclick="selectOwnerBranch('${escapeHtml(b.branch_id)}')" class="${selectedBranchId === b.branch_id ? FILTER_PILL_ACTIVE : FILTER_PILL_INACTIVE}">
+            ${escapeHtml(shortBranchLabel(b.branch_name))}
+          </button>
+        `)
+      ];
+      container.innerHTML = pills.join('');
+    }
+
     async function fetchAllData() {
-      await fetchSummary();
-      await fetchStockOpnames();
+      await Promise.all([fetchSummary(), fetchStockOpnames()]);
     }
 
     async function fetchSummary() {
       try {
         const res = await fetch('/api/super-admin/summary').then(r => r.json());
         if (res.success) {
-          const d = res.data;
-          document.getElementById('statTotalFood').innerText = `Rp ${d.total_food_revenue.toLocaleString('id-ID')}`;
-          document.getElementById('statTotalDelivery').innerText = `Rp ${d.total_delivery_fees.toLocaleString('id-ID')}`;
-          document.getElementById('statTotalOrders').innerText = `${d.total_orders} Pesanan`;
-
-          // Render Cabang dengan Pengaturan Modal Awal
-          const bBody = document.getElementById('branchTableBody');
-          bBody.innerHTML = d.branches.map(b => {
-            const currentCashOpening = Number(b.cash_opening) || 100000;
-            const safeName = String(b.branch_name || '').replace(/'/g, "\\'");
-            return `
-              <tr class="hover:bg-slate-750 transition">
-                <td class="p-3">
-                  <span class="font-bold text-slate-100 block text-[13px]">${b.branch_name}</span>
-                  <span class="text-slate-400 text-[10px]">${b.address}</span>
-                </td>
-                <td class="p-3 font-semibold">${b.order_count} Transaksi</td>
-                <td class="p-3 font-black text-amber-400">Rp ${b.food_revenue.toLocaleString('id-ID')}</td>
-                <td class="p-3 font-black text-red-400">Rp ${b.delivery_fee_held.toLocaleString('id-ID')}</td>
-                <td class="p-3">
-                  <div class="flex items-center space-x-2">
-                    <span class="font-black text-white bg-slate-900/90 px-2.5 py-1 rounded-xl border border-amber-500/30 text-xs">
-                      Rp ${currentCashOpening.toLocaleString('id-ID')}
-                    </span>
-                    <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${safeName}', ${currentCashOpening})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded-xl text-[10px] flex items-center space-x-1 shadow transition active:scale-95">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                      <span>Ubah Modal</span>
-                    </button>
-                  </div>
-                </td>
-                <td class="p-3 text-right">
-                  <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
-                    <i class="fa-brands fa-whatsapp"></i> Tagih ke Kasir
-                  </button>
-                </td>
-              </tr>
-            `;
-          }).join('');
-
-          // Update badge antrean penarikan kurir
-          const pendingWithdrawals = (d.withdrawals || []).filter(w => w.status === 'pending').length;
-          const badgeKurir = document.getElementById('badgeKurirPending');
-          if (badgeKurir) {
-            badgeKurir.innerText = pendingWithdrawals;
-            badgeKurir.classList.toggle('hidden', pendingWithdrawals === 0);
+          cachedSummary = res.data;
+          // Reset ke 'all' bila cabang terpilih sudah tidak ada
+          if (selectedBranchId !== 'all' && !(cachedSummary.branches || []).some(b => b.branch_id === selectedBranchId)) {
+            selectedBranchId = 'all';
           }
-
-          // Render Withdrawals
-          const wBody = document.getElementById('withdrawalTableBody');
-          if (d.withdrawals.length === 0) {
-            wBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Belum ada pengajuan tarik dana</td></tr>`;
-          } else {
-            wBody.innerHTML = d.withdrawals.map(w => `
-              <tr class="hover:bg-slate-750 transition">
-                <td class="p-3 font-bold text-slate-100">${w.driver_name}</td>
-                <td class="p-3 font-black text-emerald-400">Rp ${w.amount.toLocaleString('id-ID')}</td>
-                <td class="p-3 font-mono text-[11px]">${w.payout_channel} - ${w.account_number} (${w.account_name})</td>
-                <td class="p-3">
-                  <span class="${w.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'} font-bold px-2 py-0.5 rounded text-[10px]">
-                    ${w.status === 'approved' ? 'Sudah Ditransfer' : 'Menunggu Transfer'}
-                  </span>
-                </td>
-                <td class="p-3 text-right">
-                  ${w.status === 'pending' ? `
-                    <button type="button" onclick="approveWithdrawal('${w.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
-                      Tandai Sudah Transfer
-                    </button>
-                  ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
-                </td>
-              </tr>
-            `).join('');
-          }
+          renderBranchFilterPills();
+          renderOmzetMetricsAndOpnames();
+          renderBranchesTable();
+          renderWithdrawalsTable();
         }
       } catch (err) {
-        console.error(err);
+        console.error('Gagal mengambil ringkasan:', err);
       }
     }
 
-    // Fungsi Owner Mengatur Cash Opening (Modal Awal)
+    function renderOmzetMetricsAndOpnames() {
+      const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
+      const activeBranch = selectedBranchId === 'all' ? null : branches.find(b => b.branch_id === selectedBranchId);
+      const filteredBranches = activeBranch ? [activeBranch] : branches;
+
+      const totalFood = filteredBranches.reduce((sum, b) => sum + (Number(b.food_revenue) || 0), 0);
+      const totalDelivery = filteredBranches.reduce((sum, b) => sum + (Number(b.delivery_fee_held) || 0), 0);
+      const totalOrders = filteredBranches.reduce((sum, b) => sum + (Number(b.order_count) || 0), 0);
+
+      const filteredOpnames = activeBranch
+        ? cachedOpnames.filter(op => op.branch_id === activeBranch.branch_id)
+        : cachedOpnames;
+
+      document.getElementById('statTotalFood').innerText = formatRp(totalFood);
+      document.getElementById('statFoodHint').innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : 'Semua lapak';
+      document.getElementById('statTotalDelivery').innerText = formatRp(totalDelivery);
+      document.getElementById('statTotalOrders').innerText = `${totalOrders}`;
+      document.getElementById('statTotalOpname').innerText = `${filteredOpnames.length}`;
+
+      const badge = document.getElementById('opnameBranchBadge');
+      if (badge) {
+        badge.innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : 'Semua Lapak';
+      }
+
+      renderOpnameList(filteredOpnames);
+    }
+
+    function renderBranchesTable() {
+      const bBody = document.getElementById('branchTableBody');
+      if (!bBody || !cachedSummary) return;
+
+      const branches = cachedSummary.branches || [];
+      const rows = selectedBranchId === 'all'
+        ? branches
+        : branches.filter(b => b.branch_id === selectedBranchId);
+
+      if (rows.length === 0) {
+        bBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">Belum ada data lapak</td></tr>`;
+        return;
+      }
+
+      bBody.innerHTML = rows.map(b => {
+        const cashOpening = Number(b.cash_opening) || 100000;
+        const safeName = escapeHtml(b.branch_name).replace(/'/g, "\\'");
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-2.5">
+              <span class="font-semibold text-slate-100 block text-xs">${escapeHtml(b.branch_name)}</span>
+              <span class="text-slate-500 text-[10px]">${escapeHtml(b.address)}</span>
+            </td>
+            <td class="py-2.5 px-2.5 tabular-nums">${b.order_count}</td>
+            <td class="py-2.5 px-2.5 font-bold text-amber-400 tabular-nums">${formatRp(b.food_revenue)}</td>
+            <td class="py-2.5 px-2.5 font-bold text-rose-400 tabular-nums">${formatRp(b.delivery_fee_held)}</td>
+            <td class="py-2.5 px-2.5">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-bold text-slate-100 bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800 text-[11px] tabular-nums">
+                  ${formatRp(cashOpening)}
+                </span>
+                <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${safeName}', ${cashOpening})" class="bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-semibold px-2 py-0.5 rounded-md text-[10px] border border-amber-500/30 transition">
+                  Ubah
+                </button>
+              </div>
+            </td>
+            <td class="py-2.5 px-2.5 text-right">
+              <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held})" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-[11px] border border-emerald-500/30 transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i>Tagih
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderWithdrawalsTable() {
+      if (!cachedSummary) return;
+      const withdrawals = cachedSummary.withdrawals || [];
+      const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
+
+      const badgeKurir = document.getElementById('badgeKurirPending');
+      if (badgeKurir) {
+        badgeKurir.innerText = pendingCount;
+        badgeKurir.classList.toggle('hidden', pendingCount === 0);
+      }
+
+      const wBody = document.getElementById('withdrawalTableBody');
+      if (!wBody) return;
+
+      if (withdrawals.length === 0) {
+        wBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Belum ada pengajuan tarik dana</td></tr>`;
+        return;
+      }
+
+      wBody.innerHTML = withdrawals.map(w => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="py-2.5 px-2.5 font-semibold text-slate-100">${escapeHtml(w.driver_name)}</td>
+          <td class="py-2.5 px-2.5 font-bold text-emerald-400 tabular-nums">${formatRp(w.amount)}</td>
+          <td class="py-2.5 px-2.5 text-[11px] text-slate-300">${escapeHtml(w.payout_channel)} • ${escapeHtml(w.account_number)} (${escapeHtml(w.account_name)})</td>
+          <td class="py-2.5 px-2.5">
+            <span class="${w.status === 'approved' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border-amber-500/30'} border font-semibold px-2 py-0.5 rounded-md text-[10px]">
+              ${w.status === 'approved' ? 'Ditransfer' : 'Menunggu'}
+            </span>
+          </td>
+          <td class="py-2.5 px-2.5 text-right">
+            ${w.status === 'pending' ? `
+              <button type="button" onclick="approveWithdrawal('${w.id}')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-white border border-sky-500/30 font-semibold px-2.5 py-1 rounded-lg text-[10px] transition">
+                Tandai Transfer
+              </button>
+            ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
     async function editBranchCashOpening(branchId, branchName, currentVal) {
-      const input = prompt(`[PENGATURAN OWNER]\nMasukkan nominal Cash Opening (Modal Kas Awal Laci) untuk:\n${branchName}\n\n(Nilai ini akan terkunci di aplikasi kasir/lapak dan hanya bisa diubah di sini):`, currentVal);
+      const input = prompt(`Cash Opening (Modal Awal) untuk ${branchName}:`, currentVal);
       if (input === null) return;
       const num = Number(input.replace(/[^0-9]/g, ''));
       if (isNaN(num) || num < 0) {
-        alert('❌ Nominal uang tidak valid.');
+        alert('❌ Nominal tidak valid.');
         return;
       }
 
@@ -451,7 +548,7 @@
         }).then(r => r.json());
 
         if (res.success) {
-          alert(`✅ BERHASIL!\nCash Opening untuk ${branchName} berhasil diatur menjadi:\nRp ${num.toLocaleString('id-ID')}\n\nNilai ini telah dikirim ke sistem dan lapak/kasir akan otomatis menggunakan modal ini (hanya baca).`);
+          alert(`✅ Cash Opening ${branchName} diatur ke ${formatRp(num)}.`);
           fetchAllData();
         } else {
           alert('❌ Gagal mengubah modal: ' + (res.message || 'Kesalahan server'));
@@ -462,145 +559,133 @@
       }
     }
 
-    // Mengambil & Menampilkan Riwayat Stock Opname dari Seluruh Lapak
     async function fetchStockOpnames() {
-      const container = document.getElementById('opnameContainer');
       try {
         const res = await fetch('/api/admin/stock-opname').then(r => r.json());
         if (res.success && Array.isArray(res.data)) {
-          const list = res.data;
-          document.getElementById('statTotalOpname').innerText = `${list.length} Laporan`;
-
-          if (list.length === 0) {
-            container.innerHTML = `
-              <div class="text-center py-10 bg-slate-900/50 rounded-2xl border border-slate-700/60 p-4 space-y-2">
-                <i class="fa-solid fa-box-open text-3xl text-slate-600"></i>
-                <p class="text-sm font-bold text-slate-400">Belum ada laporan stock opname harian yang dikirim dari lapak.</p>
-                <p class="text-xs text-slate-500">Lapak akan mengirimkan laporan closing harian pada jam 22:30 WIB.</p>
-              </div>
-            `;
-            return;
-          }
-
-          container.innerHTML = list.map(op => {
-            const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
-            const items = op.stock_items || {};
-            const itemKeys = Object.keys(items);
-
-            return `
-              <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-5 space-y-4 hover:border-amber-500/40 transition">
-                <!-- HEADER LAPORAN -->
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-                  <div>
-                    <div class="flex items-center space-x-2">
-                      <span class="text-amber-400 font-black text-sm md:text-base">${op.closing_date || 'Closing Harian'}</span>
-                      <span class="text-slate-400 text-xs">• Cabang: <b class="text-white">${op.branch_name || 'Kalisari'}</b></span>
-                    </div>
-                    <span class="text-slate-400 text-xs">Petugas Kasir: <b>${op.staff_name || 'Kasir Lapak'}</b> • Waktu Submit: ${new Date(op.created_at || Date.now()).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div>
-                    ${isLocked ? `
-                      <span class="bg-slate-800 text-slate-400 border border-slate-700 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center">
-                        <i class="fa-solid fa-lock text-slate-500 mr-1.5"></i> Terkunci Permanen (Lewat 15:00 WIB)
-                      </span>
-                    ` : `
-                      <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full font-bold text-[11px] inline-flex items-center animate-pulse">
-                        <i class="fa-solid fa-clock mr-1.5"></i> Sesi Aktif (Bisa disesuaikan s/d 15:00 WIB)
-                      </span>
-                    `}
-                  </div>
-                </div>
-
-                <!-- RINGKASAN FINANSIAL & REKAP KAS -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-center">
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-amber-300 font-bold block">Cash Opening (Owner)</span>
-                    <span class="text-xs font-black text-white font-mono">Rp ${(op.cash_opening || 100000).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-emerald-400 font-bold block">Omzet Cash</span>
-                    <span class="text-xs font-black text-emerald-300 font-mono">Rp ${(op.omzet_cash || 0).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-blue-400 font-bold block">BCA / QRIS</span>
-                    <span class="text-xs font-black text-blue-300 font-mono">Rp ${(op.omzet_bca || 0).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-red-400 font-bold block">Gofood</span>
-                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_gofood || 0).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-green-400 font-bold block">Grabfood</span>
-                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_grabfood || 0).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
-                    <span class="text-[10px] text-orange-400 font-bold block">Shopeefood</span>
-                    <span class="text-xs font-black text-slate-200 font-mono">Rp ${(op.omzet_shopeefood || 0).toLocaleString('id-ID')}</span>
-                  </div>
-                  <div class="bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 p-2.5 rounded-xl font-bold col-span-2 sm:col-span-1 shadow-sm">
-                    <span class="text-[10px] font-black uppercase block opacity-90">Total Kas Setor</span>
-                    <span class="text-xs font-black font-mono">Rp ${(op.total_setor_kas || (op.cash_opening + op.omzet_cash)).toLocaleString('id-ID')}</span>
-                  </div>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 pt-1">
-                  <div>
-                    <span>Total Penjualan Semua Saluran: <b class="text-amber-400 font-mono font-bold text-sm">Rp ${(op.total_omzet || 0).toLocaleString('id-ID')}</b></span>
-                  </div>
-                  ${op.notes ? `
-                    <div class="text-[11px] text-slate-300 italic bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
-                      <i class="fa-solid fa-comment-dots text-amber-400 mr-1"></i> Catatan Lapak: "${op.notes}"
-                    </div>
-                  ` : ''}
-                </div>
-
-                <!-- ACCORDION 21 BAHAN BAKU -->
-                <div class="pt-2 border-t border-slate-800">
-                  <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center space-x-1.5 transition">
-                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform" id="icon_toggle_${op.id}"></i>
-                    <span>Tampilkan Rincian 21 Bahan Baku Fisik (${itemKeys.length} Bahan Tercatat)</span>
-                  </button>
-
-                  <div id="details_${op.id}" class="hidden mt-3 overflow-x-auto bg-slate-950/70 p-3 rounded-xl border border-slate-800">
-                    <table class="w-full text-xs text-left">
-                      <thead class="text-[10px] uppercase text-slate-400 border-b border-slate-800">
-                        <tr>
-                          <th class="p-2">No</th>
-                          <th class="p-2">Nama Bahan Baku</th>
-                          <th class="p-2">Satuan Resmi</th>
-                          <th class="p-2 text-center text-amber-400">Terjual Sistem POS</th>
-                          <th class="p-2 text-right text-emerald-400">Sisa Fisik Lapak</th>
-                        </tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-800 text-slate-300">
-                        ${itemKeys.map((k, i) => {
-                          const item = items[k] || {};
-                          return `
-                            <tr class="hover:bg-slate-900/50">
-                              <td class="p-2 text-slate-500 font-mono">${i + 1}</td>
-                              <td class="p-2 font-bold text-white">${item.name || k}</td>
-                              <td class="p-2 uppercase font-mono text-[10px] text-slate-400">(${item.unit || 'pcs'})</td>
-                              <td class="p-2 text-center font-mono font-bold text-amber-400">
-                                ${item.system_sold !== null && item.system_sold !== undefined ? `${item.system_sold} ${item.unit}` : '<span class="text-slate-600">-</span>'}
-                              </td>
-                              <td class="p-2 text-right font-mono font-black text-emerald-400 text-[13px]">
-                                ${Number(item.physical_count || 0).toLocaleString('id-ID')} ${item.unit || ''}
-                              </td>
-                            </tr>
-                          `;
-                        }).join('')}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
+          cachedOpnames = res.data;
+          renderOmzetMetricsAndOpnames();
         }
       } catch (err) {
-        console.error('Failed to load stock opnames:', err);
-        container.innerHTML = `<div class="text-center py-6 text-red-400 text-xs">Gagal memuat laporan stock opname.</div>`;
+        console.error('Gagal memuat stock opname:', err);
+        const container = document.getElementById('opnameContainer');
+        if (container) container.innerHTML = `<div class="text-center py-6 text-rose-400 text-xs">Gagal memuat laporan stock opname.</div>`;
       }
+    }
+
+    function renderOpnameList(list) {
+      const container = document.getElementById('opnameContainer');
+      if (!container) return;
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 bg-slate-950/50 rounded-xl border border-dashed border-slate-800 space-y-1">
+            <i class="fa-solid fa-box-open text-xl text-slate-600"></i>
+            <p class="text-xs font-medium text-slate-400">Belum ada laporan closing untuk lapak ini.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(op => {
+        const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
+        const items = op.stock_items || {};
+        const itemKeys = Object.keys(items);
+        const cashOpening = Number(op.cash_opening) || 100000;
+        const omzetCash = Number(op.omzet_cash) || 0;
+        const setorKas = Number(op.total_setor_kas) || (cashOpening + omzetCash);
+
+        return `
+          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl p-3 space-y-2.5 hover:border-slate-700 transition">
+            <!-- HEADER COMPACT -->
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                <span class="font-bold text-amber-400">${escapeHtml(op.closing_date || 'Closing Harian')}</span>
+                <span class="text-slate-600">•</span>
+                <span class="font-semibold text-slate-200">${escapeHtml(shortBranchLabel(op.branch_name || 'Kalisari'))}</span>
+                <span class="text-[11px] text-slate-500">(${escapeHtml(op.staff_name || 'Kasir')})</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold ${isLocked ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/15 text-emerald-400'}">
+                  ${isLocked ? 'Terkunci' : 'Aktif'}
+                </span>
+              </div>
+            </div>
+
+            <!-- RINGKASAN CHANNEL MINIMALIS -->
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-left">
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Opening</span>
+                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(cashOpening)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Cash</span>
+                <span class="text-[11px] font-bold text-emerald-400 tabular-nums">${formatRp(omzetCash)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">BCA/QRIS</span>
+                <span class="text-[11px] font-bold text-sky-400 tabular-nums">${formatRp(op.omzet_bca)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">GoFood</span>
+                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_gofood)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">GrabFood</span>
+                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_grabfood)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Shopee</span>
+                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${formatRp(op.omzet_shopeefood)}</span>
+              </div>
+            </div>
+
+            <!-- FOOTER TOTAL & AKORDION BAHAN -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70 text-[11px]">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-slate-400">Total Omzet: <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
+                <span class="text-slate-400">Setor Kas: <b class="text-emerald-400 tabular-nums">${formatRp(setorKas)}</b></span>
+              </div>
+              <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
+                <span>${itemKeys.length} Bahan</span>
+                <i class="fa-solid fa-chevron-down text-[9px] transition-transform" id="icon_toggle_${op.id}"></i>
+              </button>
+            </div>
+
+            ${op.notes ? `<p class="text-[11px] text-slate-400 italic bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60">"${escapeHtml(op.notes)}"</p>` : ''}
+
+            <div id="details_${op.id}" class="hidden overflow-x-auto bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+              <table class="w-full text-[11px] text-left">
+                <thead class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
+                  <tr>
+                    <th class="py-1.5 px-2">#</th>
+                    <th class="py-1.5 px-2">Bahan Baku</th>
+                    <th class="py-1.5 px-2 text-center">Terjual POS</th>
+                    <th class="py-1.5 px-2 text-right">Sisa Fisik</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/70 text-slate-300">
+                  ${itemKeys.map((k, i) => {
+                    const item = items[k] || {};
+                    return `
+                      <tr>
+                        <td class="py-1.5 px-2 text-slate-500 tabular-nums">${i + 1}</td>
+                        <td class="py-1.5 px-2 font-medium text-slate-200">${escapeHtml(item.name || k)}</td>
+                        <td class="py-1.5 px-2 text-center text-amber-400 tabular-nums">
+                          ${item.system_sold !== null && item.system_sold !== undefined ? `${item.system_sold} ${escapeHtml(item.unit)}` : '-'}
+                        </td>
+                        <td class="py-1.5 px-2 text-right font-bold text-emerald-400 tabular-nums">
+                          ${Number(item.physical_count || 0).toLocaleString('id-ID')} ${escapeHtml(item.unit || '')}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function toggleOpnameDetails(id) {
@@ -608,18 +693,13 @@
       const icon = document.getElementById(`icon_toggle_${id}`);
       if (!el) return;
       const isHidden = el.classList.contains('hidden');
-      if (isHidden) {
-        el.classList.remove('hidden');
-        if (icon) icon.classList.add('rotate-180');
-      } else {
-        el.classList.add('hidden');
-        if (icon) icon.classList.remove('rotate-180');
-      }
+      el.classList.toggle('hidden', !isHidden);
+      if (icon) icon.classList.toggle('rotate-180', isHidden);
     }
 
     function sendInvoiceWA(branchName, amount) {
-      const msg = `Halo Kasir ${branchName}, rekap sistem aplikasi Kebab AL Bewok mencatat ada titipan ongkir kurir sebesar Rp ${amount.toLocaleString('id-ID')} dari transaksi QRIS cabang Anda. Mohon segera disetorkan ke rekening Pusat untuk pencairan gaji kurir ya. Terima kasih!`;
-      alert(`Pesan WhatsApp yang dikirim ke kasir:\n\n"${msg}"`);
+      const msg = `Halo Kasir ${branchName}, rekap sistem Kebab AL Bewok mencatat titipan ongkir kurir sebesar ${formatRp(amount)} dari transaksi QRIS cabang Anda. Mohon disetorkan ke rekening Pusat. Terima kasih!`;
+      alert(`Pesan WhatsApp ke kasir:\n\n"${msg}"`);
     }
 
     async function approveWithdrawal(id) {
@@ -635,7 +715,6 @@
       }
     }
 
-    // Inisialisasi tab awal (dari hash URL bila ada, default 'omzet')
     const initialHashTab = (window.location.hash || '').replace('#', '').toLowerCase();
     switchOwnerTab(OWNER_TABS.includes(initialHashTab) ? initialHashTab : 'omzet');
     fetchAllData();
