@@ -964,7 +964,7 @@
           <div>
             <div class="flex items-center space-x-2 mb-1">
               <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center" id="opnameStatusBadge">
-                <i class="fa-solid fa-clipboard-check mr-1"></i> Form Siap Diisi (21 Bahan)
+                <i class="fa-solid fa-clipboard-check mr-1"></i> Form Siap Diisi (25 Item)
               </span>
               <span class="text-[11px] text-amber-300 font-bold" id="opnameDeadlineNotice">
                 Batas Sesi: Besok 15:00 WIB
@@ -1141,18 +1141,18 @@
         </div>
       </div>
 
-      <!-- 3. CEK FISIK SISA BAHAN BAKU LAPAK (21 BAHAN LENGKAP) -->
+      <!-- 3. CEK FISIK SISA BAHAN BAKU & PERLENGKAPAN LAPAK -->
       <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
         <div class="flex items-center justify-between border-b pb-3">
           <div class="flex items-center space-x-2">
             <div class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm">3</div>
             <div>
-              <h3 class="font-black text-sm text-slate-900">Hitung Sisa Fisik Bahan Baku Gerai (21 Bahan)</h3>
+              <h3 class="font-black text-sm text-slate-900">Hitung Sisa Fisik Bahan &amp; Perlengkapan Gerai</h3>
               <p class="text-[11px] text-slate-500">Hitung jumlah fisik sisa di lapak malam ini secara teliti</p>
             </div>
           </div>
-          <span class="text-xs bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full border border-amber-300">
-            21 Bahan Terdaftar
+          <span id="opnameItemsCountBadge" class="text-xs bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full border border-amber-300">
+            25 Item Terdaftar
           </span>
         </div>
 
@@ -4031,8 +4031,23 @@
     // =========================================================================
     // 11. LOGIKA STOCK OPNAME (BUKA 22:30 WIB - KUNCI 15:00 WIB BESOK)
     // =========================================================================
-    // 21 Item Bahan Baku Lengkap Sesuai Ketentuan Owner
-    const OPNAME_ITEMS = [
+    const OPNAME_KEY_COUNTS = {
+      beef_kebab_jumbo: 'beef_jumbo',
+      beef_kebab_reguler: 'beef_reguler',
+      beef_kebab_small: 'beef_small',
+      bungkus_kebab_jumbo: 'wrap_jumbo',
+      bungkus_kebab_reguler: 'wrap_reguler',
+      bungkus_kebab_small: 'wrap_small',
+      kebab_ayam_homemade: 'chicken',
+      keju_slice: 'cheese',
+      telur: 'egg',
+      tortilla_jumbo_25cm: 'tortilla_jumbo',
+      tortilla_kecil_19cm: 'tortilla_small',
+      tortilla_reguler_22cm: 'tortilla_reguler'
+    };
+
+    // Daftar Default 25 Item Gudang & Operasional (Otomatis sinkron via /api/admin/opname-items)
+    let OPNAME_ITEMS = [
       { id: 'bawang_bombay', name: 'Bawang Bombay', unit: 'gram' },
       { id: 'beef_kebab_jumbo', name: 'Beef Kebab Premium Jumbo', unit: 'pcs', key_count: 'beef_jumbo' },
       { id: 'beef_kebab_reguler', name: 'Beef Kebab Premium Reguler', unit: 'pcs', key_count: 'beef_reguler' },
@@ -4041,10 +4056,14 @@
       { id: 'bungkus_kebab_reguler', name: 'Bungkus Kebab Reguler', unit: 'pcs', key_count: 'wrap_reguler' },
       { id: 'bungkus_kebab_small', name: 'Bungkus Kebab Small', unit: 'pcs', key_count: 'wrap_small' },
       { id: 'daging_kebab_central', name: 'Daging Kebab Central', unit: 'gram' },
+      { id: 'gas_lpg', name: 'Gas LPG', unit: 'tabung' },
       { id: 'kebab_ayam_homemade', name: 'Kebab Ayam Homemade', unit: 'gram', key_count: 'chicken' },
       { id: 'keju_slice', name: 'Keju Slice', unit: 'pcs', key_count: 'cheese' },
       { id: 'lettuce_head', name: 'Lettuce Head', unit: 'gram' },
+      { id: 'lidah_kebab', name: 'Lidah Kebab', unit: 'gram' },
+      { id: 'margarin', name: 'Margarin', unit: 'gram' },
       { id: 'nanas', name: 'Nanas', unit: 'gram' },
+      { id: 'sabun_cuci', name: 'Sabun Cuci', unit: 'pcs' },
       { id: 'saus_keju', name: 'Saus Keju', unit: 'gram' },
       { id: 'saus_mayonaise', name: 'Saus Mayonaise', unit: 'gram' },
       { id: 'saus_sambal', name: 'Saus Sambal', unit: 'gram' },
@@ -4055,6 +4074,25 @@
       { id: 'tortilla_kecil_19cm', name: 'Tortilla Kecil 19 cm', unit: 'lembar', key_count: 'tortilla_small' },
       { id: 'tortilla_reguler_22cm', name: 'Tortilla Reguler 22 cm', unit: 'lembar', key_count: 'tortilla_reguler' }
     ];
+
+    async function syncOpnameItemsFromServer() {
+      try {
+        const res = await fetch('/api/admin/opname-items').then(r => r.json());
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          OPNAME_ITEMS = res.data
+            .map(it => ({
+              id: it.id,
+              name: it.name,
+              unit: it.unit,
+              key_count: OPNAME_KEY_COUNTS[it.id] || null
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'id'));
+          renderOpnameForm();
+        }
+      } catch (e) {
+        console.warn('Memakai daftar opname lokal fallback:', e);
+      }
+    }
 
     const ID_MONTHS_OPNAME = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     let isOpnameDateManuallyPicked = false;
@@ -4257,9 +4295,10 @@
         }
       }
 
-      // Selalu render form 21 bahan baku, kalkulasi total, dan riwayat
+      // Render form item gudang & operasional, kalkulasi total, dan sinkronkan dengan master server
       calculateOpnameTotals();
       renderOpnameForm();
+      syncOpnameItemsFromServer();
       fetchOpnameHistory();
     }
 
@@ -4328,11 +4367,22 @@
       const container = document.getElementById('opnameItemsContainer');
       if (!container) return;
 
+      const countBadge = document.getElementById('opnameItemsCountBadge');
+      if (countBadge) countBadge.innerText = `${OPNAME_ITEMS.length} Item Terdaftar`;
+      const statusBadge = document.getElementById('opnameStatusBadge');
+      if (statusBadge) statusBadge.innerHTML = `<i class="fa-solid fa-clipboard-check mr-1"></i> Form Siap Diisi (${OPNAME_ITEMS.length} Item)`;
+
+      const prevTyped = {};
+      container.querySelectorAll('input[id^="input_opname_"]').forEach(el => {
+        if (el.value !== '') prevTyped[el.id.replace('input_opname_', '')] = el.value;
+      });
+
       let sold = {};
       try { sold = calculateSystemSoldIngredients() || {}; } catch (e) { sold = {}; }
 
       container.innerHTML = OPNAME_ITEMS.map((item, idx) => {
         const sysSold = item.key_count ? (sold[item.key_count] || 0) : null;
+        const valAttr = prevTyped[item.id] !== undefined ? `value="${prevTyped[item.id]}"` : '';
         return `
           <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white hover:border-amber-300 transition shadow-xs space-y-2">
             <div class="flex items-start justify-between gap-1">
@@ -4353,7 +4403,7 @@
             <div class="flex items-center space-x-2 pt-1 border-t border-slate-200/60">
               <span class="text-[10px] text-slate-600 font-bold shrink-0">Sisa Fisik:</span>
               <div class="relative w-full">
-                <input type="number" id="input_opname_${item.id}" placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
+                <input type="number" id="input_opname_${item.id}" ${valAttr} placeholder="0" min="0" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-16 py-1.5 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-mono text-right">
                 <span class="absolute right-3 top-2 text-[10px] font-bold text-slate-400 pointer-events-none">${item.unit}</span>
               </div>
             </div>

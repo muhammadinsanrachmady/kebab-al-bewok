@@ -117,7 +117,8 @@ const WAREHOUSE_CATEGORIES = [
   'Daging & Protein',
   'Sayuran & Buah',
   'Saus & Condiment',
-  'Topping Tambahan'
+  'Topping Tambahan',
+  'Operasional & Masak'
 ];
 
 const DEFAULT_WAREHOUSE_ITEMS = [
@@ -132,16 +133,20 @@ const DEFAULT_WAREHOUSE_ITEMS = [
   { no: 9, id: 'beef_kebab_small', category: 'Daging & Protein', name: 'Beef Kebab Premium Small', unit: 'pcs', current_stock: 60, safety_stock: 50, unit_cost: 2500 },
   { no: 10, id: 'daging_kebab_central', category: 'Daging & Protein', name: 'Daging Kebab Central', unit: 'gram', current_stock: 25000, safety_stock: 10000, unit_cost: 85 },
   { no: 11, id: 'kebab_ayam_homemade', category: 'Daging & Protein', name: 'Kebab Ayam Homemade', unit: 'gram', current_stock: 10000, safety_stock: 5000, unit_cost: 65 },
-  { no: 12, id: 'lettuce_head', category: 'Sayuran & Buah', name: 'Lettuce Head', unit: 'gram', current_stock: 12000, safety_stock: 5000, unit_cost: 28 },
-  { no: 13, id: 'bawang_bombay', category: 'Sayuran & Buah', name: 'Bawang Bombay', unit: 'gram', current_stock: 8000, safety_stock: 3000, unit_cost: 32 },
-  { no: 14, id: 'nanas', category: 'Sayuran & Buah', name: 'Nanas', unit: 'gram', current_stock: 4000, safety_stock: 2000, unit_cost: 20 },
-  { no: 15, id: 'saus_sambal', category: 'Saus & Condiment', name: 'Saus Sambal', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 24 },
-  { no: 16, id: 'saus_tomat', category: 'Saus & Condiment', name: 'Saus Tomat', unit: 'gram', current_stock: 10000, safety_stock: 6000, unit_cost: 22 },
-  { no: 17, id: 'saus_mayonaise', category: 'Saus & Condiment', name: 'Saus Mayonaise', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 30 },
-  { no: 18, id: 'saus_keju', category: 'Saus & Condiment', name: 'Saus Keju', unit: 'gram', current_stock: 6000, safety_stock: 4000, unit_cost: 45 },
-  { no: 19, id: 'saus_signature', category: 'Saus & Condiment', name: 'Saus Signature', unit: 'gram', current_stock: 8000, safety_stock: 4000, unit_cost: 38 },
-  { no: 20, id: 'keju_slice', category: 'Topping Tambahan', name: 'Keju Slice', unit: 'pcs', current_stock: 100, safety_stock: 50, unit_cost: 1100 },
-  { no: 21, id: 'telur', category: 'Topping Tambahan', name: 'Telur', unit: 'pcs', current_stock: 120, safety_stock: 80, unit_cost: 2000 }
+  { no: 12, id: 'lidah_kebab', category: 'Daging & Protein', name: 'Lidah Kebab', unit: 'gram', current_stock: 5000, safety_stock: 2000, unit_cost: 95 },
+  { no: 13, id: 'lettuce_head', category: 'Sayuran & Buah', name: 'Lettuce Head', unit: 'gram', current_stock: 12000, safety_stock: 5000, unit_cost: 28 },
+  { no: 14, id: 'bawang_bombay', category: 'Sayuran & Buah', name: 'Bawang Bombay', unit: 'gram', current_stock: 8000, safety_stock: 3000, unit_cost: 32 },
+  { no: 15, id: 'nanas', category: 'Sayuran & Buah', name: 'Nanas', unit: 'gram', current_stock: 4000, safety_stock: 2000, unit_cost: 20 },
+  { no: 16, id: 'saus_sambal', category: 'Saus & Condiment', name: 'Saus Sambal', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 24 },
+  { no: 17, id: 'saus_tomat', category: 'Saus & Condiment', name: 'Saus Tomat', unit: 'gram', current_stock: 10000, safety_stock: 6000, unit_cost: 22 },
+  { no: 18, id: 'saus_mayonaise', category: 'Saus & Condiment', name: 'Saus Mayonaise', unit: 'gram', current_stock: 15000, safety_stock: 8000, unit_cost: 30 },
+  { no: 19, id: 'saus_keju', category: 'Saus & Condiment', name: 'Saus Keju', unit: 'gram', current_stock: 6000, safety_stock: 4000, unit_cost: 45 },
+  { no: 20, id: 'saus_signature', category: 'Saus & Condiment', name: 'Saus Signature', unit: 'gram', current_stock: 8000, safety_stock: 4000, unit_cost: 38 },
+  { no: 21, id: 'keju_slice', category: 'Topping Tambahan', name: 'Keju Slice', unit: 'pcs', current_stock: 100, safety_stock: 50, unit_cost: 1100 },
+  { no: 22, id: 'telur', category: 'Topping Tambahan', name: 'Telur', unit: 'pcs', current_stock: 120, safety_stock: 80, unit_cost: 2000 },
+  { no: 23, id: 'gas_lpg', category: 'Operasional & Masak', name: 'Gas LPG', unit: 'tabung', current_stock: 10, safety_stock: 4, unit_cost: 22000 },
+  { no: 24, id: 'margarin', category: 'Operasional & Masak', name: 'Margarin', unit: 'gram', current_stock: 5000, safety_stock: 2000, unit_cost: 25 },
+  { no: 25, id: 'sabun_cuci', category: 'Operasional & Masak', name: 'Sabun Cuci', unit: 'pcs', current_stock: 24, safety_stock: 10, unit_cost: 12000 }
 ];
 
 function createDefaultWarehouseData() {
@@ -169,6 +174,24 @@ function getOrInitWarehouse() {
   if (!wh.meta) wh.meta = createDefaultWarehouseData().meta;
   if (!Array.isArray(wh.ledger)) wh.ledger = [];
   if (!Array.isArray(wh.purchase_orders)) wh.purchase_orders = [];
+
+  // Pastikan item default baru ikut ditambahkan ke warehouse.json tanpa menimpa stok berjalan
+  const existingIds = new Set(wh.items.map(it => it.id));
+  let changed = false;
+  const defaultNoMap = new Map(DEFAULT_WAREHOUSE_ITEMS.map(d => [d.id, d.no]));
+  DEFAULT_WAREHOUSE_ITEMS.forEach(def => {
+    if (!existingIds.has(def.id)) {
+      wh.items.push({ ...def, updated_at: null });
+      changed = true;
+    }
+  });
+  if (changed) {
+    wh.items.forEach(it => {
+      if (defaultNoMap.has(it.id)) it.no = defaultNoMap.get(it.id);
+    });
+    wh.items.sort((a, b) => (Number(a.no) || 999) - (Number(b.no) || 999));
+    writeJSON(WAREHOUSE_FILE, wh);
+  }
   return wh;
 }
 
@@ -1604,6 +1627,19 @@ function enrichOpnameRecord(item, orders, now = new Date()) {
     }
   };
 }
+
+// Katalog Item Stock Opname Kasir Lapak (Sinkron Real-Time dengan Master Gudang Pusat)
+app.get('/api/admin/opname-items', (req, res) => {
+  const wh = getOrInitWarehouse();
+  const data = (wh.items || []).map((it, idx) => ({
+    no: Number(it.no) || (idx + 1),
+    id: it.id,
+    name: it.name,
+    unit: it.unit === 'pcs' && it.category === 'Tortilla' ? 'lembar' : it.unit,
+    category: it.category
+  }));
+  res.json({ success: true, data });
+});
 
 // Ambil Riwayat Laporan Stock Opname Lapak
 app.get('/api/admin/stock-opname', (req, res) => {

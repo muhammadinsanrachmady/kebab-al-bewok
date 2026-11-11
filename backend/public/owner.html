@@ -216,7 +216,7 @@
         <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
           <div>
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Rekap Closing & Setoran Harian</h2>
-            <p class="text-[11px] text-slate-500">Klik baris closing untuk audit POS, verifikasi setoran, & 21 bahan</p>
+            <p class="text-[11px] text-slate-500">Klik baris closing untuk audit POS, verifikasi setoran, &amp; stok opname</p>
           </div>
           <select id="opnameBranchSelect" onchange="selectOwnerBranch(this.value)" aria-label="Filter Lapak Closing" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 border border-slate-700 outline-none cursor-pointer transition shrink-0">
             <option value="all" class="bg-slate-900 text-slate-100">Semua Lapak</option>
@@ -275,12 +275,12 @@
             <div class="space-y-1">
               <div class="flex flex-wrap items-center gap-1.5">
                 <span id="openingStatusBadge" class="bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide inline-flex items-center gap-1">
-                  <i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (21 Bahan)
+                  <i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (25 Bahan)
                 </span>
                 <span id="openingFormattedDatePill" class="text-[11px] font-bold text-amber-300">Opening Hari Ini</span>
               </div>
               <h2 class="text-sm md:text-base font-extrabold text-slate-100">Opening Harian &amp; Modal Awal Gerai</h2>
-              <p class="text-[11px] text-slate-400">Tetapkan Cash Opening &amp; stok awal 21 bahan baku per lapak (terhubung ke Kasir &amp; HPP Gudang).</p>
+              <p class="text-[11px] text-slate-400">Tetapkan Cash Opening &amp; stok awal 25 bahan &amp; perlengkapan lapak (terhubung ke Kasir &amp; HPP Gudang).</p>
             </div>
 
             <button type="button" onclick="pullPrevClosingIntoOpening()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/35 text-[11px] font-bold flex items-center gap-1.5 transition shrink-0">
@@ -341,25 +341,25 @@
           </div>
         </div>
 
-        <!-- 2. HITUNG / TETAPKAN STOK AWAL BAHAN BAKU GERAI (21 BAHAN PER KATEGORI) -->
+        <!-- 2. HITUNG / TETAPKAN STOK AWAL BAHAN BAKU GERAI (PER KATEGORI) -->
         <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
             <div class="flex items-center gap-2.5">
               <div class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shrink-0">2</div>
               <div>
-                <h3 class="font-bold text-xs md:text-sm text-slate-100">Stok Awal Bahan Baku Gerai (21 Bahan)</h3>
+                <h3 class="font-bold text-xs md:text-sm text-slate-100">Stok Awal Bahan Baku &amp; Operasional Gerai</h3>
                 <p class="text-[11px] text-slate-500">Dikelompokkan per kategori seperti pada form Stock Opname Kasir Lapak</p>
               </div>
             </div>
 
             <div class="flex items-center gap-2">
               <input type="text" id="openingSearchInput" oninput="renderOpeningItemsForm()" placeholder="Cari bahan..." class="w-36 sm:w-44 bg-slate-950 border border-slate-800 focus:border-amber-500/60 rounded-xl px-2.5 py-1 text-xs text-slate-100 placeholder-slate-500 outline-none">
-              <span class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold px-2.5 py-1 rounded-full shrink-0">21 Bahan</span>
+              <span id="openingMasterBadge" class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold px-2.5 py-1 rounded-full shrink-0">25 Bahan</span>
             </div>
           </div>
 
           <div id="openingItemsGroupedContainer" class="space-y-3">
-            <!-- 6 Kategori 21 Bahan rendered via JS -->
+            <!-- Kategori Bahan rendered via JS -->
           </div>
         </div>
 
@@ -372,8 +372,8 @@
               <span class="text-[10px] text-slate-400 block">Otomatis dikunci baca oleh kasir saat closing nanti</span>
             </div>
             <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-3">
-              <span class="text-[10px] font-bold uppercase text-slate-400 block">Kelengkapan Stok Awal 21 Bahan</span>
-              <div id="openingFilledCountDisplay" class="text-lg font-extrabold text-emerald-400 font-mono tabular-nums mt-0.5">0 / 21 Bahan</div>
+              <span class="text-[10px] font-bold uppercase text-slate-400 block">Kelengkapan Stok Awal Gudang</span>
+              <div id="openingFilledCountDisplay" class="text-lg font-extrabold text-emerald-400 font-mono tabular-nums mt-0.5">0 / 25 Bahan</div>
               <span class="text-[10px] text-slate-500 block">Acuan stok awal perhitungan HPP &amp; pemakaian harian</span>
             </div>
           </div>
@@ -712,7 +712,7 @@
           <div class="min-w-0">
             <span class="text-[11px] font-medium text-slate-400 block truncate">Valuasi Aset Gudang</span>
             <p id="kpiWhAssetValue" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums truncate">Rp 0</p>
-            <span id="kpiWhAssetSub" class="text-[10px] text-slate-500 block truncate">21 Bahan Aktif</span>
+            <span id="kpiWhAssetSub" class="text-[10px] text-slate-500 block truncate">25 Item Gudang</span>
           </div>
           <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
             <i class="fa-solid fa-warehouse"></i>
@@ -786,8 +786,8 @@
       <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
           <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
-            <button type="button" data-wh-subtab="stock" onclick="setWarehouseSubtab('stock')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">
-              Mutasi Stok Pusat (21 Bahan)
+            <button type="button" data-wh-subtab="stock" id="subtabBtnWhStock" onclick="setWarehouseSubtab('stock')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">
+              Mutasi Stok Pusat (25 Item)
             </button>
             <button type="button" data-wh-subtab="hpp" onclick="setWarehouseSubtab('hpp')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">
               HPP &amp; Evaluasi Cabang
@@ -3860,7 +3860,9 @@
       const poBadge = document.getElementById('subtabBadgeWhPo');
 
       if (elAsset) elAsset.innerText = formatRp(s.total_asset_value || 0);
-      if (elAssetSub) elAssetSub.innerText = `${items.length} bahan • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
+      if (elAssetSub) elAssetSub.innerText = `${items.length} item • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
+      const stockBtn = document.getElementById('subtabBtnWhStock');
+      if (stockBtn) stockBtn.innerText = `Mutasi Stok Pusat (${items.length} Item)`;
 
       if (elReorder) {
         elReorder.innerText = reorderCount > 0 ? `${reorderCount} Perlu PO` : 'Semua Aman';
@@ -4603,7 +4605,8 @@
       { category: 'Daging & Protein', label: '🥩 Daging & Protein' },
       { category: 'Sayuran & Buah', label: '🥬 Sayuran & Buah' },
       { category: 'Saus & Condiment', label: '🥫 Saus & Condiment' },
-      { category: 'Topping Tambahan', label: '🧀 Topping Tambahan' }
+      { category: 'Topping Tambahan', label: '🧀 Topping Tambahan' },
+      { category: 'Operasional & Masak', label: '🔥 Gas, Margarin & Kebersihan' }
     ];
 
     function setLapakSubtab(subtab) {
@@ -4685,9 +4688,12 @@
         } else {
           if (cashEl) cashEl.value = res.data.branch.cash_opening ?? 100000;
           if (notesEl) notesEl.value = '';
+          const totalMasterCount = (res.data.master_items || []).length || 25;
+          const badgeEl = document.getElementById('openingMasterBadge');
+          if (badgeEl) badgeEl.innerText = `${totalMasterCount} Bahan`;
           if (statusBadge) {
             statusBadge.className = 'bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide inline-flex items-center gap-1';
-            statusBadge.innerHTML = `<i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (21 Bahan)`;
+            statusBadge.innerHTML = `<i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (${totalMasterCount} Bahan)`;
           }
         }
 
@@ -4757,7 +4763,12 @@
       const prevItems = (currentOpeningPrefill.prev_closing && currentOpeningPrefill.prev_closing.stock_items) || {};
       const restockMap = currentOpeningPrefill.restock_today || {};
 
-      const groupsHtml = OPENING_CATEGORY_META.map(catMeta => {
+      const knownCats = new Set(OPENING_CATEGORY_META.map(m => m.category));
+      const extraCats = Array.from(new Set(master.map(it => it.category).filter(c => c && !knownCats.has(c))))
+        .map(c => ({ category: c, label: `📦 ${c}` }));
+      const categoryMetas = [...OPENING_CATEGORY_META, ...extraCats];
+
+      const groupsHtml = categoryMetas.map(catMeta => {
         const groupItems = master.filter(it =>
           it.category === catMeta.category &&
           (!q || it.name.toLowerCase().includes(q) || it.category.toLowerCase().includes(q))
@@ -4820,7 +4831,9 @@
       const cashVal = Number(document.getElementById('openingCashInput')?.value) || 0;
       const cashDisplay = document.getElementById('openingCashSummaryDisplay');
       const countDisplay = document.getElementById('openingFilledCountDisplay');
-      const totalItems = (currentOpeningPrefill && currentOpeningPrefill.master_items) ? currentOpeningPrefill.master_items.length : 21;
+      const totalItems = (currentOpeningPrefill && currentOpeningPrefill.master_items) ? currentOpeningPrefill.master_items.length : 25;
+      const badgeEl = document.getElementById('openingMasterBadge');
+      if (badgeEl) badgeEl.innerText = `${totalItems} Bahan`;
 
       if (cashDisplay) cashDisplay.innerText = formatRp(cashVal);
       if (countDisplay) countDisplay.innerText = `${openingDraftValues.size} / ${totalItems} Bahan`;
