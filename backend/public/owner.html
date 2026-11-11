@@ -1239,7 +1239,7 @@
             <span class="text-[11px] font-semibold text-emerald-300"><i class="fa-solid fa-calculator text-emerald-400 mr-1"></i>Biaya Operasional Tetap (Hitung Laba Bersih)</span>
             <span id="branchFixedProrataHint" class="text-[10px] text-slate-400 font-semibold tabular-nums">Prorata Harian: Rp 0/hr</span>
           </div>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
               <label class="text-[10px] text-slate-400 block mb-0.5">Gaji &amp; Bonus / Bln (Rp)</label>
               <input type="number" id="branchFormSalary" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
@@ -1249,12 +1249,8 @@
               <input type="number" id="branchFormRent" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
             </div>
             <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Listrik, Air &amp; Kuota / Bln (Rp)</label>
+              <label class="text-[10px] text-slate-400 block mb-0.5">Listrik, Air &amp; Kuota / Bln</label>
               <input type="number" id="branchFormUtilities" min="0" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-400 block mb-0.5">Potongan Ojol % (0 = sdh bersih)</label>
-              <input type="number" id="branchFormOjolPct" min="0" max="50" step="0.5" value="0" oninput="updateBranchFixedExpensePreview()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-slate-100 outline-none focus:border-emerald-500 tabular-nums">
             </div>
           </div>
         </div>
@@ -2030,7 +2026,6 @@
           document.getElementById('branchFormSalary').value = fx.monthly_salary || 0;
           document.getElementById('branchFormRent').value = fx.monthly_rent || 0;
           document.getElementById('branchFormUtilities').value = fx.monthly_utilities || 0;
-          document.getElementById('branchFormOjolPct').value = fx.ojol_commission_pct || 0;
           document.getElementById('branchFormLat').value = b.latitude ?? -6.2088;
           document.getElementById('branchFormLng').value = b.longitude ?? 106.8456;
           document.getElementById('branchFormBankInfo').value = b.bank_info || '';
@@ -2056,7 +2051,6 @@
         document.getElementById('branchFormSalary').value = 0;
         document.getElementById('branchFormRent').value = 0;
         document.getElementById('branchFormUtilities').value = 0;
-        document.getElementById('branchFormOjolPct').value = 0;
         document.getElementById('branchFormLat').value = -6.2088;
         document.getElementById('branchFormLng').value = 106.8456;
         document.getElementById('branchFormBankInfo').value = 'BCA a/n Kebab AL Bewok';
@@ -2173,8 +2167,7 @@
         fixed_expenses: {
           monthly_salary: Math.max(0, Number(document.getElementById('branchFormSalary')?.value) || 0),
           monthly_rent: Math.max(0, Number(document.getElementById('branchFormRent')?.value) || 0),
-          monthly_utilities: Math.max(0, Number(document.getElementById('branchFormUtilities')?.value) || 0),
-          ojol_commission_pct: Math.min(50, Math.max(0, Number(document.getElementById('branchFormOjolPct')?.value) || 0))
+          monthly_utilities: Math.max(0, Number(document.getElementById('branchFormUtilities')?.value) || 0)
         }
       };
 
@@ -4135,13 +4128,10 @@
       const opexVal = Number(ev.total_opex) || 0;
       const pettyVal = Number(ev.petty_cash) || 0;
       const fixedVal = Number(ev.fixed_prorata) || 0;
-      const ojolVal = Number(ev.ojol_commission) || 0;
       const netVal = Number(ev.net_profit) || 0;
       if (opexEl) opexEl.innerText = formatRp(opexVal);
       if (opexSubEl) {
-        const parts = [`Kas ${formatRp(pettyVal)}`, `Tetap ${formatRp(fixedVal)}`];
-        if (ojolVal > 0) parts.push(`Ojol ${formatRp(ojolVal)}`);
-        opexSubEl.innerText = parts.join(' • ');
+        opexSubEl.innerText = `Kas ${formatRp(pettyVal)} • Tetap ${formatRp(fixedVal)}`;
       }
       if (netProfitEl) {
         netProfitEl.innerText = formatRp(netVal);
@@ -5074,7 +5064,6 @@
       const formulaBarEl = document.getElementById('statProfitFormulaBar');
       if (formulaBarEl) {
         const opexParts = [`Kas Kecil ${formatRp(k.total_petty_cash || 0)}`, `Tetap Prorata ${formatRp(k.total_fixed_prorata || 0)}`];
-        if ((k.total_ojol_commission || 0) > 0) opexParts.push(`Ojol ${formatRp(k.total_ojol_commission)}`);
         formulaBarEl.innerHTML = `
           <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
           Omzet <b class="text-amber-300">${formatRp(k.total_omzet || 0)}</b>
@@ -5245,7 +5234,7 @@
             <td class="py-2 px-2 text-right tabular-nums text-rose-400">${formatRp(b.hpp)}</td>
             <td class="py-2 px-2 text-right font-bold tabular-nums ${fcColor}">${b.food_cost_ratio !== null ? `${b.food_cost_ratio}%` : '-'}</td>
             <td class="py-2 px-2 text-right font-semibold text-emerald-300 tabular-nums">${formatRp(b.profit)}</td>
-            <td class="py-2 px-2 text-right tabular-nums text-orange-400" title="Kas Kecil ${formatRp(b.petty_cash || 0)} + Tetap ${formatRp(b.fixed_prorata || 0)} + Ojol ${formatRp(b.ojol_commission || 0)}">${formatRp(b.total_opex || 0)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-orange-400" title="Kas Kecil ${formatRp(b.petty_cash || 0)} + Tetap ${formatRp(b.fixed_prorata || 0)}">${formatRp(b.total_opex || 0)}</td>
             <td class="py-2 px-2 text-right font-bold tabular-nums ${netColor}">
               ${formatRp(netVal)}
               ${b.net_margin_pct !== null && b.net_margin_pct !== undefined ? `<span class="block text-[9px] text-slate-500 font-normal">${b.net_margin_pct}%</span>` : ''}

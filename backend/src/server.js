@@ -972,13 +972,11 @@ function normalizeFixedExpenses(raw = {}) {
   const monthly_salary = Math.max(0, Number(src.monthly_salary) || 0);
   const monthly_rent = Math.max(0, Number(src.monthly_rent) || 0);
   const monthly_utilities = Math.max(0, Number(src.monthly_utilities) || 0);
-  const ojol_commission_pct = Math.min(50, Math.max(0, Number(src.ojol_commission_pct) || 0));
   const monthly_total = monthly_salary + monthly_rent + monthly_utilities;
   return {
     monthly_salary,
     monthly_rent,
     monthly_utilities,
-    ojol_commission_pct,
     monthly_total,
     daily_prorata: Math.round(monthly_total / 30)
   };
@@ -988,14 +986,8 @@ function computeBranchProfitMetrics({ branch, omzet = 0, totalHpp = 0, closingOp
   const exp = normalizeFixedExpenses(branch && branch.fixed_expenses);
   const pettyCash = closingOp ? Math.max(0, Number(closingOp.petty_cash) || 0) : 0;
   const pettyCashNote = closingOp ? String(closingOp.petty_cash_note || '').trim() : '';
-  const ojolGross = closingOp
-    ? (Number(closingOp.omzet_gofood) || 0) + (Number(closingOp.omzet_grabfood) || 0) + (Number(closingOp.omzet_shopeefood) || 0)
-    : 0;
-  const ojolCommission = exp.ojol_commission_pct > 0
-    ? Math.round(ojolGross * (exp.ojol_commission_pct / 100))
-    : 0;
   const fixedProrata = exp.daily_prorata;
-  const totalOpex = pettyCash + ojolCommission + fixedProrata;
+  const totalOpex = pettyCash + fixedProrata;
   const grossProfit = omzet - totalHpp;
   const netProfit = grossProfit - totalOpex;
   const netMarginPct = omzet > 0 ? Number(((netProfit / omzet) * 100).toFixed(1)) : null;
@@ -1004,7 +996,6 @@ function computeBranchProfitMetrics({ branch, omzet = 0, totalHpp = 0, closingOp
     gross_profit: grossProfit,
     petty_cash: pettyCash,
     petty_cash_note: pettyCashNote,
-    ojol_commission: ojolCommission,
     fixed_prorata: fixedProrata,
     total_opex: totalOpex,
     net_profit: netProfit,
@@ -1067,8 +1058,7 @@ app.put('/api/admin/branches/:id', (req, res) => {
     branches[idx].fixed_expenses = {
       monthly_salary: norm.monthly_salary,
       monthly_rent: norm.monthly_rent,
-      monthly_utilities: norm.monthly_utilities,
-      ojol_commission_pct: norm.ojol_commission_pct
+      monthly_utilities: norm.monthly_utilities
     };
   }
 
@@ -1137,8 +1127,7 @@ app.post('/api/admin/branches', (req, res) => {
     fixed_expenses: {
       monthly_salary: normFixed.monthly_salary,
       monthly_rent: normFixed.monthly_rent,
-      monthly_utilities: normFixed.monthly_utilities,
-      ojol_commission_pct: normFixed.ojol_commission_pct
+      monthly_utilities: normFixed.monthly_utilities
     }
   };
 
@@ -3005,7 +2994,6 @@ function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpe
         gross_profit: 0,
         petty_cash: 0,
         petty_cash_note: '',
-        ojol_commission: 0,
         fixed_prorata: 0,
         total_opex: 0,
         net_profit: 0,
@@ -3046,7 +3034,6 @@ function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpe
     gross_profit: grossProfit,
     petty_cash: profitMetrics.petty_cash,
     petty_cash_note: profitMetrics.petty_cash_note,
-    ojol_commission: profitMetrics.ojol_commission,
     fixed_prorata: profitMetrics.fixed_prorata,
     total_opex: profitMetrics.total_opex,
     net_profit: profitMetrics.net_profit,
@@ -3703,7 +3690,6 @@ app.get('/api/super-admin/statistics', (req, res) => {
     let hpp = 0;
     let closedOmzetWithHpp = 0;
     let pettyCash = 0;
-    let ojolCommission = 0;
     let fixedProrata = 0;
     let totalOpex = 0;
 
@@ -3730,7 +3716,6 @@ app.get('/api/super-admin/statistics', (req, res) => {
         closingOp: cl || null
       });
       pettyCash += dayFin.petty_cash;
-      ojolCommission += dayFin.ojol_commission;
       fixedProrata += dayFin.fixed_prorata;
       totalOpex += dayFin.total_opex;
     });
@@ -3753,7 +3738,6 @@ app.get('/api/super-admin/statistics', (req, res) => {
       hpp,
       profit,
       petty_cash: pettyCash,
-      ojol_commission: ojolCommission,
       fixed_prorata: fixedProrata,
       total_opex: totalOpex,
       net_profit,
@@ -3785,7 +3769,6 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const total_hpp = activeBranches.reduce((s, b) => s + b.hpp, 0);
   const gross_profit = total_omzet - total_hpp;
   const total_petty_cash = activeBranches.reduce((s, b) => s + (b.petty_cash || 0), 0);
-  const total_ojol_commission = activeBranches.reduce((s, b) => s + (b.ojol_commission || 0), 0);
   const total_fixed_prorata = activeBranches.reduce((s, b) => s + (b.fixed_prorata || 0), 0);
   const total_opex = activeBranches.reduce((s, b) => s + (b.total_opex || 0), 0);
   const net_profit = gross_profit - total_opex;
@@ -4048,7 +4031,6 @@ app.get('/api/super-admin/statistics', (req, res) => {
         total_hpp,
         gross_profit,
         total_petty_cash,
-        total_ojol_commission,
         total_fixed_prorata,
         total_opex,
         net_profit,
