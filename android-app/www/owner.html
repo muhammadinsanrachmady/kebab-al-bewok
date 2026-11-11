@@ -1016,9 +1016,9 @@
         </div>
       </div>
 
-      <!-- ROW 2: TREN OMZET HARIAN VS HPP + PORSI CHANNEL PENJUALAN -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
-        <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+      <!-- ROW 2: DUA GRAFIK UTAMA BERSEBELAHAN (TREN OMZET VS HPP + JAM SIBUK) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 flex flex-col justify-between">
           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
             <div>
               <h2 class="text-xs md:text-sm font-bold text-slate-100">Tren Omzet Harian vs HPP Bahan</h2>
@@ -1029,12 +1029,28 @@
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-xs bg-rose-400 inline-block"></span>HPP</span>
             </div>
           </div>
-          <div id="statDailyTrendChart" class="min-h-[190px] flex items-center justify-center text-xs text-slate-500">
+          <div id="statDailyTrendChart" class="min-h-[185px] flex items-center justify-center text-xs text-slate-500">
             Memuat grafik tren harian...
           </div>
         </div>
 
-        <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5 flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+            <div>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Jam Sibuk Operasional (Peak Hours)</h2>
+              <p class="text-[11px] text-slate-500">Distribusi transaksi per jam (WIB) untuk atur jadwal &amp; stok</p>
+            </div>
+            <span id="statPeakHourPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30">Puncak: -</span>
+          </div>
+          <div id="statPeakHoursChart" class="min-h-[185px] flex items-center justify-center text-xs text-slate-500">
+            Memuat grafik jam ramai...
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: GRAFIK DONUT CHANNEL PENJUALAN & MENU TERLARIS BERSEBELAHAN -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
           <div class="border-b border-slate-800/80 pb-2">
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Porsi Channel Penjualan</h2>
             <p class="text-[11px] text-slate-500">Distribusi omzet dari Tunai, QRIS/App &amp; Ojol</p>
@@ -1043,9 +1059,27 @@
             <div class="text-center py-8 text-xs text-slate-500">Memuat saluran penjualan...</div>
           </div>
         </div>
+
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div>
+              <h2 class="text-xs md:text-sm font-bold text-slate-100">Menu &amp; Varian Terlaris</h2>
+              <p class="text-[11px] text-slate-500">Porsi terjual, ukuran, daging &amp; topping favorit</p>
+            </div>
+            <span id="statTotalPorsiBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">0 Porsi</span>
+          </div>
+
+          <div id="statMenuMixBadges" class="flex flex-wrap gap-1.5 text-[10px]">
+            <!-- Ukuran, Protein & Topping badges -->
+          </div>
+
+          <div id="statTopMenuList" class="space-y-1.5">
+            <!-- Top Menu items -->
+          </div>
+        </div>
       </div>
 
-      <!-- ROW 3: PERINGKAT & PERBANDINGAN ANTAR LAPAK -->
+      <!-- ROW 4: PERINGKAT & PERBANDINGAN ANTAR LAPAK -->
       <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
           <div>
@@ -1075,44 +1109,9 @@
         </div>
       </div>
 
-      <!-- ROW 4: MENU TERLARIS & JAM SIBUK (PEAK HOURS) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
-        <div class="lg:col-span-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-            <div>
-              <h2 class="text-xs md:text-sm font-bold text-slate-100">Menu &amp; Varian Terlaris</h2>
-              <p class="text-[11px] text-slate-500">Porsi terjual, ukuran, daging &amp; topping favorit</p>
-            </div>
-            <span id="statTotalPorsiBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">0 Porsi</span>
-          </div>
-
-          <div id="statMenuMixBadges" class="flex flex-wrap gap-1.5 text-[10px]">
-            <!-- Ukuran, Protein & Topping badges -->
-          </div>
-
-          <div id="statTopMenuList" class="space-y-1.5">
-            <!-- Top Menu items -->
-          </div>
-        </div>
-
-        <div class="lg:col-span-6 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
-          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-            <div>
-              <h2 class="text-xs md:text-sm font-bold text-slate-100">Jam Sibuk Operasional (Peak Hours)</h2>
-              <p class="text-[11px] text-slate-500">Distribusi transaksi per jam (WIB) untuk atur jadwal &amp; stok</p>
-            </div>
-            <span id="statPeakHourPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 border border-sky-500/30">Puncak: -</span>
-          </div>
-
-          <div id="statPeakHoursChart" class="min-h-[190px] flex items-center justify-center text-xs text-slate-500">
-            Memuat grafik jam ramai...
-          </div>
-        </div>
-      </div>
-
       <!-- ROW 5: TOP KURIR & TOP COSTUMER LOYAL -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
           <div class="border-b border-slate-800/80 pb-2">
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Performa Kurir Teratas</h2>
             <p class="text-[11px] text-slate-500">Berdasarkan order pengantaran &amp; total trip selesai</p>
@@ -1120,7 +1119,7 @@
           <div id="statTopCouriersList" class="space-y-1.5"></div>
         </div>
 
-        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+        <div class="min-w-0 bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2">
           <div class="border-b border-slate-800/80 pb-2">
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Costumer Paling Loyal</h2>
             <p class="text-[11px] text-slate-500">Pelanggan dengan frekuensi order &amp; total belanja tertinggi</p>
@@ -4969,7 +4968,7 @@
 
       container.innerHTML = `
         <div class="w-full overflow-x-auto no-scrollbar">
-          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[320px] h-[175px]">
+          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[280px] sm:min-w-0 h-[180px]">
             <line x1="0" y1="${plotBottom}" x2="${chartW}" y2="${plotBottom}" stroke="#334155" stroke-width="1"></line>
             <line x1="0" y1="${plotTop + plotH / 2}" x2="${chartW}" y2="${plotTop + plotH / 2}" stroke="#1e293b" stroke-dasharray="3,4" stroke-width="1"></line>
             ${barsSvg}
@@ -4987,20 +4986,59 @@
         return;
       }
 
-      container.innerHTML = mix.map(ch => `
+      const totalAmount = mix.reduce((sum, ch) => sum + Number(ch.amount || 0), 0);
+      const radius = 36;
+      const circumference = 2 * Math.PI * radius;
+      let cumulativeFraction = 0;
+
+      const donutSlices = totalAmount > 0
+        ? mix.filter(ch => Number(ch.amount || 0) > 0).map(ch => {
+            const fraction = Number(ch.amount || 0) / totalAmount;
+            const dashLen = fraction * circumference;
+            const dashOffset = -cumulativeFraction * circumference;
+            cumulativeFraction += fraction;
+            return `<circle cx="50" cy="50" r="${radius}" fill="none" stroke="${escapeHtml(ch.color)}" stroke-width="12" stroke-dasharray="${dashLen.toFixed(2)} ${circumference.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}"><title>${escapeHtml(ch.label)}: ${formatRp(ch.amount)} (${ch.share_pct}%)</title></circle>`;
+          }).join('')
+        : '';
+
+      const compactTotal = totalAmount <= 0
+        ? 'Rp 0'
+        : (totalAmount >= 1000000
+            ? `${(totalAmount / 1000000).toFixed(1)}jt`
+            : `${Math.round(totalAmount / 1000)}rb`);
+
+      const barsHtml = mix.map(ch => `
         <div class="space-y-1">
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-semibold text-slate-200 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full inline-block" style="background:${ch.color};"></span>
-              ${escapeHtml(ch.label)}
+          <div class="flex items-center justify-between text-[11px] gap-2">
+            <span class="font-semibold text-slate-200 flex items-center gap-1.5 truncate">
+              <span class="w-2 h-2 rounded-full shrink-0 inline-block" style="background:${escapeHtml(ch.color)};"></span>
+              <span class="truncate">${escapeHtml(ch.label)}</span>
             </span>
-            <span class="font-bold text-slate-100 tabular-nums">${formatRp(ch.amount)} <span class="text-[10px] text-slate-400">(${ch.share_pct}%)</span></span>
+            <span class="font-bold text-slate-100 tabular-nums shrink-0">${formatRp(ch.amount)} <span class="text-[10px] text-slate-400">(${ch.share_pct}%)</span></span>
           </div>
           <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all" style="width:${Math.min(100, ch.share_pct)}%; background:${ch.color};"></div>
+            <div class="h-full rounded-full transition-all" style="width:${Math.min(100, Number(ch.share_pct || 0))}%; background:${escapeHtml(ch.color)};"></div>
           </div>
         </div>
       `).join('');
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <div class="relative shrink-0 w-28 h-28 flex items-center justify-center">
+            <svg viewBox="0 0 100 100" class="w-full h-full">
+              <circle cx="50" cy="50" r="${radius}" fill="none" stroke="#1e293b" stroke-width="12"></circle>
+              <g transform="rotate(-90 50 50)">
+                ${donutSlices}
+              </g>
+              <text x="50" y="46" text-anchor="middle" fill="#94a3b8" font-size="7" font-weight="600">Total Omzet</text>
+              <text x="50" y="58" text-anchor="middle" fill="#f8fafc" font-size="11" font-weight="800">${escapeHtml(compactTotal)}</text>
+            </svg>
+          </div>
+          <div class="flex-1 w-full min-w-0 space-y-2.5">
+            ${barsHtml}
+          </div>
+        </div>
+      `;
     }
 
     function renderStatLeaderboard() {
@@ -5120,7 +5158,7 @@
 
       container.innerHTML = `
         <div class="w-full overflow-x-auto no-scrollbar">
-          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[320px] h-[170px]">
+          <svg viewBox="0 0 ${chartW} ${chartH}" class="w-full min-w-[280px] sm:min-w-0 h-[180px]">
             <line x1="0" y1="${plotBottom}" x2="${chartW}" y2="${plotBottom}" stroke="#334155" stroke-width="1"></line>
             ${bars}
           </svg>
