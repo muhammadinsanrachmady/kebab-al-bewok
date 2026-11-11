@@ -834,6 +834,8 @@
                   <th class="py-2 px-2 text-right">Awal</th>
                   <th class="py-2 px-2 text-right">Masuk</th>
                   <th class="py-2 px-2 text-right">Kirim Lapak</th>
+                  <th class="py-2 px-2 text-right text-emerald-400">Dikembalikan</th>
+                  <th class="py-2 px-2 text-right text-amber-400">Terpakai</th>
                   <th class="py-2 px-2 text-right">Waste</th>
                   <th class="py-2 px-2 text-right">Sisa Akhir</th>
                   <th class="py-2 px-2 text-right">Min. Safety</th>
@@ -898,10 +900,10 @@
               <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800 whitespace-nowrap">
                 <tr>
                   <th class="py-2 px-2">Bahan Baku</th>
-                  <th class="py-2 px-2 text-right">Awal</th>
-                  <th class="py-2 px-2 text-right">Restock Gudang</th>
-                  <th class="py-2 px-2 text-right">Stok Akhir</th>
-                  <th class="py-2 px-2 text-right">Pemakaian</th>
+                  <th class="py-2 px-2 text-right">Opening / Awal</th>
+                  <th class="py-2 px-2 text-right">Kirim Tambahan</th>
+                  <th class="py-2 px-2 text-right text-emerald-400">Dikembalikan</th>
+                  <th class="py-2 px-2 text-right text-amber-400">Terpakai</th>
                   <th class="py-2 px-2 text-right">Modal</th>
                   <th class="py-2 px-2 text-right">Subtotal HPP</th>
                 </tr>
@@ -3574,7 +3576,9 @@
       }
 
       if (elTransfer) elTransfer.innerText = formatRp(s.total_transfer_value || 0);
-      if (elTransferSub) elTransferSub.innerText = `Waste periode: ${formatRp(s.total_waste_value || 0)}`;
+      if (elTransferSub) {
+        elTransferSub.innerText = `Kembali: ${formatRp(s.total_returned_value || 0)} • Terpakai: ${formatRp(s.total_used_value || 0)}`;
+      }
 
       if (elFoodCost) {
         elFoodCost.innerText = s.avg_food_cost_ratio !== null ? `${s.avg_food_cost_ratio}%` : '-';
@@ -3613,10 +3617,10 @@
         return;
       }
       strip.innerHTML = `
-        <span class="text-slate-500 font-semibold">Distribusi Lapak:</span>
+        <span class="text-slate-500 font-semibold">Ringkasan Cabang:</span>
         ${totals.map(b => `
           <span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 tabular-nums">
-            <b class="text-sky-400">${escapeHtml(shortBranchLabel(b.branch_name))}</b>: ${formatRp(b.total_value)} (${b.tx_count} kirim)
+            <b class="text-sky-400">${escapeHtml(shortBranchLabel(b.branch_name))}</b>: Kirim ${formatRp(b.total_value)} • Kembali ${formatRp(b.returned_value || 0)}
           </span>
         `).join('')}
       `;
@@ -3631,6 +3635,10 @@
       const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
       const branches = cachedWarehouseData.branches || [];
       const branchLabelById = new Map(branches.map(b => [b.id, shortBranchLabel(b.name)]));
+      const formatBranchBreakdown = mapObj => Object.entries(mapObj || {})
+        .filter(([, q]) => q > 0)
+        .map(([bId, q]) => `${branchLabelById.get(bId) || bId}: ${Number(q).toLocaleString('id-ID')}`)
+        .join(' • ');
 
       const items = (cachedWarehouseData.items || []).filter(it => {
         if (currentWhCategory !== 'Semua' && it.category !== currentWhCategory) return false;
@@ -3640,7 +3648,7 @@
       });
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-8 text-slate-500">Tidak ada bahan baku pada filter ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="14" class="text-center py-8 text-slate-500">Tidak ada bahan baku pada filter ini.</td></tr>`;
         if (tfoot) tfoot.innerHTML = '';
         return;
       }
@@ -3648,10 +3656,10 @@
       tbody.innerHTML = items.map(it => {
         const meta = WH_STATUS_META[it.status] || WH_STATUS_META.SAFE;
         const safeId = escapeJsArg(it.id);
-        const branchBreakdown = Object.entries(it.transfers_by_branch || {})
-          .filter(([, q]) => q > 0)
-          .map(([bId, q]) => `${branchLabelById.get(bId) || bId}: ${q}`)
-          .join(' • ');
+        const branchBreakdown = formatBranchBreakdown(it.transfers_by_branch);
+        const returnBreakdown = formatBranchBreakdown(it.returns_by_branch);
+        const returnedCount = Number(it.total_returned) || 0;
+        const usedCount = Number(it.total_used) || 0;
 
         return `
           <tr class="hover:bg-slate-800/40 transition ${it.status === 'REORDER' ? 'bg-rose-500/5' : ''}">
@@ -3665,6 +3673,14 @@
             <td class="py-2 px-2 text-right tabular-nums">
               <span class="${it.total_transfer_out > 0 ? 'text-sky-400 font-semibold' : 'text-slate-500'}">${Number(it.total_transfer_out).toLocaleString('id-ID')}</span>
               ${branchBreakdown ? `<span class="block text-[9px] text-slate-500 whitespace-nowrap">${escapeHtml(branchBreakdown)}</span>` : ''}
+            </td>
+            <td class="py-2 px-2 text-right tabular-nums">
+              <span class="${returnedCount > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}">${returnedCount.toLocaleString('id-ID')}</span>
+              ${returnBreakdown ? `<span class="block text-[9px] text-slate-500 whitespace-nowrap">${escapeHtml(returnBreakdown)}</span>` : ''}
+            </td>
+            <td class="py-2 px-2 text-right tabular-nums">
+              <span class="${usedCount > 0 ? 'text-amber-300 font-bold' : 'text-slate-500'}">${usedCount.toLocaleString('id-ID')}</span>
+              ${usedCount > 0 ? `<span class="block text-[9px] text-rose-400/90 whitespace-nowrap">${formatRp(it.used_value || 0)}</span>` : ''}
             </td>
             <td class="py-2 px-2 text-right tabular-nums ${it.waste > 0 ? 'text-rose-400' : 'text-slate-500'}">${Number(it.waste).toLocaleString('id-ID')}</td>
             <td class="py-2 px-2 text-right font-extrabold tabular-nums ${it.status === 'REORDER' ? 'text-rose-400' : 'text-slate-100'}">${Number(it.current_stock).toLocaleString('id-ID')}</td>
@@ -3684,10 +3700,13 @@
       }).join('');
 
       const totalVal = items.reduce((s, it) => s + (Number(it.asset_value) || 0), 0);
+      const totalUsedVal = items.reduce((s, it) => s + (Number(it.used_value) || 0), 0);
       if (tfoot) {
         tfoot.innerHTML = `
           <tr>
-            <td colspan="10" class="py-2 px-2 text-right text-[11px] uppercase tracking-wide text-slate-400">Total Valuasi Aset (${items.length} Item):</td>
+            <td colspan="6" class="py-2 px-2 text-right text-[10px] uppercase tracking-wide text-slate-400">Total Terpakai (HPP):</td>
+            <td class="py-2 px-2 text-right text-rose-400 font-bold tabular-nums whitespace-nowrap">${formatRp(totalUsedVal)}</td>
+            <td colspan="5" class="py-2 px-2 text-right text-[10px] uppercase tracking-wide text-slate-400">Total Valuasi Aset:</td>
             <td class="py-2 px-2 text-right text-amber-400 font-extrabold tabular-nums whitespace-nowrap">${formatRp(totalVal)}</td>
             <td></td>
           </tr>
@@ -3845,12 +3864,13 @@
           const txTypeMeta = {
             supplier_in: { label: 'Masuk Supplier', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
             branch_transfer: { label: 'Kirim ke Lapak', cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+            branch_return: { label: 'Dikembalikan Lapak', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35' },
             waste: { label: 'Rusak / Waste', cls: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
             adjustment: { label: 'Penyesuaian', cls: 'bg-slate-800 text-slate-300 border-slate-700' }
           };
           ledgerContainer.innerHTML = ledger.map(tx => {
             const tm = txTypeMeta[tx.type] || txTypeMeta.adjustment;
-            const targetDesc = tx.type === 'branch_transfer'
+            const targetDesc = (tx.type === 'branch_transfer' || tx.type === 'branch_return')
               ? shortBranchLabel(tx.branch_name || tx.branch_id)
               : (tx.supplier_name || tx.reference_no || '-');
             const itemsSummary = (tx.items || []).map(it => `${it.name} (${it.qty > 0 ? '+' : ''}${it.qty} ${it.unit})`).join(', ');
@@ -3893,7 +3913,7 @@
       };
       const subMap = {
         supplier_in: 'Sesuaikan fisik barang dengan Surat Jalan sebelum menambah stok gudang.',
-        branch_transfer: 'Mengurangi stok Gudang Pusat & otomatis tercatat sebagai Restock Cabang.',
+        branch_transfer: 'Kirim susulan tambahan ke cabang (Opening Harian di Tab Lapak sudah otomatis tercatat ke Kirim Lapak).',
         waste: 'Catat penyusutan/rusak/expired untuk kontrol HPP gudang.'
       };
       document.getElementById('whTxModalTitle').innerText = titleMap[type] || 'Mutasi Gudang';
@@ -4192,10 +4212,10 @@
 
     function exportWarehouseCsv() {
       if (!cachedWarehouseData || !cachedWarehouseData.items) return;
-      const headers = ['No', 'Kategori', 'Nama Bahan', 'Satuan', 'Stok Awal', 'Masuk Supplier', 'Kirim Cabang', 'Waste', 'Sisa Akhir', 'Safety Stock', 'Status', 'Harga Modal', 'Valuasi Aset'];
+      const headers = ['No', 'Kategori', 'Nama Bahan', 'Satuan', 'Stok Awal', 'Masuk Supplier', 'Kirim Lapak', 'Dikembalikan', 'Terpakai', 'Nilai Terpakai', 'Waste', 'Sisa Akhir', 'Safety Stock', 'Status', 'Harga Modal', 'Valuasi Aset'];
       const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const rows = cachedWarehouseData.items.map(it => [
-        it.no, it.category, it.name, it.unit, it.opening_stock, it.stock_in, it.total_transfer_out, it.waste, it.current_stock, it.safety_stock, it.status, it.unit_cost, it.asset_value
+        it.no, it.category, it.name, it.unit, it.opening_stock, it.stock_in, it.total_transfer_out, it.total_returned || 0, it.total_used || 0, it.used_value || 0, it.waste, it.current_stock, it.safety_stock, it.status, it.unit_cost, it.asset_value
       ].map(csvCell).join(','));
       const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -4482,7 +4502,9 @@
         }).then(r => r.json());
 
         if (res.success) {
-          alert('✅ ' + res.message);
+          const warnings = (res.warehouse_sync && res.warehouse_sync.lowStockWarnings) || [];
+          const warnMsg = warnings.length > 0 ? `\n\n🚨 Stok Gudang Menipis (Perlu PO):\n- ${warnings.join('\n- ')}` : '';
+          alert('✅ ' + res.message + warnMsg);
           await fetchAllData();
           loadOpeningPrefill();
         } else {

@@ -171,7 +171,7 @@ function recordWarehouseTransaction(wh, payload) {
     items = []
   } = payload;
 
-  if (!['supplier_in', 'branch_transfer', 'waste', 'adjustment'].includes(type)) {
+  if (!['supplier_in', 'branch_transfer', 'branch_return', 'waste', 'adjustment'].includes(type)) {
     return { error: 'Tipe transaksi gudang tidak valid' };
   }
   if (!Array.isArray(items) || items.length === 0) {
@@ -181,6 +181,7 @@ function recordWarehouseTransaction(wh, payload) {
   const itemMap = new Map(wh.items.map(it => [it.id, it]));
   const normalizedRows = [];
   const isOutgoing = type === 'branch_transfer' || type === 'waste';
+  const isIncoming = type === 'supplier_in' || type === 'branch_return';
 
   for (const row of items) {
     const target = itemMap.get(row.item_id);
@@ -209,9 +210,9 @@ function recordWarehouseTransaction(wh, payload) {
   for (const { target, qty, effectiveCost } of normalizedRows) {
     const prevStock = Number(target.current_stock) || 0;
     let nextStock = prevStock;
-    if (type === 'supplier_in') {
+    if (isIncoming) {
       nextStock = prevStock + qty;
-      target.unit_cost = effectiveCost;
+      if (type === 'supplier_in') target.unit_cost = effectiveCost;
     } else if (isOutgoing) {
       nextStock = prevStock - qty;
     } else if (type === 'adjustment') {
@@ -254,6 +255,104 @@ function recordWarehouseTransaction(wh, payload) {
 
   wh.ledger.unshift(entry);
   return { entry };
+}
+
+// Sinkronisasi transaksi gudang otomatis yang terikat dengan Opening Harian atau Stock Opname Closing
+function syncLinkedWarehouseEntry({
+  linkField,
+  linkId,
+  type,
+  date,
+  branch_id = '',
+  branch_name = '',
+  pic_name = 'Sistem',
+  note = '',
+  stockItemsMap = null,
+  countKey = 'opening_count'
+}) {
+  const wh = getOrInitWarehouse();
+  const itemMap = new Map(wh.items.map(it => [it.id, it]));
+
+  // 1. Balikkan efek transaksi tertaut sebelumnya agar edit/hapus tidak pernah menggandakan mutasi
+  const prevIdx = wh.ledger.findIndex(tx => tx[linkField] === linkId);
+  if (prevIdx >= 0) {
+    const prevTx = wh.ledger[prevIdx];
+    const prevSign = prevTx.type === 'branch_return' ? 1 : -1;
+    (prevTx.items || []).forEach(row => {
+      const target = itemMap.get(row.item_id);
+      if (target) {
+        target.current_stock = (Number(target.current_stock) || 0) - prevSign * (Number(row.qty) || 0);
+      }
+    });
+    wh.ledger.splice(prevIdx, 1);
+  }
+
+  // 2. Jika stockItemsMap ada (simpan/edit), catat transaksi baru yang tertaut
+  if (stockItemsMap && typeof stockItemsMap === 'object') {
+    const newSign = type === 'branch_return' ? 1 : -1;
+    const nowIso = new Date().toISOString();
+    const txItems = [];
+    let totalValue = 0;
+    const lowStockWarnings = [];
+
+    wh.items.forEach(target => {
+      const rawObj = stockItemsMap[target.id];
+      const qty = rawObj != null
+        ? (typeof rawObj === 'object' ? Number(rawObj[countKey] ?? rawObj.physical_count ?? rawObj.opening_count ?? 0) : Number(rawObj))
+        : 0;
+      if (!qty || qty <= 0 || Number.isNaN(qty)) return;
+
+      const prevStock = Number(target.current_stock) || 0;
+      const nextStock = prevStock + newSign * qty;
+      const unitCost = Number(target.unit_cost) || 0;
+      const subtotal = qty * unitCost;
+
+      target.current_stock = nextStock;
+      target.updated_at = nowIso;
+      totalValue += subtotal;
+
+      if (nextStock <= (Number(target.safety_stock) || 0)) {
+        lowStockWarnings.push(`${target.name} (sisa ${nextStock} ${target.unit})`);
+      }
+
+      txItems.push({
+        item_id: target.id,
+        name: target.name,
+        category: target.category,
+        unit: target.unit,
+        qty,
+        unit_cost: unitCost,
+        subtotal,
+        prev_stock: prevStock,
+        next_stock: nextStock
+      });
+    });
+
+    if (txItems.length > 0) {
+      const entry = {
+        id: `whm-auto-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        type,
+        auto_synced: true,
+        [linkField]: linkId,
+        date: date || getWibDateISO(new Date()),
+        branch_id,
+        branch_name,
+        supplier_name: '',
+        reference_no: linkId,
+        pic_name,
+        note,
+        items: txItems,
+        total_value: totalValue,
+        created_at: nowIso
+      };
+      wh.ledger.unshift(entry);
+      writeJSON(WAREHOUSE_FILE, wh);
+      return { synced: true, itemCount: txItems.length, lowStockWarnings };
+    }
+  }
+
+  writeJSON(WAREHOUSE_FILE, wh);
+  return { synced: true, itemCount: 0, lowStockWarnings: [] };
 }
 
 // Helper untuk membaca & menulis file JSON (dengan In-Memory Fallback untuk Serverless Cloud seperti Vercel/Render)
@@ -1547,10 +1646,25 @@ app.post('/api/admin/stock-opname', (req, res) => {
 
   writeJSON(STOCK_OPNAME_FILE, list);
 
+  // Otomatis kembalikan sisa fisik Closing Opname ke Gudang Pusat (kolom Dikembalikan -> hitung Terpakai & HPP)
+  const warehouseReturnSync = syncLinkedWarehouseEntry({
+    linkField: 'source_opname_id',
+    linkId: opnameRecord.id,
+    type: 'branch_return',
+    date: opnameRecord.business_date,
+    branch_id: opnameRecord.branch_id,
+    branch_name: opnameRecord.branch_name,
+    pic_name: opnameRecord.staff_name,
+    note: `Dikembalikan otomatis dari ${opnameRecord.closing_date}`,
+    stockItemsMap: opnameRecord.stock_items,
+    countKey: 'physical_count'
+  });
+
   res.json({
     success: true,
-    message: 'Laporan Stock Opname Harian berhasil dikirim ke Dashboard Owner!',
-    data: opnameRecord
+    message: 'Laporan Stock Opname Harian berhasil dikirim ke Dashboard Owner & sisa bahan otomatis dicatat kembali ke Gudang Pusat!',
+    data: opnameRecord,
+    warehouse_sync: warehouseReturnSync
   });
 });
 
@@ -1616,6 +1730,12 @@ app.delete('/api/super-admin/stock-opname/:id', (req, res) => {
 
   const [removed] = list.splice(idx, 1);
   writeJSON(STOCK_OPNAME_FILE, list);
+
+  syncLinkedWarehouseEntry({
+    linkField: 'source_opname_id',
+    linkId: removed.id,
+    stockItemsMap: null
+  });
 
   res.json({
     success: true,
@@ -2704,6 +2824,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       waste: 0,
       transfers_by_branch: {},
       total_transfer_out: 0,
+      returns_by_branch: {},
+      total_returned: 0,
       adj_delta: 0
     });
   });
@@ -2715,19 +2837,24 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       branch_name: b.name,
       qty_units: 0,
       total_value: 0,
-      tx_count: 0
+      tx_count: 0,
+      returned_units: 0,
+      returned_value: 0
     });
   });
 
   let totalTransferValue = 0;
+  let totalReturnedValue = 0;
   let totalSupplierInValue = 0;
   let totalWasteValue = 0;
 
   periodLedger.forEach(tx => {
     if (tx.type === 'supplier_in') totalSupplierInValue += Number(tx.total_value) || 0;
     if (tx.type === 'waste') totalWasteValue += Number(tx.total_value) || 0;
-    if (tx.type === 'branch_transfer') {
-      totalTransferValue += Number(tx.total_value) || 0;
+    if (tx.type === 'branch_transfer' || tx.type === 'branch_return') {
+      if (tx.type === 'branch_transfer') totalTransferValue += Number(tx.total_value) || 0;
+      else totalReturnedValue += Number(tx.total_value) || 0;
+
       if (tx.branch_id) {
         if (!branchTransferTotalsMap.has(tx.branch_id)) {
           branchTransferTotalsMap.set(tx.branch_id, {
@@ -2735,12 +2862,18 @@ app.get('/api/super-admin/warehouse', (req, res) => {
             branch_name: tx.branch_name || tx.branch_id,
             qty_units: 0,
             total_value: 0,
-            tx_count: 0
+            tx_count: 0,
+            returned_units: 0,
+            returned_value: 0
           });
         }
         const bt = branchTransferTotalsMap.get(tx.branch_id);
-        bt.total_value += Number(tx.total_value) || 0;
-        bt.tx_count += 1;
+        if (tx.type === 'branch_transfer') {
+          bt.total_value += Number(tx.total_value) || 0;
+          bt.tx_count += 1;
+        } else {
+          bt.returned_value += Number(tx.total_value) || 0;
+        }
       }
     }
 
@@ -2759,6 +2892,13 @@ app.get('/api/super-admin/warehouse', (req, res) => {
         if (branchTransferTotalsMap.has(bKey)) {
           branchTransferTotalsMap.get(bKey).qty_units += qty;
         }
+      } else if (tx.type === 'branch_return') {
+        const bKey = tx.branch_id || 'lainnya';
+        agg.returns_by_branch[bKey] = (agg.returns_by_branch[bKey] || 0) + qty;
+        agg.total_returned += qty;
+        if (branchTransferTotalsMap.has(bKey)) {
+          branchTransferTotalsMap.get(bKey).returned_units += qty;
+        }
       } else if (tx.type === 'adjustment') {
         agg.adj_delta += qty;
       }
@@ -2769,12 +2909,14 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     const agg = itemAgg.get(it.id);
     const currentStock = Number(it.current_stock) || 0;
     const totalOut = agg.total_transfer_out + agg.waste;
-    // Reverse-compute Stok Awal periode sehingga (Stok Awal + Masuk) - Keluar === Sisa Akhir
-    const openingStock = Math.max(0, currentStock - agg.stock_in - agg.adj_delta + totalOut);
+    // Identitas mutasi: (Stok Awal + Masuk Supplier + Dikembalikan Lapak) - (Kirim Lapak + Waste) === Sisa Akhir
+    const openingStock = Math.max(0, currentStock - agg.stock_in - agg.total_returned - agg.adj_delta + totalOut);
     const availableStock = openingStock + agg.stock_in;
+    const totalUsed = Math.max(0, agg.total_transfer_out - agg.total_returned);
     const safetyStock = Number(it.safety_stock) || 0;
     const unitCost = Number(it.unit_cost) || 0;
     const assetValue = currentStock * unitCost;
+    const usedValue = totalUsed * unitCost;
 
     let status = 'SAFE';
     if (currentStock <= safetyStock) status = 'REORDER';
@@ -2791,6 +2933,10 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       available_stock: availableStock,
       transfers_by_branch: agg.transfers_by_branch,
       total_transfer_out: agg.total_transfer_out,
+      returns_by_branch: agg.returns_by_branch,
+      total_returned: agg.total_returned,
+      total_used: totalUsed,
+      used_value: usedValue,
       waste: agg.waste,
       total_out: totalOut,
       current_stock: currentStock,
@@ -2824,6 +2970,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     const restockByItem = {};
     (wh.ledger || []).forEach(tx => {
       if (tx.type !== 'branch_transfer' || tx.branch_id !== b.id) return;
+      // Jangan gandakan auto-transfer milik Opening Harian karena Opening Harian sudah masuk ke openingFromOwner
+      if (matchingOpening && tx.source_opening_id === matchingOpening.id) return;
       const txDate = tx.date || getWibDateISO(tx.created_at);
       const matchesEvalWindow = latestOpname
         ? (matchingOpening
@@ -2934,6 +3082,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
         reorder_count: items.filter(it => it.status === 'REORDER').length,
         warning_count: items.filter(it => it.status === 'WARNING').length,
         total_transfer_value: totalTransferValue,
+        total_returned_value: totalReturnedValue,
+        total_used_value: items.reduce((s, it) => s + (it.used_value || 0), 0),
         total_supplier_in_value: totalSupplierInValue,
         total_waste_value: totalWasteValue,
         transfer_by_branch_totals: Array.from(branchTransferTotalsMap.values()),
@@ -3184,7 +3334,12 @@ app.get('/api/super-admin/stock-opening/prefill', (req, res) => {
 
   const restockToday = {};
   (wh.ledger || []).forEach(tx => {
-    if (tx.type === 'branch_transfer' && tx.branch_id === branch.id && (tx.date || getWibDateISO(tx.created_at)) === targetDate) {
+    if (
+      tx.type === 'branch_transfer' &&
+      !tx.source_opening_id &&
+      tx.branch_id === branch.id &&
+      (tx.date || getWibDateISO(tx.created_at)) === targetDate
+    ) {
       (tx.items || []).forEach(row => {
         restockToday[row.item_id] = (restockToday[row.item_id] || 0) + (Number(row.qty) || 0);
       });
@@ -3278,10 +3433,25 @@ app.post('/api/super-admin/stock-opening', (req, res) => {
   branches[branchIndex].cash_opening = cleanCashOpening;
   writeJSON(BRANCHES_FILE, branches);
 
+  // Otomatis catat stok Opening Harian sebagai Kirim ke Lapak pada Gudang Pusat (akumulasi semua lapak)
+  const warehouseSync = syncLinkedWarehouseEntry({
+    linkField: 'source_opening_id',
+    linkId: record.id,
+    type: 'branch_transfer',
+    date: resolvedDate,
+    branch_id,
+    branch_name: branches[branchIndex].name,
+    pic_name: record.staff_name,
+    note: `Otomatis dari ${formattedOpeningDate}`,
+    stockItemsMap: stock_items,
+    countKey: 'opening_count'
+  });
+
   res.json({
     success: true,
-    message: `Opening Harian (${formattedOpeningDate}) untuk ${branches[branchIndex].name} berhasil disimpan!`,
-    data: record
+    message: `Opening Harian (${formattedOpeningDate}) untuk ${branches[branchIndex].name} disimpan & otomatis tercatat di Kirim Lapak Gudang!`,
+    data: record,
+    warehouse_sync: warehouseSync
   });
 });
 
@@ -3294,7 +3464,14 @@ app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
   }
   const removed = openings.splice(idx, 1)[0];
   writeJSON(STOCK_OPENING_FILE, openings);
-  res.json({ success: true, message: `Opening "${removed.opening_date}" berhasil dihapus.` });
+
+  syncLinkedWarehouseEntry({
+    linkField: 'source_opening_id',
+    linkId: removed.id,
+    stockItemsMap: null
+  });
+
+  res.json({ success: true, message: `Opening "${removed.opening_date}" berhasil dihapus & kiriman gudang terkait dibatalkan.` });
 });
 
 // Mulai Server
