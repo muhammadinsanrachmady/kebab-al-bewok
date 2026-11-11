@@ -6,6 +6,8 @@
   <title>Portal Owner - Kebab AL Bewok</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -16,6 +18,39 @@
     }
     .tabular-nums {
       font-variant-numeric: tabular-nums;
+    }
+    .leaflet-pane {
+      z-index: 1 !important;
+    }
+    .leaflet-top, .leaflet-bottom {
+      z-index: 2 !important;
+    }
+    #courierRadarMap.leaflet-container {
+      background: #020617;
+      font-family: inherit;
+    }
+    .atc-popup .leaflet-popup-content-wrapper {
+      background: #0f172a;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+    }
+    .atc-popup .leaflet-popup-tip {
+      background: #0f172a;
+      border-right: 1px solid #334155;
+      border-bottom: 1px solid #334155;
+    }
+    .atc-popup .leaflet-popup-close-button {
+      color: #94a3b8;
+    }
+    @keyframes atcPulse {
+      0% { transform: scale(0.85); opacity: 0.8; }
+      75% { transform: scale(1.9); opacity: 0; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+    .atc-pulse-ring {
+      animation: atcPulse 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
     }
   </style>
 </head>
@@ -215,19 +250,141 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 3: KURIR                                                        -->
+    <!-- TAB 3: KURIR (RADAR LALU LINTAS KURIR + TAGIHAN & SETORAN)          -->
     <!-- =================================================================== -->
     <section id="tabView-kurir" class="owner-tab-view hidden space-y-3.5">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Pencairan Saldo Kurir</h2>
-            <p class="text-[11px] text-slate-500">Antrean pengajuan tarik saldo driver freelance</p>
+
+      <!-- 4 KPI TELEMETRI & KEUANGAN KURIR COMPACT -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="bg-slate-900/75 border border-sky-500/25 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Mengantar / OTW</span>
+            <p id="kpiRadarDelivering" class="text-base md:text-lg font-extrabold text-sky-400 mt-0.5 tabular-nums">0</p>
+            <span id="kpiRadarDeliveringSub" class="text-[10px] text-slate-500 block truncate">Pickup 0 • Antar 0</span>
           </div>
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Driver</span>
+          <div class="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-xs shrink-0">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="bg-slate-900/75 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Armada Standby</span>
+            <p id="kpiRadarStandby" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums">0</p>
+            <span id="kpiRadarTotalSub" class="text-[10px] text-slate-500 block truncate">Siap: 0 order</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs shrink-0">
+            <i class="fa-solid fa-tower-broadcast"></i>
+          </div>
+        </div>
+
+        <button type="button" onclick="setCourierFinanceSubtab('ongkir', true)" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-amber-500/25 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Titipan Ongkir Lapak</span>
+            <p id="kpiCourierFeeHeld" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums truncate">Rp 0</p>
+            <span id="kpiCourierFeeHeldSub" class="text-[10px] text-slate-500 block truncate">Klik untuk tagih WA</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-xs shrink-0">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+          </div>
+        </button>
+
+        <button type="button" onclick="setCourierFinanceSubtab('withdrawals', true)" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+          <div class="min-w-0">
+            <span class="text-[11px] font-medium text-slate-400 block truncate">Tarik Saldo &amp; Rekening</span>
+            <p id="kpiCourierPendingAction" class="text-base md:text-lg font-extrabold text-slate-100 mt-0.5 tabular-nums">0 Antrean</p>
+            <span id="kpiCourierPendingSub" class="text-[10px] text-slate-500 block truncate">Cair: Rp 0</span>
+          </div>
+          <div class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs shrink-0">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+          </div>
+        </button>
+      </div>
+
+      <!-- PANEL RADAR LALU LINTAS KURIR (ATC FLIGHT RADAR STYLE) -->
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="relative flex h-2.5 w-2.5 shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <div class="min-w-0">
+              <h2 class="text-xs md:text-sm font-bold text-slate-100 truncate">Radar Lalu Lintas Kurir</h2>
+              <p id="radarLastSyncLabel" class="text-[10px] text-slate-500 truncate">Menunggu sinyal radar...</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+            <button type="button" data-radar-filter="all" onclick="setRadarFilter('all')" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 transition shrink-0">Semua</button>
+            <button type="button" data-radar-filter="active" onclick="setRadarFilter('active')" class="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Mengantar</button>
+            <button type="button" data-radar-filter="standby" onclick="setRadarFilter('standby')" class="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Standby</button>
+            <button type="button" data-radar-filter="offline" onclick="setRadarFilter('offline')" class="px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0">Offline</button>
+          </div>
+
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" onclick="fitRadarBounds()" class="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[10px] font-semibold text-slate-300 flex items-center gap-1 transition" title="Pas-kan semua armada &amp; lapak">
+              <i class="fa-solid fa-crosshairs text-amber-400"></i>
+              <span>Fit Radar</span>
+            </button>
+            <button type="button" id="btnRadarLiveToggle" onclick="toggleRadarLive()" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1 transition">
+              <i class="fa-solid fa-satellite-dish"></i>
+              <span>Live 3s</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          <!-- MAP RADAR -->
+          <div class="lg:col-span-7 relative">
+            <div id="courierRadarMap" class="h-[340px] md:h-[400px] w-full rounded-xl border border-slate-800 bg-slate-950 overflow-hidden"></div>
+            <div class="pointer-events-none absolute bottom-2 left-2 z-[5] bg-slate-950/85 backdrop-blur-xs border border-slate-800/90 rounded-xl px-2.5 py-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-300">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-xs bg-amber-400 inline-block"></span>Lapak</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-300 inline-block"></span>Siap Pickup</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>Ke Lapak</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400 inline-block"></span>Mengantar</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>Standby</span>
+            </div>
+          </div>
+
+          <!-- FLIGHT BOARD / ARMADA KURIR -->
+          <div class="lg:col-span-5 flex flex-col space-y-2">
+            <div class="flex items-center justify-between text-[11px] px-0.5">
+              <span class="font-bold text-slate-300">Papan Armada &amp; Rute</span>
+              <span id="radarBoardCount" class="text-slate-500 tabular-nums">0 Unit</span>
+            </div>
+            <div id="courierFlightBoard" class="space-y-2 max-h-[372px] overflow-y-auto pr-0.5">
+              <div class="text-center py-8 text-xs text-slate-500">Memuat radar armada kurir...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KEUANGAN, TAGIHAN ONGKIR & SETORAN KURIR -->
+      <div id="courierFinanceSection" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Setoran, Tagihan &amp; Rekening Kurir</h2>
+            <p class="text-[11px] text-slate-500">Transfer pencairan driver, tagih ongkir QRIS cabang &amp; validasi rekening</p>
+          </div>
+          <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+            <button type="button" data-finance-subtab="withdrawals" onclick="setCourierFinanceSubtab('withdrawals')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition">
+              <span>Transfer Kurir</span>
+              <span id="subtabBadgeWithdraw" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full">0</span>
+            </button>
+            <button type="button" data-finance-subtab="ongkir" onclick="setCourierFinanceSubtab('ongkir')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+              <span>Tagih Ongkir Lapak</span>
+              <span id="subtabBadgeOngkir" class="hidden bg-amber-500/20 text-amber-300 text-[9px] font-bold px-1.5 rounded-full">0</span>
+            </button>
+            <button type="button" data-finance-subtab="wallet_changes" onclick="setCourierFinanceSubtab('wallet_changes')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+              <span>Ganti Rekening</span>
+              <span id="subtabBadgeWalletReq" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SUBTAB 1: TRANSFER PENCAIRAN SALDO KURIR -->
+        <div id="courierFinancePanel-withdrawals" class="overflow-x-auto">
           <table class="w-full text-xs text-left">
             <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
               <tr>
@@ -243,7 +400,43 @@
             </tbody>
           </table>
         </div>
+
+        <!-- SUBTAB 2: TAGIH TITIPAN ONGKIR CABANG -->
+        <div id="courierFinancePanel-ongkir" class="hidden overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="py-2 px-2.5">Lapak Cabang</th>
+                <th class="py-2 px-2.5">Kasir / WA</th>
+                <th class="py-2 px-2.5 text-right">Titipan Ongkir</th>
+                <th class="py-2 px-2.5 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="branchOngkirTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- SUBTAB 3: PERMOHONAN GANTI REKENING KURIR -->
+        <div id="courierFinancePanel-wallet_changes" class="hidden overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="py-2 px-2.5">Driver</th>
+                <th class="py-2 px-2.5">Rekening Baru</th>
+                <th class="py-2 px-2.5">Alasan</th>
+                <th class="py-2 px-2.5">Status</th>
+                <th class="py-2 px-2.5 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="walletChangeTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </section>
 
     <!-- =================================================================== -->
@@ -435,6 +628,73 @@
     const expandedOpnameCards = new Set();
     const expandedOpnameDetails = new Set();
 
+    // State Radar & Armada Kurir (ATC Flight Radar)
+    let radarMap = null;
+    let radarLayersGroup = null;
+    const radarCourierMarkers = new Map();
+    let radarSnapshot = null;
+    let radarFilter = 'all';
+    let radarLiveEnabled = true;
+    let radarPollTimer = null;
+    let radarHasInitialFit = false;
+    let activeRadarDriverId = null;
+    let isRenderingRadarMap = false;
+    let courierFinanceSubtab = 'withdrawals';
+
+    const RADAR_STATUS_META = {
+      TO_CUSTOMER: {
+        label: 'ANTAR KONSUMEN',
+        short: 'ANTAR',
+        color: '#38bdf8',
+        badgeClass: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+        pulse: true
+      },
+      TO_BRANCH: {
+        label: 'MENUJU LAPAK',
+        short: 'PICKUP',
+        color: '#fbbf24',
+        badgeClass: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        pulse: true
+      },
+      STANDBY: {
+        label: 'STANDBY SIAGA',
+        short: 'SIAGA',
+        color: '#34d399',
+        badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        pulse: false
+      },
+      OFFLINE: {
+        label: 'OFFLINE',
+        short: 'OFF',
+        color: '#64748b',
+        badgeClass: 'bg-slate-800 text-slate-400 border-slate-700',
+        pulse: false
+      },
+      SUSPENDED: {
+        label: 'DINONAKTIFKAN',
+        short: 'SUSPEND',
+        color: '#f43f5e',
+        badgeClass: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+        pulse: false
+      }
+    };
+
+    function escapeJsArg(str) {
+      return escapeHtml(String(str ?? '')).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    }
+
+    function formatTimeAgo(isoStr) {
+      if (!isoStr) return 'Belum ada ping GPS';
+      const diffSec = Math.max(0, Math.floor((Date.now() - new Date(isoStr).getTime()) / 1000));
+      if (diffSec < 15) return 'Baru saja';
+      if (diffSec < 60) return `${diffSec} dtk lalu`;
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin} mnt lalu`;
+      const diffHr = Math.floor(diffMin / 60);
+      if (diffHr < 24) return `${diffHr} jam lalu`;
+      return `${Math.floor(diffHr / 24)} hr lalu`;
+    }
+
     function escapeHtml(str) {
       return String(str ?? '')
         .replace(/&/g, '&amp;')
@@ -574,6 +834,17 @@
       if (window.location.hash !== `#${targetTab}`) {
         history.replaceState(null, '', `#${targetTab}`);
       }
+
+      if (targetTab === 'kurir') {
+        initCourierRadar();
+        renderCourierFinanceSection();
+        startCourierRadarPolling();
+        setTimeout(() => {
+          if (radarMap) radarMap.invalidateSize();
+        }, 150);
+      } else {
+        stopCourierRadarPolling();
+      }
     }
 
     /**
@@ -629,7 +900,7 @@
           renderBranchSelectOptions();
           renderOmzetMetricsAndOpnames();
           renderBranchesTable();
-          renderWithdrawalsTable();
+          renderCourierFinanceSection();
         }
       } catch (err) {
         console.error('Gagal mengambil ringkasan:', err);
@@ -1004,17 +1275,592 @@
       }
     }
 
+    // =========================================================================
+    // TAB KURIR: RADAR LALU LINTAS PENERBANGAN + KEUANGAN, TAGIHAN & KONTROL
+    // =========================================================================
+    function initCourierRadar() {
+      const container = document.getElementById('courierRadarMap');
+      if (!container || typeof L === 'undefined') return;
+
+      if (!radarMap) {
+        radarMap = L.map('courierRadarMap', {
+          zoomControl: true,
+          attributionControl: false
+        }).setView([-6.33304, 106.85337], 13);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd',
+          maxZoom: 19
+        }).addTo(radarMap);
+
+        radarLayersGroup = L.layerGroup().addTo(radarMap);
+        radarMap.on('popupclose', () => {
+          if (!isRenderingRadarMap) {
+            activeRadarDriverId = null;
+          }
+        });
+      }
+
+      fetchCourierRadar(!radarHasInitialFit);
+    }
+
+    function startCourierRadarPolling() {
+      stopCourierRadarPolling();
+      if (!radarLiveEnabled) return;
+      radarPollTimer = setInterval(() => {
+        if (currentOwnerTab === 'kurir' && radarLiveEnabled) {
+          fetchCourierRadar(false);
+        }
+      }, 3000);
+    }
+
+    function stopCourierRadarPolling() {
+      if (radarPollTimer) {
+        clearInterval(radarPollTimer);
+        radarPollTimer = null;
+      }
+    }
+
+    function toggleRadarLive() {
+      radarLiveEnabled = !radarLiveEnabled;
+      const btn = document.getElementById('btnRadarLiveToggle');
+      if (btn) {
+        btn.className = radarLiveEnabled
+          ? 'px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 flex items-center gap-1 transition'
+          : 'px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[10px] font-medium text-slate-400 flex items-center gap-1 transition';
+        btn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i><span>${radarLiveEnabled ? 'Live 3s' : 'Jeda'}</span>`;
+      }
+      if (radarLiveEnabled && currentOwnerTab === 'kurir') {
+        fetchCourierRadar(false);
+        startCourierRadarPolling();
+      } else {
+        stopCourierRadarPolling();
+      }
+    }
+
+    function setRadarFilter(nextFilter) {
+      radarFilter = nextFilter || 'all';
+      document.querySelectorAll('[data-radar-filter]').forEach(btn => {
+        const isActive = btn.dataset.radarFilter === radarFilter;
+        btn.className = isActive
+          ? 'px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 transition shrink-0'
+          : 'px-2 py-0.5 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent transition shrink-0';
+      });
+      renderCourierRadarMap(false);
+      renderCourierFlightBoard();
+    }
+
+    function filterCourierByRadarMode(courier, mode) {
+      if (mode === 'active') {
+        return courier.radar_status === 'TO_BRANCH' || courier.radar_status === 'TO_CUSTOMER';
+      }
+      if (mode === 'standby') {
+        return courier.radar_status === 'STANDBY';
+      }
+      if (mode === 'offline') {
+        return courier.radar_status === 'OFFLINE' || courier.radar_status === 'SUSPENDED';
+      }
+      return true;
+    }
+
+    async function fetchCourierRadar(fitOnLoad = false) {
+      try {
+        const res = await fetch('/api/super-admin/courier-radar').then(r => r.json());
+        if (!res.success || !res.data) return;
+        radarSnapshot = res.data;
+
+        const syncLabel = document.getElementById('radarLastSyncLabel');
+        if (syncLabel) {
+          const timeText = new Date(res.data.generated_at || Date.now()).toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          syncLabel.innerText = `Sinkron radar ${timeText} WIB • ${res.data.stats.total} unit terdaftar`;
+        }
+
+        renderCourierKpis();
+        renderCourierRadarMap(fitOnLoad);
+        renderCourierFlightBoard();
+        if (!cachedSummary) {
+          renderCourierFinanceBadgesAndKpis();
+        }
+      } catch (err) {
+        console.error('Gagal memuat radar kurir:', err);
+      }
+    }
+
+    function renderCourierKpis() {
+      const s = (radarSnapshot && radarSnapshot.stats) || {
+        total: 0, to_branch: 0, to_customer: 0, delivering: 0, standby: 0, offline: 0, suspended: 0, ready_orders: 0
+      };
+      const elDeliver = document.getElementById('kpiRadarDelivering');
+      const elDeliverSub = document.getElementById('kpiRadarDeliveringSub');
+      const elStandby = document.getElementById('kpiRadarStandby');
+      const elTotalSub = document.getElementById('kpiRadarTotalSub');
+
+      if (elDeliver) elDeliver.innerText = s.delivering;
+      if (elDeliverSub) elDeliverSub.innerText = `Pickup ${s.to_branch} • Antar ${s.to_customer}`;
+      if (elStandby) elStandby.innerText = s.standby;
+      if (elTotalSub) elTotalSub.innerText = `Siap pickup: ${s.ready_orders} • Off: ${s.offline + s.suspended}`;
+    }
+
+    function buildCourierMarkerIcon(courier) {
+      const meta = RADAR_STATUS_META[courier.radar_status] || RADAR_STATUS_META.OFFLINE;
+      const callsign = escapeHtml((courier.name || 'Kurir').split(' ')[0].toUpperCase());
+      const heading = Number(courier.heading) || 0;
+      const isMoving = courier.radar_status === 'TO_BRANCH' || courier.radar_status === 'TO_CUSTOMER';
+      const labelText = isMoving
+        ? `${callsign} ${Math.round(courier.speed_kmh || 28)}km/j`
+        : `${callsign} • ${meta.short}`;
+
+      const pulseHtml = meta.pulse
+        ? `<span class="atc-pulse-ring absolute -inset-1.5 rounded-full border-2" style="border-color:${meta.color};"></span>`
+        : '';
+
+      const html = `
+        <div class="relative flex flex-col items-center" style="transform: translate(-50%, -50%);">
+          <div class="relative w-7 h-7 flex items-center justify-center">
+            ${pulseHtml}
+            <div style="transform: rotate(${heading}deg); filter: drop-shadow(0 0 6px ${meta.color});" class="w-6 h-6 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="${meta.color}" stroke="#020617" stroke-width="1.5">
+                <path d="M12 2L19 20L12 16L5 20L12 2Z" stroke-linejoin="round" />
+              </svg>
+            </div>
+          </div>
+          <div class="mt-0.5 px-1.5 py-0.5 rounded bg-slate-950/90 border text-[9px] font-extrabold whitespace-nowrap tracking-wide shadow" style="border-color:${meta.color}66; color:${meta.color};">
+            ${labelText}
+          </div>
+        </div>
+      `;
+
+      return L.divIcon({
+        className: 'atc-courier-marker',
+        html,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
+      });
+    }
+
+    function renderCourierRadarMap(fitOnLoad = false) {
+      if (!radarMap || !radarLayersGroup || !radarSnapshot) return;
+
+      isRenderingRadarMap = true;
+      radarLayersGroup.clearLayers();
+      radarCourierMarkers.clear();
+
+      const branches = radarSnapshot.branches || [];
+      const readyOrders = radarSnapshot.ready_orders || [];
+      const couriers = (radarSnapshot.couriers || []).filter(c => filterCourierByRadarMode(c, radarFilter));
+
+      // 1. Lapak Cabang + Concentric ATC Radar Rings
+      branches.forEach(b => {
+        L.circle([b.latitude, b.longitude], {
+          radius: 1200,
+          color: '#334155',
+          weight: 1,
+          dashArray: '4, 6',
+          fillColor: '#0ea5e9',
+          fillOpacity: 0.03,
+          interactive: false
+        }).addTo(radarLayersGroup);
+
+        L.circle([b.latitude, b.longitude], {
+          radius: 2500,
+          color: '#1e293b',
+          weight: 1,
+          dashArray: '2, 6',
+          fillOpacity: 0,
+          interactive: false
+        }).addTo(radarLayersGroup);
+
+        const readyBadge = b.ready_count > 0
+          ? `<span class="ml-1 px-1 rounded bg-amber-400 text-slate-950 text-[8px] font-black">${b.ready_count}</span>`
+          : '';
+
+        const branchIcon = L.divIcon({
+          className: 'atc-branch-marker',
+          html: `
+            <div class="flex flex-col items-center" style="transform: translate(-50%, -50%);">
+              <div class="w-6 h-6 rounded-lg bg-slate-950 border-2 border-amber-400 text-amber-400 flex items-center justify-center text-[10px] shadow-lg">
+                <i class="fa-solid fa-store"></i>
+              </div>
+              <div class="mt-0.5 px-1.5 py-0.5 rounded bg-slate-950/90 border border-amber-500/40 text-[9px] font-bold text-amber-300 whitespace-nowrap flex items-center">
+                ${escapeHtml(shortBranchLabel(b.name))}${readyBadge}
+              </div>
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0]
+        });
+
+        L.marker([b.latitude, b.longitude], { icon: branchIcon })
+          .bindPopup(`
+            <div class="text-xs space-y-1 min-w-[165px]">
+              <p class="font-bold text-amber-400">${escapeHtml(b.name)}</p>
+              <p class="text-[11px] text-slate-400">${escapeHtml(b.address || 'Outlet Kebab')}</p>
+              <div class="flex justify-between pt-1 border-t border-slate-800 text-[11px]">
+                <span>Siap pickup: <b class="text-amber-300">${b.ready_count}</b></span>
+                <span>Dalam rute: <b class="text-sky-400">${b.active_count}</b></span>
+              </div>
+            </div>
+          `, { className: 'atc-popup' })
+          .addTo(radarLayersGroup);
+      });
+
+      // 2. Order Siap Pickup (Menunggu Kurir)
+      readyOrders.forEach(ro => {
+        if (ro.customer_latitude != null && ro.customer_longitude != null) {
+          L.polyline(
+            [[ro.latitude, ro.longitude], [ro.customer_latitude, ro.customer_longitude]],
+            { color: '#fde047', weight: 1.5, opacity: 0.45, dashArray: '3, 6', interactive: false }
+          ).addTo(radarLayersGroup);
+
+          L.circleMarker([ro.customer_latitude, ro.customer_longitude], {
+            radius: 4,
+            color: '#fde047',
+            fillColor: '#fef08a',
+            fillOpacity: 0.9,
+            weight: 1.5
+          }).addTo(radarLayersGroup);
+        }
+
+        const beaconIcon = L.divIcon({
+          className: 'atc-ready-beacon',
+          html: `
+            <div class="relative w-5 h-5 flex items-center justify-center" style="transform: translate(-50%, -50%);">
+              <span class="atc-pulse-ring absolute inset-0 rounded-full bg-yellow-300/45"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-yellow-300 border border-slate-950 shadow"></span>
+            </div>
+          `,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0]
+        });
+
+        L.marker([ro.latitude, ro.longitude], { icon: beaconIcon })
+          .bindPopup(`
+            <div class="text-xs space-y-1 min-w-[175px]">
+              <p class="font-bold text-yellow-300">Order Siap Pickup (${escapeHtml(ro.id)})</p>
+              <p class="text-[11px] text-slate-300">${escapeHtml(ro.customer_name)} • ${escapeHtml(shortBranchLabel(ro.branch_name))}</p>
+              <p class="text-[11px] text-emerald-400 font-bold">Ongkir ${formatRp(ro.delivery_fee)}</p>
+            </div>
+          `, { className: 'atc-popup' })
+          .addTo(radarLayersGroup);
+      });
+
+      // 3. Armada Kurir + Trajectory Vector Lines
+      couriers.forEach(c => {
+        const meta = RADAR_STATUS_META[c.radar_status] || RADAR_STATUS_META.OFFLINE;
+        const ao = c.active_order;
+
+        if (ao) {
+          if (c.radar_status === 'TO_BRANCH') {
+            L.polyline(
+              [[c.latitude, c.longitude], [ao.branch_latitude, ao.branch_longitude]],
+              { color: '#fbbf24', weight: 2.5, opacity: 0.9, dashArray: '6, 6' }
+            ).addTo(radarLayersGroup);
+            L.polyline(
+              [[ao.branch_latitude, ao.branch_longitude], [ao.customer_latitude, ao.customer_longitude]],
+              { color: '#64748b', weight: 1.5, opacity: 0.5, dashArray: '4, 6' }
+            ).addTo(radarLayersGroup);
+          } else if (c.radar_status === 'TO_CUSTOMER') {
+            L.polyline(
+              [[ao.branch_latitude, ao.branch_longitude], [c.latitude, c.longitude]],
+              { color: '#0ea5e9', weight: 1.5, opacity: 0.35, dashArray: '3, 5' }
+            ).addTo(radarLayersGroup);
+            L.polyline(
+              [[c.latitude, c.longitude], [ao.customer_latitude, ao.customer_longitude]],
+              { color: '#38bdf8', weight: 2.5, opacity: 0.95, dashArray: '6, 6' }
+            ).addTo(radarLayersGroup);
+          }
+
+          L.circleMarker([ao.customer_latitude, ao.customer_longitude], {
+            radius: 5,
+            color: meta.color,
+            fillColor: '#020617',
+            fillOpacity: 1,
+            weight: 2
+          })
+            .bindPopup(`
+              <div class="text-xs space-y-0.5">
+                <p class="font-bold text-slate-100">Tujuan: ${escapeHtml(ao.customer_name)}</p>
+                <p class="text-[11px] text-slate-400">${escapeHtml(ao.delivery_address || 'Alamat pengantaran')}</p>
+              </div>
+            `, { className: 'atc-popup' })
+            .addTo(radarLayersGroup);
+        }
+
+        const safeNameArg = escapeJsArg(c.name);
+        const safeIdArg = escapeJsArg(c.id);
+        const orderInfoHtml = ao
+          ? `<div class="pt-1 border-t border-slate-800 space-y-0.5 text-[11px]">
+               <p class="text-slate-200 font-semibold">${escapeHtml(shortBranchLabel(ao.branch_name))} &rarr; ${escapeHtml(ao.customer_name)}</p>
+               <p class="text-slate-400 truncate">${escapeHtml(ao.delivery_address || '')}</p>
+               <p class="text-emerald-400 font-bold">Order ${escapeHtml(ao.id)} • Ongkir ${formatRp(ao.delivery_fee)}</p>
+             </div>`
+          : `<p class="text-[11px] text-slate-400 pt-1 border-t border-slate-800">Update: ${escapeHtml(formatTimeAgo(c.last_seen_at))} • ${c.trips} trip</p>`;
+
+        const marker = L.marker([c.latitude, c.longitude], {
+          icon: buildCourierMarkerIcon(c),
+          zIndexOffset: ao ? 500 : 100
+        }).bindPopup(`
+          <div class="text-xs space-y-1.5 min-w-[195px]">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-extrabold text-slate-100">${escapeHtml(c.name)}</span>
+              <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${meta.badgeClass}">${meta.short}</span>
+            </div>
+            <p class="text-[11px] text-slate-400">${escapeHtml(c.vehicle)} (${escapeHtml(c.vehicle_plate)}) • ${escapeHtml(c.phone || '-')}</p>
+            ${orderInfoHtml}
+            <div class="pt-1 flex items-center gap-1.5">
+              <button type="button" onclick="toggleDriverSuspended('${safeIdArg}', ${!c.is_suspended}, '${safeNameArg}')" class="flex-1 px-2 py-1 rounded-lg text-[10px] font-bold border ${c.is_suspended ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-rose-500/15 text-rose-300 border-rose-500/30'}">
+                ${c.is_suspended ? 'Aktifkan' : 'Nonaktifkan'}
+              </button>
+              <button type="button" onclick="resetDriverDevice('${safeIdArg}', '${safeNameArg}')" class="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                Reset HP
+              </button>
+            </div>
+          </div>
+        `, { className: 'atc-popup' }).addTo(radarLayersGroup);
+
+        marker.on('popupopen', () => {
+          activeRadarDriverId = c.id;
+        });
+
+        radarCourierMarkers.set(c.id, marker);
+        if (activeRadarDriverId === c.id) {
+          const popupObj = marker.getPopup();
+          if (popupObj) popupObj.options.autoPan = false;
+          marker.openPopup();
+        }
+      });
+
+      isRenderingRadarMap = false;
+
+      if (fitOnLoad) {
+        fitRadarBounds();
+        radarHasInitialFit = true;
+      }
+    }
+
+    function fitRadarBounds() {
+      if (!radarMap || !radarSnapshot) return;
+      const pts = [];
+      (radarSnapshot.branches || []).forEach(b => pts.push([b.latitude, b.longitude]));
+      (radarSnapshot.couriers || [])
+        .filter(c => filterCourierByRadarMode(c, radarFilter))
+        .forEach(c => {
+          pts.push([c.latitude, c.longitude]);
+          if (c.active_order && c.active_order.customer_latitude != null) {
+            pts.push([c.active_order.customer_latitude, c.active_order.customer_longitude]);
+          }
+        });
+
+      if (pts.length === 1) {
+        radarMap.setView(pts[0], 14);
+      } else if (pts.length > 1) {
+        radarMap.fitBounds(L.latLngBounds(pts), { padding: [36, 36], maxZoom: 15 });
+      }
+    }
+
+    function focusCourierOnRadar(driverId) {
+      if (!radarSnapshot || !radarMap) return;
+      const c = (radarSnapshot.couriers || []).find(item => item.id === driverId);
+      if (!c) return;
+      activeRadarDriverId = driverId;
+      radarMap.flyTo([c.latitude, c.longitude], 15, { duration: 0.6 });
+      const marker = radarCourierMarkers.get(driverId);
+      if (marker) {
+        setTimeout(() => marker.openPopup(), 260);
+      }
+    }
+
+    function renderCourierFlightBoard() {
+      const container = document.getElementById('courierFlightBoard');
+      const countEl = document.getElementById('radarBoardCount');
+      if (!container || !radarSnapshot) return;
+
+      const list = (radarSnapshot.couriers || []).filter(c => filterCourierByRadarMode(c, radarFilter));
+      if (countEl) countEl.innerText = `${list.length} Unit`;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 bg-slate-950/50 rounded-xl border border-dashed border-slate-800 text-xs text-slate-500">Tidak ada armada pada filter ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(c => {
+        const meta = RADAR_STATUS_META[c.radar_status] || RADAR_STATUS_META.OFFLINE;
+        const ao = c.active_order;
+        const safeIdArg = escapeJsArg(c.id);
+        const safeNameArg = escapeJsArg(c.name);
+        const isFocused = activeRadarDriverId === c.id;
+
+        const routeLine = ao
+          ? `<div class="text-[11px] text-slate-300 flex items-center justify-between gap-1.5 bg-slate-900/90 border border-slate-800/80 rounded-lg px-2 py-1">
+               <span class="truncate"><b class="text-amber-300">${escapeHtml(shortBranchLabel(ao.branch_name))}</b> &rarr; ${escapeHtml(ao.customer_name)}</span>
+               <span class="text-sky-400 font-bold shrink-0 tabular-nums">${formatRp(ao.delivery_fee)}</span>
+             </div>`
+          : `<div class="text-[10px] text-slate-400 flex items-center justify-between gap-2">
+               <span class="truncate"><i class="fa-solid fa-satellite-dish text-slate-500 mr-1"></i>${escapeHtml(formatTimeAgo(c.last_seen_at))}${!c.has_live_gps ? ' (Posisi dasar)' : ''}</span>
+               <span class="tabular-nums shrink-0">${c.trips} trip • <b class="text-emerald-400">${formatRp(c.balance)}</b></span>
+             </div>`;
+
+        return `
+          <div class="bg-slate-950/75 border ${isFocused ? 'border-sky-500/60' : 'border-slate-800/90'} rounded-xl p-2.5 space-y-2 hover:border-slate-700 transition">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full shrink-0" style="background:${meta.color};"></span>
+                  <span class="text-xs font-bold text-slate-100 truncate">${escapeHtml(c.name)}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 truncate mt-0.5">${escapeHtml(c.vehicle)} • ${escapeHtml(c.vehicle_plate)} • ${c.has_device_lock ? '<span class="text-emerald-400">HP Terkunci</span>' : '<span class="text-slate-500">HP Bebas</span>'}</p>
+              </div>
+              <span class="px-2 py-0.5 rounded-md border text-[9px] font-bold shrink-0 ${meta.badgeClass}">${meta.label}</span>
+            </div>
+
+            ${routeLine}
+
+            <div class="flex items-center justify-between gap-1.5 pt-1 border-t border-slate-800/70">
+              <button type="button" onclick="focusCourierOnRadar('${safeIdArg}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-sky-500/20 text-sky-400 border border-slate-800 hover:border-sky-500/40 text-[10px] font-semibold flex items-center gap-1 transition">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <span>Lacak</span>
+              </button>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="resetDriverDevice('${safeIdArg}', '${safeNameArg}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-[10px] font-semibold transition" title="Reset kunci perangkat HP kurir">
+                  Reset HP
+                </button>
+                <button type="button" onclick="toggleDriverSuspended('${safeIdArg}', ${!c.is_suspended}, '${safeNameArg}')" class="px-2 py-1 rounded-lg text-[10px] font-semibold border transition ${c.is_suspended ? 'bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border-emerald-500/30' : 'bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border-rose-500/25'}">
+                  ${c.is_suspended ? 'Aktifkan' : 'Nonaktifkan'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function toggleDriverSuspended(driverId, nextSuspended, driverName) {
+      const actionLabel = nextSuspended ? 'menonaktifkan sementara' : 'mengaktifkan kembali';
+      if (!confirm(`Yakin ingin ${actionLabel} akun kurir "${driverName}"?`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/drivers/${encodeURIComponent(driverId)}/toggle-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ suspended: nextSuspended })
+        }).then(r => r.json());
+        if (res.success) {
+          alert(res.message);
+          fetchCourierRadar(false);
+          fetchAllData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal mengubah status kurir'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function resetDriverDevice(driverId, driverName) {
+      if (!confirm(`Reset kunci perangkat HP untuk "${driverName}" agar bisa login dari HP baru?`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/drivers/${encodeURIComponent(driverId)}/reset-device`, {
+          method: 'POST'
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchCourierRadar(false);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal reset perangkat'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    function setCourierFinanceSubtab(subtab, scrollIntoView = false) {
+      const allowed = ['withdrawals', 'ongkir', 'wallet_changes'];
+      courierFinanceSubtab = allowed.includes(subtab) ? subtab : 'withdrawals';
+
+      allowed.forEach(key => {
+        const btn = document.querySelector(`[data-finance-subtab="${key}"]`);
+        const panel = document.getElementById(`courierFinancePanel-${key}`);
+        const isActive = key === courierFinanceSubtab;
+        if (btn) {
+          const badge = btn.querySelector('span[id^="subtabBadge"]');
+          btn.className = isActive
+            ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition'
+            : 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition';
+          if (badge) badge.classList.remove('hidden'); // visibility managed separately below
+        }
+        if (panel) panel.classList.toggle('hidden', !isActive);
+      });
+
+      renderCourierFinanceBadgesAndKpis();
+
+      if (scrollIntoView) {
+        const sec = document.getElementById('courierFinanceSection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function renderCourierFinanceSection() {
+      renderWithdrawalsTable();
+      renderBranchOngkirTable();
+      renderWalletChangesTable();
+      renderCourierFinanceBadgesAndKpis();
+    }
+
+    function renderCourierFinanceBadgesAndKpis() {
+      const withdrawals = (cachedSummary && cachedSummary.withdrawals) || [];
+      const branches = (cachedSummary && cachedSummary.branches) || [];
+      const walletReqs = (cachedSummary && cachedSummary.wallet_change_requests)
+        || (radarSnapshot && radarSnapshot.wallet_change_requests)
+        || [];
+
+      const pendingWds = withdrawals.filter(w => w.status === 'pending');
+      const pendingWdAmount = pendingWds.reduce((sum, w) => sum + (Number(w.amount) || 0), 0);
+      const pendingReqs = walletReqs.filter(r => r.status === 'pending');
+      const branchesWithFee = branches.filter(b => (Number(b.delivery_fee_held) || 0) > 0);
+      const totalFeeHeld = branches.reduce((sum, b) => sum + (Number(b.delivery_fee_held) || 0), 0);
+
+      const combinedPending = pendingWds.length + pendingReqs.length;
+      const badgeKurir = document.getElementById('badgeKurirPending');
+      if (badgeKurir) {
+        badgeKurir.innerText = combinedPending;
+        badgeKurir.classList.toggle('hidden', combinedPending === 0);
+      }
+
+      const bWithdraw = document.getElementById('subtabBadgeWithdraw');
+      if (bWithdraw) {
+        bWithdraw.innerText = pendingWds.length;
+        bWithdraw.classList.toggle('hidden', pendingWds.length === 0);
+      }
+
+      const bOngkir = document.getElementById('subtabBadgeOngkir');
+      if (bOngkir) {
+        bOngkir.innerText = branchesWithFee.length;
+        bOngkir.classList.toggle('hidden', branchesWithFee.length === 0);
+      }
+
+      const bWalletReq = document.getElementById('subtabBadgeWalletReq');
+      if (bWalletReq) {
+        bWalletReq.innerText = pendingReqs.length;
+        bWalletReq.classList.toggle('hidden', pendingReqs.length === 0);
+      }
+
+      const kpiHeld = document.getElementById('kpiCourierFeeHeld');
+      const kpiHeldSub = document.getElementById('kpiCourierFeeHeldSub');
+      const kpiPending = document.getElementById('kpiCourierPendingAction');
+      const kpiPendingSub = document.getElementById('kpiCourierPendingSub');
+
+      if (kpiHeld) kpiHeld.innerText = formatRp(totalFeeHeld);
+      if (kpiHeldSub) kpiHeldSub.innerText = `${branchesWithFee.length} lapak belum setor`;
+      if (kpiPending) kpiPending.innerText = `${combinedPending} Antrean`;
+      if (kpiPendingSub) kpiPendingSub.innerText = `Cair: ${formatRp(pendingWdAmount)} • Rek: ${pendingReqs.length}`;
+    }
+
     function renderWithdrawalsTable() {
       if (!cachedSummary) return;
       const withdrawals = cachedSummary.withdrawals || [];
-      const pendingCount = withdrawals.filter(w => w.status === 'pending').length;
-
-      const badgeKurir = document.getElementById('badgeKurirPending');
-      if (badgeKurir) {
-        badgeKurir.innerText = pendingCount;
-        badgeKurir.classList.toggle('hidden', pendingCount === 0);
-      }
-
       const wBody = document.getElementById('withdrawalTableBody');
       if (!wBody) return;
 
@@ -1035,13 +1881,122 @@
           </td>
           <td class="py-2.5 px-2.5 text-right">
             ${w.status === 'pending' ? `
-              <button type="button" onclick="approveWithdrawal('${w.id}')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-white border border-sky-500/30 font-semibold px-2.5 py-1 rounded-lg text-[10px] transition">
+              <button type="button" onclick="approveWithdrawal('${escapeJsArg(w.id)}')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-300 hover:text-white border border-sky-500/30 font-semibold px-2.5 py-1 rounded-lg text-[10px] transition">
                 Tandai Transfer
               </button>
             ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
           </td>
         </tr>
       `).join('');
+    }
+
+    function renderBranchOngkirTable() {
+      if (!cachedSummary) return;
+      const branches = cachedSummary.branches || [];
+      const tbody = document.getElementById('branchOngkirTableBody');
+      if (!tbody) return;
+
+      if (branches.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">Belum ada data lapak</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = branches.map(b => {
+        const feeHeld = Number(b.delivery_fee_held) || 0;
+        const safeName = escapeJsArg(b.branch_name);
+        const safePhone = escapeJsArg(b.phone || '');
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-2.5 font-semibold text-slate-100">${escapeHtml(shortBranchLabel(b.branch_name))}</td>
+            <td class="py-2.5 px-2.5 text-[11px] text-slate-400">${escapeHtml(b.phone || '-')}</td>
+            <td class="py-2.5 px-2.5 text-right font-bold tabular-nums ${feeHeld > 0 ? 'text-rose-400' : 'text-slate-500'}">${formatRp(feeHeld)}</td>
+            <td class="py-2.5 px-2.5 text-right">
+              <button type="button" onclick="sendInvoiceWA('${safeName}', ${feeHeld}, '${safePhone}')" class="bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/30 font-semibold px-2.5 py-1 rounded-lg text-[10px] transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i>Tagih WA
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderWalletChangesTable() {
+      const reqs = (cachedSummary && cachedSummary.wallet_change_requests)
+        || (radarSnapshot && radarSnapshot.wallet_change_requests)
+        || [];
+      const tbody = document.getElementById('walletChangeTableBody');
+      if (!tbody) return;
+
+      if (reqs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">Belum ada pengajuan ganti rekening kurir</td></tr>`;
+        return;
+      }
+
+      const ordered = [...reqs].sort((a, b) => (a.status === 'pending' ? -1 : 1));
+      const statusBadgeMap = {
+        pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        rejected: 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+      };
+      const statusLabelMap = { pending: 'Menunggu', approved: 'Disetujui', rejected: 'Ditolak' };
+
+      tbody.innerHTML = ordered.map(r => {
+        const badgeCls = statusBadgeMap[r.status] || statusBadgeMap.pending;
+        const badgeText = statusLabelMap[r.status] || r.status;
+        const safeId = escapeJsArg(r.id);
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2.5 px-2.5 font-semibold text-slate-100">${escapeHtml(r.driver_name)}</td>
+            <td class="py-2.5 px-2.5 text-[11px] text-slate-200">${escapeHtml(r.new_channel)} • ${escapeHtml(r.new_account_number)} (${escapeHtml(r.new_account_name)})</td>
+            <td class="py-2.5 px-2.5 text-[11px] text-slate-400 max-w-[200px] truncate">${escapeHtml(r.reason || '-')}</td>
+            <td class="py-2.5 px-2.5">
+              <span class="${badgeCls} border font-semibold px-2 py-0.5 rounded-md text-[10px]">${badgeText}</span>
+            </td>
+            <td class="py-2.5 px-2.5 text-right">
+              ${r.status === 'pending' ? `
+                <div class="inline-flex items-center gap-1">
+                  <button type="button" onclick="processWalletChange('${safeId}', 'approve')" class="bg-emerald-500/20 hover:bg-emerald-500 text-emerald-300 hover:text-slate-950 border border-emerald-500/30 font-semibold px-2 py-1 rounded-lg text-[10px] transition">
+                    Setujui
+                  </button>
+                  <button type="button" onclick="processWalletChange('${safeId}', 'reject')" class="bg-rose-500/15 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/30 font-semibold px-2 py-1 rounded-lg text-[10px] transition">
+                    Tolak
+                  </button>
+                </div>
+              ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function processWalletChange(id, action) {
+      const isApprove = action === 'approve';
+      let bodyPayload = {};
+      if (!isApprove) {
+        const reason = prompt('Alasan penolakan ganti rekening (opsional):', '');
+        if (reason === null) return;
+        bodyPayload = { reason };
+      } else if (!confirm('Setujui pergantian rekening kurir ini?')) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/super-admin/wallet-changes/${encodeURIComponent(id)}/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyPayload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchAllData();
+          if (currentOwnerTab === 'kurir') fetchCourierRadar(false);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal memproses permohonan rekening'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
     }
 
     async function editBranchCashOpening(branchId, branchName, currentVal) {

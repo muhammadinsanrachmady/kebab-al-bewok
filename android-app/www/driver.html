@@ -917,6 +917,9 @@
     // Free Maps State (Leaflet.js + OpenStreetMap - 100% Bebas Biaya API)
     let driverCurrentLat = -6.2088;
     let driverCurrentLng = 106.8456;
+    let driverHasGpsFix = false;
+    let driverLastHeading = null;
+    let driverLastSpeedKmh = null;
     let driverMapInstance = null;
     let driverMarker = null;
     let targetMarker = null;
@@ -928,14 +931,28 @@
     let currentFacingMode = 'user';
     let deviceHasBiometricHardware = false;
 
+    function applyDriverPositionCoords(pos) {
+      if (!pos || !pos.coords) return null;
+      driverCurrentLat = pos.coords.latitude;
+      driverCurrentLng = pos.coords.longitude;
+      driverHasGpsFix = true;
+      if (pos.coords.heading != null && !Number.isNaN(pos.coords.heading)) {
+        driverLastHeading = Math.round(pos.coords.heading);
+      }
+      if (pos.coords.speed != null && !Number.isNaN(pos.coords.speed)) {
+        driverLastSpeedKmh = Math.round(pos.coords.speed * 3.6);
+      }
+      return { lat: driverCurrentLat, lng: driverCurrentLng };
+    }
+
     // INIT
     async function init() {
       initDeviceId();
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            driverCurrentLat = pos.coords.latitude;
-            driverCurrentLng = pos.coords.longitude;
+            applyDriverPositionCoords(pos);
+            sendDriverLocationHeartbeat();
           },
           (err) => console.log('Init GPS silent fail:', err),
           { enableHighAccuracy: false, timeout: 5000 }
@@ -2102,17 +2119,21 @@
 
       driverWatchId = navigator.geolocation.watchPosition(
         (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          driverCurrentLat = lat;
-          driverCurrentLng = lng;
-          updateDriverMapLivePosition(lat, lng);
+          const coords = applyDriverPositionCoords(pos);
+          if (!coords) return;
+          updateDriverMapLivePosition(coords.lat, coords.lng);
 
           const phase = activeDelivery ? activeDelivery.driver_phase : 'to_branch';
           fetch(`/api/driver/orders/${orderId}/location`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ latitude: lat, longitude: lng, phase })
+            body: JSON.stringify({
+              latitude: coords.lat,
+              longitude: coords.lng,
+              phase,
+              heading: driverLastHeading,
+              speed_kmh: driverLastSpeedKmh
+            })
           }).catch(() => {});
         },
         (err) => console.warn('GPS kurir error:', err),
@@ -2467,8 +2488,31 @@
           currentHistoryList = res.data.history || [];
           renderHistoryPreviews(currentHistoryList);
         }
+        sendDriverLocationHeartbeat();
       } catch (err) {
         console.warn('Gagal sinkron saldo kurir:', err);
+      }
+    }
+
+    async function sendDriverLocationHeartbeat(forceOnlineState = null) {
+      const driverId = currentDriver ? currentDriver.id : null;
+      if (!driverId) return;
+      const onlineVal = typeof forceOnlineState === 'boolean' ? forceOnlineState : isOnline;
+      try {
+        await fetch('/api/driver/location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            driver_id: driverId,
+            latitude: driverHasGpsFix ? driverCurrentLat : undefined,
+            longitude: driverHasGpsFix ? driverCurrentLng : undefined,
+            is_online: onlineVal,
+            heading: driverLastHeading,
+            speed_kmh: driverLastSpeedKmh
+          })
+        });
+      } catch (err) {
+        // Silent heartbeat fail
       }
     }
 
@@ -2538,6 +2582,7 @@
         label.innerText = "OFFLINE";
         label.className = "text-[10px] font-black tracking-wide text-slate-400";
       }
+      sendDriverLocationHeartbeat(isOnline);
     }
 
     init();

@@ -791,6 +791,66 @@ app.post('/api/orders/:id/payment-proof', (req, res) => {
   res.json({ success: true, message: 'Bukti pembayaran terkirim! Menunggu verifikasi dapur.', data: orders[orderIndex] });
 });
 
+function calculateBearingDeg(lat1, lng1, lat2, lng2) {
+  const rad = Math.PI / 180;
+  const phi1 = lat1 * rad;
+  const phi2 = lat2 * rad;
+  const dLambda = (lng2 - lng1) * rad;
+  const y = Math.sin(dLambda) * Math.cos(phi2);
+  const x = Math.cos(phi1) * Math.sin(phi2) - Math.sin(phi1) * Math.cos(phi2) * Math.cos(dLambda);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+function resolveOrderDriverPosition(order) {
+  const branchLat = Number(order.branch_latitude) || -6.2088;
+  const branchLng = Number(order.branch_longitude) || 106.8456;
+  const custLat = Number(order.customer_latitude) || -6.2150;
+  const custLng = Number(order.customer_longitude) || 106.8520;
+
+  let driverLat = Number(order.driver_latitude) || branchLat;
+  let driverLng = Number(order.driver_longitude) || branchLng;
+
+  if (!order.manual_gps) {
+    if (order.status === 'driver_heading_to_branch' || order.driver_phase === 'to_branch') {
+      const startLat = Number(order.driver_start_latitude) || (branchLat + 0.0065);
+      const startLng = Number(order.driver_start_longitude) || (branchLng - 0.0055);
+      const elapsedSec = (Date.now() - new Date(order.driver_accepted_at || Date.now()).getTime()) / 1000;
+      const progress = Math.min(0.96, Math.max(0, elapsedSec / 45));
+      driverLat = startLat + (branchLat - startLat) * progress;
+      driverLng = startLng + (branchLng - startLng) * progress;
+    } else if (order.status === 'on_delivery' || order.driver_phase === 'to_customer') {
+      const startTime = order.driver_picked_up_at || order.driver_accepted_at || Date.now();
+      const elapsedSec = (Date.now() - new Date(startTime).getTime()) / 1000;
+      const progress = Math.min(0.96, Math.max(0, elapsedSec / 65));
+      driverLat = branchLat + (custLat - branchLat) * progress;
+      driverLng = branchLng + (custLng - branchLng) * progress;
+    }
+  }
+
+  return { driverLat, driverLng, branchLat, branchLng, custLat, custLng };
+}
+
+function updateDriverTelemetryInWallet(driverId, latitude, longitude, extra = {}) {
+  if (!driverId) return;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers || !wallets.drivers[driverId]) return;
+  const d = wallets.drivers[driverId];
+  const parsedLat = parseFloat(latitude);
+  const parsedLng = parseFloat(longitude);
+  if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+    if (d.last_latitude !== undefined && d.last_longitude !== undefined && (d.last_latitude !== parsedLat || d.last_longitude !== parsedLng)) {
+      d.last_heading = calculateBearingDeg(d.last_latitude, d.last_longitude, parsedLat, parsedLng);
+    }
+    d.last_latitude = parsedLat;
+    d.last_longitude = parsedLng;
+  }
+  if (extra.is_online !== undefined) d.is_online = Boolean(extra.is_online);
+  if (extra.heading !== undefined && !isNaN(Number(extra.heading))) d.last_heading = Number(extra.heading);
+  if (extra.speed_kmh !== undefined && !isNaN(Number(extra.speed_kmh))) d.last_speed_kmh = Number(extra.speed_kmh);
+  d.last_seen_at = new Date().toISOString();
+  writeJSON(WALLETS_FILE, wallets);
+}
+
 // Lacak Status Pesanan & Lokasi Driver Real-time (3 Fase: Menuju Lapak -> Ambil Makanan -> Menuju Customer)
 app.get('/api/orders/:id', (req, res) => {
   const { id } = req.params;
@@ -801,40 +861,27 @@ app.get('/api/orders/:id', (req, res) => {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
 
-  const branchLat = order.branch_latitude || -6.2088;
-  const branchLng = order.branch_longitude || 106.8456;
-  const custLat = order.customer_latitude || -6.2150;
-  const custLng = order.customer_longitude || 106.8520;
-
-  // SIMULASI PERGERAKAN JIKA DRIVER BELUM/TIDAK MENGIRIM GPS ASLI HP
-  if (!order.manual_gps) {
-    if (order.status === 'driver_heading_to_branch' || order.driver_phase === 'to_branch') {
-      // Fase 1: Driver melaju dari lokasi asalnya menuju lapak kebab
-      const startLat = order.driver_start_latitude || (branchLat + 0.0065);
-      const startLng = order.driver_start_longitude || (branchLng - 0.0055);
-      const elapsedSec = (Date.now() - new Date(order.driver_accepted_at || Date.now()).getTime()) / 1000;
-      const progress = Math.min(0.96, elapsedSec / 45); // ~45 detik menuju lapak
-
-      order.driver_latitude = startLat + (branchLat - startLat) * progress;
-      order.driver_longitude = startLng + (branchLng - startLng) * progress;
-    } else if (order.status === 'on_delivery' || order.driver_phase === 'to_customer') {
-      // Fase 2: Driver melaju dari lapak kebab menuju rumah pelanggan
-      const startTime = order.driver_picked_up_at || order.driver_accepted_at || Date.now();
-      const elapsedSec = (Date.now() - new Date(startTime).getTime()) / 1000;
-      const progress = Math.min(0.96, elapsedSec / 65); // ~65 detik menuju pelanggan
-
-      order.driver_latitude = branchLat + (custLat - branchLat) * progress;
-      order.driver_longitude = branchLng + (custLng - branchLng) * progress;
-    }
-  }
+  const pos = resolveOrderDriverPosition(order);
+  order.driver_latitude = pos.driverLat;
+  order.driver_longitude = pos.driverLng;
 
   res.json({ success: true, data: order });
+});
+
+// Heartbeat GPS & Status Standby Kurir (Untuk Radar Lalu Lintas Kurir Owner)
+app.post('/api/driver/location', (req, res) => {
+  const { driver_id, latitude, longitude, is_online, heading, speed_kmh } = req.body;
+  if (!driver_id) {
+    return res.status(400).json({ success: false, message: 'driver_id wajib diisi' });
+  }
+  updateDriverTelemetryInWallet(driver_id, latitude, longitude, { is_online, heading, speed_kmh });
+  res.json({ success: true, message: 'Telemetri GPS kurir diperbarui' });
 });
 
 // Update Live GPS Lokasi Kurir saat Menuju Lapak / Mengantar
 app.post('/api/driver/orders/:id/location', (req, res) => {
   const { id } = req.params;
-  const { latitude, longitude, phase } = req.body;
+  const { latitude, longitude, phase, heading, speed_kmh } = req.body;
 
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id || o.order_code === id);
@@ -849,6 +896,10 @@ app.post('/api/driver/orders/:id/location', (req, res) => {
   if (phase) orders[orderIndex].driver_phase = phase;
   orders[orderIndex].last_location_update = new Date().toISOString();
   writeJSON(ORDERS_FILE, orders);
+
+  if (orders[orderIndex].driver_id) {
+    updateDriverTelemetryInWallet(orders[orderIndex].driver_id, latitude, longitude, { is_online: true, heading, speed_kmh });
+  }
 
   res.json({ success: true, message: 'Lokasi kurir terkirim secara live', data: { latitude, longitude } });
 });
@@ -1501,6 +1552,36 @@ app.post('/api/super-admin/wallet-changes/:id/approve', (req, res) => {
   });
 });
 
+// Super Admin / Owner Menolak Penggantian Rekening Dompet
+app.post('/api/super-admin/wallet-changes/:id/reject', (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body || {};
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.wallet_change_requests) wallets.wallet_change_requests = [];
+
+  const reqIndex = wallets.wallet_change_requests.findIndex(r => r.id === id);
+  if (reqIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Permohonan tidak ditemukan' });
+  }
+
+  const changeReq = wallets.wallet_change_requests[reqIndex];
+  changeReq.status = 'rejected';
+  changeReq.rejected_at = new Date().toISOString();
+  if (reason) changeReq.rejected_reason = String(reason).trim();
+
+  if (wallets.drivers && wallets.drivers[changeReq.driver_id]) {
+    wallets.drivers[changeReq.driver_id].wallet_change_pending = false;
+  }
+
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: 'Permohonan pergantian rekening kurir ditolak.',
+    data: changeReq
+  });
+});
+
 // Verifikasi Biometrik Wajah Kurir (Anti Joki / Pinjam Akun)
 app.post('/api/driver/verify-face', (req, res) => {
   const { driver_id, email, face_image } = req.body;
@@ -1615,6 +1696,12 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   const wallets = readJSON(WALLETS_FILE);
   if (driver_id && wallets.drivers && wallets.drivers[driver_id]) {
     const d = wallets.drivers[driver_id];
+    if (d.is_suspended) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akun kurir Anda sedang dinonaktifkan sementara oleh Owner.'
+      });
+    }
     if (d.biometric_verified === false && d.face_verified === false) {
       return res.status(403).json({
         success: false,
@@ -1650,6 +1737,10 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   orders[orderIndex].manual_gps = !!(driver_latitude && driver_longitude);
 
   writeJSON(ORDERS_FILE, orders);
+  const accOrder = orders[orderIndex];
+  updateDriverTelemetryInWallet(accOrder.driver_id, accOrder.driver_latitude, accOrder.driver_longitude, {
+    is_online: true
+  });
 
   res.json({
     success: true,
@@ -1679,6 +1770,13 @@ app.post('/api/driver/orders/:id/pickup', (req, res) => {
   orders[orderIndex].manual_gps = false; // Reset simulasi perjalanan dari lapak ke rumah
 
   writeJSON(ORDERS_FILE, orders);
+  const pickedOrder = orders[orderIndex];
+  updateDriverTelemetryInWallet(
+    pickedOrder.driver_id,
+    pickedOrder.driver_latitude ?? pickedOrder.branch_latitude,
+    pickedOrder.driver_longitude ?? pickedOrder.branch_longitude,
+    { is_online: true }
+  );
 
   res.json({
     success: true,
@@ -1721,6 +1819,13 @@ app.post('/api/driver/orders/:id/complete', (req, res) => {
   const earnedFee = order.delivery_fee;
   wallets.drivers[driverId].balance += earnedFee;
   wallets.drivers[driverId].trips += 1;
+  wallets.drivers[driverId].is_online = true;
+  wallets.drivers[driverId].last_seen_at = new Date().toISOString();
+  wallets.drivers[driverId].last_speed_kmh = 0;
+  if (order.customer_latitude != null && order.customer_longitude != null) {
+    wallets.drivers[driverId].last_latitude = Number(order.customer_latitude);
+    wallets.drivers[driverId].last_longitude = Number(order.customer_longitude);
+  }
 
   wallets.history.push({
     id: `tx-${Date.now()}`,
@@ -1876,7 +1981,8 @@ app.get('/api/super-admin/summary', (req, res) => {
       total_orders: validOrders.length,
       branches: branchStats,
       drivers: Object.values(wallets.drivers || {}),
-      withdrawals: wallets.withdrawals || []
+      withdrawals: wallets.withdrawals || [],
+      wallet_change_requests: wallets.wallet_change_requests || []
     }
   });
 });
@@ -1898,6 +2004,204 @@ app.post('/api/super-admin/withdrawals/:id/approve', (req, res) => {
   writeJSON(WALLETS_FILE, wallets);
 
   res.json({ success: true, message: 'Penarikan dana disetujui & ditandai sudah ditransfer!' });
+});
+
+// ============================================================================
+// RADAR LALU LINTAS KURIR (ATC FLIGHT RADAR STYLE) & KONTROL ADMIN KURIR
+// ============================================================================
+app.get('/api/super-admin/courier-radar', (req, res) => {
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const orders = readJSON(ORDERS_FILE) || [];
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const driversObj = wallets.drivers || {};
+
+  const defaultBranch = branches[0] || { latitude: -6.33304, longitude: 106.85337 };
+  const baseLat = Number(defaultBranch.latitude) || -6.33304;
+  const baseLng = Number(defaultBranch.longitude) || 106.85337;
+
+  const readyOrdersRaw = orders.filter(o => o.order_type === 'delivery' && o.status === 'ready_for_pickup');
+  const activeOrdersRaw = orders.filter(o => o.order_type === 'delivery' && (o.status === 'accepted' || o.status === 'delivering'));
+
+  const branchById = new Map(branches.map(b => [b.id, b]));
+  const branchRadar = branches.map(b => ({
+    id: b.id,
+    name: b.name,
+    address: b.address || '',
+    phone: b.phone || '',
+    latitude: Number(b.latitude) || baseLat,
+    longitude: Number(b.longitude) || baseLng,
+    ready_count: readyOrdersRaw.filter(o => o.branch_id === b.id).length,
+    active_count: activeOrdersRaw.filter(o => o.branch_id === b.id).length
+  }));
+
+  const ready_orders = readyOrdersRaw.map(o => {
+    const br = branchById.get(o.branch_id);
+    return {
+      id: o.id,
+      branch_id: o.branch_id,
+      branch_name: (br && br.name) || o.branch_name || 'Lapak',
+      customer_name: o.customer_name || 'Pelanggan',
+      delivery_address: o.delivery_address || '',
+      delivery_fee: Number(o.delivery_fee) || 0,
+      total_price: Number(o.total_price) || 0,
+      latitude: Number(o.branch_latitude ?? (br && br.latitude) ?? baseLat),
+      longitude: Number(o.branch_longitude ?? (br && br.longitude) ?? baseLng),
+      customer_latitude: o.customer_latitude != null ? Number(o.customer_latitude) : null,
+      customer_longitude: o.customer_longitude != null ? Number(o.customer_longitude) : null,
+      created_at: o.created_at
+    };
+  });
+
+  const statusOrderWeight = {
+    TO_CUSTOMER: 0,
+    TO_BRANCH: 1,
+    STANDBY: 2,
+    OFFLINE: 3,
+    SUSPENDED: 4
+  };
+
+  const couriers = Object.values(driversObj).map((d, idx) => {
+    const activeOrder = activeOrdersRaw.find(o => o.driver_id === d.id) || null;
+    const isSuspended = Boolean(d.is_suspended);
+
+    let radarStatus = 'OFFLINE';
+    if (isSuspended) radarStatus = 'SUSPENDED';
+    else if (activeOrder && activeOrder.status === 'accepted') radarStatus = 'TO_BRANCH';
+    else if (activeOrder && activeOrder.status === 'delivering') radarStatus = 'TO_CUSTOMER';
+    else if (d.is_online !== false) radarStatus = 'STANDBY';
+
+    const hasLiveGps = d.last_latitude != null && d.last_longitude != null;
+    const angle = idx * 1.4;
+    let lat = hasLiveGps ? Number(d.last_latitude) : baseLat + Math.sin(angle) * 0.0022;
+    let lng = hasLiveGps ? Number(d.last_longitude) : baseLng + Math.cos(angle) * 0.0025;
+    let heading = d.last_heading != null ? Number(d.last_heading) : (idx * 65) % 360;
+    let activeOrderSummary = null;
+
+    if (activeOrder) {
+      const pos = resolveOrderDriverPosition(activeOrder);
+      lat = pos.driverLat;
+      lng = pos.driverLng;
+      const targetLat = activeOrder.status === 'accepted' ? pos.branchLat : pos.custLat;
+      const targetLng = activeOrder.status === 'accepted' ? pos.branchLng : pos.custLng;
+      heading = d.last_heading != null
+        ? Number(d.last_heading)
+        : calculateBearingDeg(lat, lng, targetLat, targetLng);
+
+      const br = branchById.get(activeOrder.branch_id);
+      activeOrderSummary = {
+        id: activeOrder.id,
+        status: activeOrder.status,
+        branch_id: activeOrder.branch_id,
+        branch_name: (br && br.name) || activeOrder.branch_name || 'Lapak',
+        customer_name: activeOrder.customer_name || 'Pelanggan',
+        delivery_address: activeOrder.delivery_address || '',
+        delivery_fee: Number(activeOrder.delivery_fee) || 0,
+        branch_latitude: pos.branchLat,
+        branch_longitude: pos.branchLng,
+        customer_latitude: pos.custLat,
+        customer_longitude: pos.custLng,
+        target_latitude: targetLat,
+        target_longitude: targetLng
+      };
+    }
+
+    return {
+      id: d.id,
+      name: d.name || 'Kurir',
+      phone: d.phone || '',
+      email: d.email || '',
+      vehicle: d.vehicle || 'Motor',
+      vehicle_plate: d.vehicle_plate || '-',
+      balance: Number(d.balance) || 0,
+      trips: Number(d.trips) || 0,
+      is_online: d.is_online !== false,
+      is_suspended: isSuspended,
+      radar_status: radarStatus,
+      latitude: lat,
+      longitude: lng,
+      has_live_gps: hasLiveGps || Boolean(activeOrder),
+      heading,
+      speed_kmh: d.last_speed_kmh != null ? Number(d.last_speed_kmh) : (activeOrder ? 28 : 0),
+      last_seen_at: d.last_seen_at || null,
+      biometric_verified: Boolean(d.biometric_verified),
+      has_device_lock: Boolean(d.registered_device_id),
+      registered_wallet: d.registered_wallet || null,
+      wallet_change_pending: Boolean(d.wallet_change_pending),
+      active_order: activeOrderSummary
+    };
+  }).sort((a, b) => (statusOrderWeight[a.radar_status] ?? 9) - (statusOrderWeight[b.radar_status] ?? 9));
+
+  const stats = {
+    total: couriers.length,
+    to_branch: couriers.filter(c => c.radar_status === 'TO_BRANCH').length,
+    to_customer: couriers.filter(c => c.radar_status === 'TO_CUSTOMER').length,
+    delivering: couriers.filter(c => c.radar_status === 'TO_BRANCH' || c.radar_status === 'TO_CUSTOMER').length,
+    standby: couriers.filter(c => c.radar_status === 'STANDBY').length,
+    offline: couriers.filter(c => c.radar_status === 'OFFLINE').length,
+    suspended: couriers.filter(c => c.radar_status === 'SUSPENDED').length,
+    ready_orders: ready_orders.length
+  };
+
+  res.json({
+    success: true,
+    data: {
+      generated_at: new Date().toISOString(),
+      stats,
+      branches: branchRadar,
+      ready_orders,
+      couriers,
+      wallet_change_requests: wallets.wallet_change_requests || []
+    }
+  });
+});
+
+// Owner Aktifkan / Nonaktifkan (Suspend) Akun Kurir
+app.post('/api/super-admin/drivers/:id/toggle-status', (req, res) => {
+  const { id } = req.params;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers || !wallets.drivers[id]) {
+    return res.status(404).json({ success: false, message: 'Kurir tidak ditemukan' });
+  }
+
+  const driver = wallets.drivers[id];
+  const nextSuspended = req.body && typeof req.body.suspended === 'boolean'
+    ? req.body.suspended
+    : !Boolean(driver.is_suspended);
+
+  driver.is_suspended = nextSuspended;
+  if (nextSuspended) {
+    driver.is_online = false;
+  }
+  driver.status_updated_at = new Date().toISOString();
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: nextSuspended
+      ? `Akun kurir ${driver.name} dinonaktifkan sementara.`
+      : `Akun kurir ${driver.name} diaktifkan kembali.`,
+    data: { id: driver.id, is_suspended: driver.is_suspended }
+  });
+});
+
+// Owner Reset Kunci Perangkat (HP) Kurir
+app.post('/api/super-admin/drivers/:id/reset-device', (req, res) => {
+  const { id } = req.params;
+  const wallets = readJSON(WALLETS_FILE);
+  if (!wallets.drivers || !wallets.drivers[id]) {
+    return res.status(404).json({ success: false, message: 'Kurir tidak ditemukan' });
+  }
+
+  const driver = wallets.drivers[id];
+  driver.registered_device_id = null;
+  driver.device_reset_at = new Date().toISOString();
+  writeJSON(WALLETS_FILE, wallets);
+
+  res.json({
+    success: true,
+    message: `Kunci perangkat HP ${driver.name} berhasil direset.`,
+    data: { id: driver.id, has_device_lock: false }
+  });
 });
 
 // Mulai Server
