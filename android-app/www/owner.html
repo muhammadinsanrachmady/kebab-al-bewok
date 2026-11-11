@@ -333,11 +333,33 @@
     }
 
     /**
-     * Memperpendek nama cabang untuk pill filter agar ringkas (misal "Kebab AL Bewok - Kalisari 3" -> "Kalisari 3").
+     * Memperpendek nama cabang untuk pemilih & label ringkas (misal "Kebab AL Bewok - Kalisari 3" -> "Kalisari 3").
      */
     function shortBranchLabel(name) {
       const text = String(name || 'Cabang');
       return text.includes(' - ') ? text.split(' - ').slice(1).join(' - ') : text;
+    }
+
+    function extractLocationKeywords(name) {
+      return shortBranchLabel(name)
+        .toLowerCase()
+        .replace(/\b(cabang|lapak|outlet|kebab|al|bewok)\b/g, ' ')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .split(/\s+/)
+        .filter(w => w.length >= 3);
+    }
+
+    /**
+     * Memastikan laporan closing cocok dengan branch_id sekaligus tidak bertentangan dengan nama cabang (kasus data lama sebelum cabang diganti nama).
+     */
+    function isOpnameMatchBranch(op, branch) {
+      if (!branch) return true;
+      if (op.branch_id !== branch.branch_id) return false;
+      const targetTokens = extractLocationKeywords(branch.branch_name || '');
+      const opTokens = extractLocationKeywords(op.branch_name || '');
+      if (targetTokens.length === 0 || opTokens.length === 0) return true;
+      return targetTokens.some(token => opTokens.includes(token));
     }
 
     /**
@@ -441,7 +463,7 @@
       const totalOrders = filteredBranches.reduce((sum, b) => sum + (Number(b.order_count) || 0), 0);
 
       const filteredOpnames = activeBranch
-        ? cachedOpnames.filter(op => op.branch_id === activeBranch.branch_id)
+        ? cachedOpnames.filter(op => isOpnameMatchBranch(op, activeBranch))
         : cachedOpnames;
 
       document.getElementById('statTotalFood').innerText = formatRp(totalFood);
