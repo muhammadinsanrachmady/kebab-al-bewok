@@ -87,6 +87,7 @@ const MENU_FILE = path.join(DATA_DIR, 'menu.json');
 const BRANCHES_FILE = path.join(DATA_DIR, 'branches.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const STOCK_OPNAME_FILE = path.join(DATA_DIR, 'stock_opname.json');
+const STOCK_OPENING_FILE = path.join(DATA_DIR, 'stock_opening.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 const WAREHOUSE_FILE = path.join(DATA_DIR, 'warehouse.json');
@@ -1320,12 +1321,12 @@ function getWibDateISO(dateInput = new Date()) {
   return getLocalWibDate(dateInput).toISOString().split('T')[0];
 }
 
-function formatClosingDateId(dateInput = new Date()) {
+function formatClosingDateId(dateInput = new Date(), prefix = 'Closing') {
   const d = getLocalWibDate(dateInput);
   const day = String(d.getUTCDate()).padStart(2, '0');
   const monthName = ID_MONTHS[d.getUTCMonth()] || 'Januari';
   const year = d.getUTCFullYear();
-  return `Closing ${day} ${monthName} ${year}`;
+  return `${prefix} ${day} ${monthName} ${year}`;
 }
 
 function getDefaultBusinessDateISO(now = new Date()) {
@@ -2801,8 +2802,9 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     };
   });
 
-  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Integrasi Sheet HPP Outlet + Opname Kasir + Kiriman Gudang)
+  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Integrasi Sheet HPP Outlet + Opening Harian Owner + Opname Kasir + Kiriman Gudang)
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
+  const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
   const branchEvaluations = branches.map(b => {
     const bOpnames = enrichedOpnames
       .filter(op => op.branch_id === b.id && (!start_date || !end_date || isDateInRange(op.business_date, start_date, end_date)))
@@ -2815,13 +2817,18 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     const latestOpname = bOpnames[bOpnames.length - 1] || allBranchOpnamesSorted[allBranchOpnamesSorted.length - 1] || null;
     const latestIdxAll = latestOpname ? allBranchOpnamesSorted.findIndex(op => op.id === latestOpname.id) : -1;
     const prevOpname = latestIdxAll > 0 ? allBranchOpnamesSorted[latestIdxAll - 1] : null;
+    const matchingOpening = latestOpname
+      ? openingsRaw.find(o => o.branch_id === b.id && o.business_date === latestOpname.business_date)
+      : null;
 
     const restockByItem = {};
     (wh.ledger || []).forEach(tx => {
       if (tx.type !== 'branch_transfer' || tx.branch_id !== b.id) return;
       const txDate = tx.date || getWibDateISO(tx.created_at);
       const matchesEvalWindow = latestOpname
-        ? (prevOpname ? (txDate > prevOpname.business_date && txDate <= latestOpname.business_date) : txDate === latestOpname.business_date)
+        ? (matchingOpening
+            ? txDate === latestOpname.business_date
+            : (prevOpname ? (txDate > prevOpname.business_date && txDate <= latestOpname.business_date) : txDate === latestOpname.business_date))
         : inPeriod(txDate);
       if (matchesEvalWindow) {
         (tx.items || []).forEach(r => {
@@ -2835,9 +2842,14 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     let comparableItemCount = 0;
 
     const materialUsageRows = wh.items.map(it => {
-      const openingQty = prevOpname && prevOpname.stock_items && prevOpname.stock_items[it.id] != null
-        ? Number(prevOpname.stock_items[it.id].physical_count)
+      const openingFromOwner = matchingOpening && matchingOpening.stock_items && matchingOpening.stock_items[it.id] != null
+        ? Number(matchingOpening.stock_items[it.id].opening_count ?? matchingOpening.stock_items[it.id].physical_count)
         : null;
+      const openingQty = openingFromOwner !== null
+        ? openingFromOwner
+        : (prevOpname && prevOpname.stock_items && prevOpname.stock_items[it.id] != null
+            ? Number(prevOpname.stock_items[it.id].physical_count)
+            : null);
       const closingQty = latestOpname && latestOpname.stock_items && latestOpname.stock_items[it.id] != null
         ? Number(latestOpname.stock_items[it.id].physical_count)
         : null;
@@ -2885,9 +2897,9 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     return {
       branch_id: b.id,
       branch_name: b.name,
-      has_opname_pair: Boolean(prevOpname && latestOpname),
+      has_opname_pair: Boolean((matchingOpening || prevOpname) && latestOpname),
       has_latest_opname: Boolean(latestOpname),
-      opening_date: prevOpname ? prevOpname.closing_date : null,
+      opening_date: matchingOpening ? matchingOpening.opening_date : (prevOpname ? prevOpname.closing_date : null),
       closing_date: latestOpname ? latestOpname.closing_date : null,
       business_date: latestOpname ? latestOpname.business_date : null,
       gross_sales: omzet,
@@ -3121,6 +3133,168 @@ app.post('/api/super-admin/warehouse/purchase-orders/:id/cancel', (req, res) => 
   writeJSON(WAREHOUSE_FILE, wh);
 
   res.json({ success: true, message: `PO ${po.id} dibatalkan.`, data: po });
+});
+
+// ============================================================================
+// PORTAL OWNER TAB LAPAK (CABANG): SUB-TAB OPENING HARIAN (CASH & 21 BAHAN)
+// ============================================================================
+app.get('/api/super-admin/stock-opening', (req, res) => {
+  const { branch_id, start_date, end_date } = req.query;
+  const list = readJSON(STOCK_OPENING_FILE, []);
+  let filtered = [...list].sort((a, b) =>
+    (b.business_date || '').localeCompare(a.business_date || '') ||
+    new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
+  );
+  if (branch_id && branch_id !== 'all') {
+    filtered = filtered.filter(item => item.branch_id === branch_id);
+  }
+  if (start_date || end_date) {
+    filtered = filtered.filter(item => isDateInRange(item.business_date || item.date, start_date, end_date));
+  }
+  res.json({ success: true, data: filtered });
+});
+
+app.get('/api/super-admin/stock-opening/prefill', (req, res) => {
+  const { branch_id, business_date } = req.query;
+  const targetDate = business_date || getWibDateISO(new Date());
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const branch = branches.find(b => b.id === branch_id) || branches[0] || null;
+  if (!branch) {
+    return res.status(404).json({ success: false, message: 'Lapak tidak ditemukan' });
+  }
+
+  const openings = readJSON(STOCK_OPENING_FILE, []);
+  const opnames = readJSON(STOCK_OPNAME_FILE, []);
+  const orders = readJSON(ORDERS_FILE, []);
+  const wh = getOrInitWarehouse();
+
+  const existingOpening = openings.find(
+    o => o.branch_id === branch.id && o.business_date === targetDate
+  ) || null;
+
+  const branchClosings = opnames
+    .map(op => enrichOpnameRecord(op, orders))
+    .filter(op => op.branch_id === branch.id && (!targetDate || (op.business_date || '') <= targetDate))
+    .sort((a, b) => (b.business_date || '').localeCompare(a.business_date || ''));
+
+  // Pilih closing sebelumnya (diutamakan yang tanggalnya < targetDate)
+  const prevClosing = branchClosings.find(op => (op.business_date || '') < targetDate)
+    || branchClosings[0]
+    || null;
+
+  const restockToday = {};
+  (wh.ledger || []).forEach(tx => {
+    if (tx.type === 'branch_transfer' && tx.branch_id === branch.id && (tx.date || getWibDateISO(tx.created_at)) === targetDate) {
+      (tx.items || []).forEach(row => {
+        restockToday[row.item_id] = (restockToday[row.item_id] || 0) + (Number(row.qty) || 0);
+      });
+    }
+  });
+
+  res.json({
+    success: true,
+    data: {
+      business_date: targetDate,
+      opening_date: formatClosingDateId(new Date(`${targetDate}T12:00:00Z`), 'Opening'),
+      branch: {
+        id: branch.id,
+        name: branch.name,
+        cash_opening: branch.cash_opening !== undefined ? Number(branch.cash_opening) : 100000
+      },
+      existing_opening: existingOpening,
+      prev_closing: prevClosing ? {
+        id: prevClosing.id,
+        closing_date: prevClosing.closing_date,
+        business_date: prevClosing.business_date,
+        stock_items: prevClosing.stock_items || {}
+      } : null,
+      restock_today: restockToday,
+      master_items: wh.items.map(it => ({
+        no: it.no,
+        id: it.id,
+        category: it.category,
+        name: it.name,
+        unit: it.unit,
+        unit_cost: it.unit_cost
+      }))
+    }
+  });
+});
+
+app.post('/api/super-admin/stock-opening', (req, res) => {
+  const {
+    branch_id,
+    business_date,
+    opening_date,
+    staff_name,
+    cash_opening = 100000,
+    stock_items,
+    notes = ''
+  } = req.body || {};
+
+  if (!branch_id || !stock_items) {
+    return res.status(400).json({ success: false, message: 'Lapak cabang dan stok opening bahan baku wajib diisi.' });
+  }
+
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const branchIndex = branches.findIndex(b => b.id === branch_id);
+  if (branchIndex === -1) {
+    return res.status(404).json({ success: false, message: 'Cabang lapak tidak ditemukan.' });
+  }
+
+  const now = new Date();
+  const resolvedDate = business_date || getWibDateISO(now);
+  const formattedOpeningDate = opening_date || formatClosingDateId(new Date(`${resolvedDate}T12:00:00Z`), 'Opening');
+  const cleanCashOpening = Math.max(0, Number(cash_opening) || 0);
+
+  const openings = readJSON(STOCK_OPENING_FILE, []);
+  const existingIdx = openings.findIndex(o =>
+    o.branch_id === branch_id && o.business_date === resolvedDate
+  );
+  const prev = existingIdx >= 0 ? openings[existingIdx] : {};
+
+  const record = {
+    id: prev.id || `opening-${Date.now()}`,
+    branch_id,
+    branch_name: branches[branchIndex].name,
+    staff_name: (staff_name || '').trim() || 'Owner / Supervisor',
+    opening_date: formattedOpeningDate,
+    business_date: resolvedDate,
+    cash_opening: cleanCashOpening,
+    stock_items,
+    notes: String(notes || '').trim(),
+    created_at: prev.created_at || now.toISOString(),
+    updated_at: now.toISOString()
+  };
+
+  if (existingIdx >= 0) {
+    openings[existingIdx] = record;
+  } else {
+    openings.unshift(record);
+  }
+  writeJSON(STOCK_OPENING_FILE, openings);
+
+  // Sinkronkan juga modal awal Cash Opening ke data cabang aktif agar kasir lapak langsung membacanya
+  branches[branchIndex].cash_opening = cleanCashOpening;
+  writeJSON(BRANCHES_FILE, branches);
+
+  res.json({
+    success: true,
+    message: `Opening Harian (${formattedOpeningDate}) untuk ${branches[branchIndex].name} berhasil disimpan!`,
+    data: record
+  });
+});
+
+app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
+  const { id } = req.params;
+  const openings = readJSON(STOCK_OPENING_FILE, []);
+  const idx = openings.findIndex(o => o.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Data opening harian tidak ditemukan.' });
+  }
+  const removed = openings.splice(idx, 1)[0];
+  writeJSON(STOCK_OPENING_FILE, openings);
+  res.json({ success: true, message: `Opening "${removed.opening_date}" berhasil dihapus.` });
 });
 
 // Mulai Server

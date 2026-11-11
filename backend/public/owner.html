@@ -230,23 +230,181 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 2: LAPAK                                                        -->
+    <!-- TAB 2: LAPAK (CABANG & OPENING HARIAN CABANG)                       -->
     <!-- =================================================================== -->
     <section id="tabView-lapak" class="owner-tab-view hidden space-y-3">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Kelola Lapak & Modal Awal</h2>
-            <p class="text-[11px] text-slate-500">Tambah lapak baru, atur Cash Opening, PIN kasir, QRIS & jam buka</p>
-          </div>
-          <button type="button" onclick="openBranchModal('create')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
-            <i class="fa-solid fa-plus text-[11px]"></i>
-            <span>Tambah Lapak</span>
+      <!-- SUB-TAB NAVIGASI CABANG -->
+      <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
+          <button type="button" data-lapak-subtab="branches" onclick="setLapakSubtab('branches')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition">
+            <i class="fa-solid fa-store text-[10px]"></i>
+            <span>Daftar Cabang</span>
           </button>
+          <button type="button" data-lapak-subtab="opening" onclick="setLapakSubtab('opening')" class="px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+            <i class="fa-solid fa-clipboard-list text-[10px]"></i>
+            <span>Opening Harian</span>
+          </button>
+        </div>
+
+        <button type="button" onclick="openBranchModal('create')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
+          <i class="fa-solid fa-plus text-[11px]"></i>
+          <span>Tambah Lapak</span>
+        </button>
+      </div>
+
+      <!-- SUBTAB 1: KELOLA LAPAK & MODAL AWAL -->
+      <div id="lapakPanel-branches" class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+          <div>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Kelola Lapak &amp; Modal Awal</h2>
+            <p class="text-[11px] text-slate-500">Tambah lapak baru, atur Cash Opening, PIN kasir, QRIS &amp; jam buka</p>
+          </div>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Multi-Outlet</span>
         </div>
 
         <div id="branchListContainer" class="space-y-2.5">
           <div class="text-center py-6 text-slate-500 text-xs">Memuat daftar lapak...</div>
+        </div>
+      </div>
+
+      <!-- SUBTAB 2: OPENING HARIAN CABANG (SEPERTI STOCK OPNAME LAPAK) -->
+      <div id="lapakPanel-opening" class="hidden space-y-3">
+        <!-- HEADER OPENING HARIAN -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/60 border border-amber-500/30 rounded-2xl p-3.5 space-y-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="openingStatusBadge" class="bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide inline-flex items-center gap-1">
+                  <i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (21 Bahan)
+                </span>
+                <span id="openingFormattedDatePill" class="text-[11px] font-bold text-amber-300">Opening Hari Ini</span>
+              </div>
+              <h2 class="text-sm md:text-base font-extrabold text-slate-100">Opening Harian &amp; Modal Awal Gerai</h2>
+              <p class="text-[11px] text-slate-400">Tetapkan Cash Opening &amp; stok awal 21 bahan baku per lapak (terhubung ke Kasir &amp; HPP Gudang).</p>
+            </div>
+
+            <button type="button" onclick="pullPrevClosingIntoOpening()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/35 text-[11px] font-bold flex items-center gap-1.5 transition shrink-0">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Tarik Sisa Closing Kemarin</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. INFORMASI GERAI, TANGGAL & CASH OPENING -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+          <div class="flex items-center gap-2.5 border-b border-slate-800/80 pb-2.5">
+            <div class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shrink-0">1</div>
+            <div>
+              <h3 class="font-bold text-xs md:text-sm text-slate-100">Informasi Gerai &amp; Modal Awal</h3>
+              <p class="text-[11px] text-slate-500">Pilih cabang lapak, tanggal opening, dan modal awal kasir</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">
+                <i class="fa-solid fa-store text-amber-400 mr-1"></i>Cabang / Lapak
+              </label>
+              <select id="openingBranchSelect" onchange="onOpeningScopeChange()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-amber-500 cursor-pointer">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">
+                <i class="fa-solid fa-calendar-day text-amber-400 mr-1"></i>Tanggal Opening
+              </label>
+              <input type="date" id="openingDateInput" onchange="onOpeningScopeChange()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-amber-500">
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1 flex items-center justify-between">
+                <span><i class="fa-solid fa-wallet text-emerald-400 mr-1"></i>Cash Opening</span>
+                <span class="text-[9px] text-amber-400 font-bold">Auto Sinkron Lapak</span>
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-2 text-xs font-bold text-slate-500 select-none">Rp</span>
+                <input type="number" id="openingCashInput" min="0" value="100000" oninput="updateOpeningSummaryCounters()" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs font-bold text-emerald-400 font-mono outline-none focus:border-amber-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">
+                <i class="fa-solid fa-user-check text-sky-400 mr-1"></i>Petugas / Kasir Shift
+              </label>
+              <input type="text" id="openingStaffInput" placeholder="Contoh: Budi Kasir / Owner" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div id="openingPrefillHintBar" class="hidden text-[11px] bg-slate-950/75 border border-slate-800 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-slate-300">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- 2. HITUNG / TETAPKAN STOK AWAL BAHAN BAKU GERAI (21 BAHAN PER KATEGORI) -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-extrabold text-xs shrink-0">2</div>
+              <div>
+                <h3 class="font-bold text-xs md:text-sm text-slate-100">Stok Awal Bahan Baku Gerai (21 Bahan)</h3>
+                <p class="text-[11px] text-slate-500">Dikelompokkan per kategori seperti pada form Stock Opname Kasir Lapak</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input type="text" id="openingSearchInput" oninput="renderOpeningItemsForm()" placeholder="Cari bahan..." class="w-36 sm:w-44 bg-slate-950 border border-slate-800 focus:border-amber-500/60 rounded-xl px-2.5 py-1 text-xs text-slate-100 placeholder-slate-500 outline-none">
+              <span class="text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold px-2.5 py-1 rounded-full shrink-0">21 Bahan</span>
+            </div>
+          </div>
+
+          <div id="openingItemsGroupedContainer" class="space-y-3">
+            <!-- 6 Kategori 21 Bahan rendered via JS -->
+          </div>
+        </div>
+
+        <!-- 3. RINGKASAN & SIMPAN OPENING HARIAN -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+              <span class="text-[10px] font-bold uppercase text-amber-300/80 block">Cash Opening (Modal Laci Awal)</span>
+              <div id="openingCashSummaryDisplay" class="text-lg font-extrabold text-amber-400 font-mono tabular-nums mt-0.5">Rp 100.000</div>
+              <span class="text-[10px] text-slate-400 block">Otomatis dikunci baca oleh kasir saat closing nanti</span>
+            </div>
+            <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-3">
+              <span class="text-[10px] font-bold uppercase text-slate-400 block">Kelengkapan Stok Awal 21 Bahan</span>
+              <div id="openingFilledCountDisplay" class="text-lg font-extrabold text-emerald-400 font-mono tabular-nums mt-0.5">0 / 21 Bahan</div>
+              <span class="text-[10px] text-slate-500 block">Acuan stok awal perhitungan HPP &amp; pemakaian harian</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">Catatan Opening Harian (Opsional)</label>
+            <textarea id="openingNotesInput" rows="2" placeholder="Contoh: Modal kas & stok awal shift pagi sudah dicek sebelum buka." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500"></textarea>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>Data Opening Harian otomatis dipakai tab Gudang untuk evaluasi HPP lapak.</span>
+            <button type="button" onclick="submitOwnerOpening()" id="btnSubmitOwnerOpening" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition active:scale-95">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>SIMPAN OPENING HARIAN</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. RIWAYAT OPENING HARIAN CABANG -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+            <div>
+              <h3 class="text-xs md:text-sm font-bold text-slate-100"><i class="fa-solid fa-clock-rotate-left text-amber-400 mr-1.5"></i>Riwayat Opening Harian Cabang</h3>
+              <p class="text-[11px] text-slate-500">Klik baris opening untuk melihat rincian 21 bahan atau muat ulang ke form</p>
+            </div>
+            <button type="button" onclick="fetchOpeningHistory()" class="text-[11px] text-amber-400 hover:underline font-semibold">Refresh</button>
+          </div>
+
+          <div id="openingHistoryList" class="space-y-2">
+            <div class="text-center py-6 text-xs text-slate-500">Memuat riwayat opening harian...</div>
+          </div>
         </div>
       </div>
     </section>
@@ -1111,6 +1269,13 @@
     const whTxDraftCost = new Map();
     const whPoDraftQty = new Map();
 
+    // State Sub-Tab Opening Harian (di Tab Lapak / Cabang)
+    let currentLapakSubtab = 'branches';
+    let cachedOpenings = [];
+    let currentOpeningPrefill = null;
+    const openingDraftValues = new Map();
+    const expandedOpeningCards = new Set();
+
     const RADAR_STATUS_META = {
       TO_CUSTOMER: {
         label: 'ANTAR KONSUMEN',
@@ -1314,7 +1479,9 @@
         }, 150);
       } else {
         stopCourierRadarPolling();
-        if (targetTab === 'costumer') {
+        if (targetTab === 'lapak') {
+          initOpeningTabIfNeeded();
+        } else if (targetTab === 'costumer') {
           fetchCustomersData();
         } else if (targetTab === 'gudang') {
           fetchWarehouseData();
@@ -1330,6 +1497,16 @@
       renderBranchSelectOptions();
       renderOmzetMetricsAndOpnames();
       renderBranchesTable();
+      if (selectedBranchId !== 'all') {
+        const opBranchSel = document.getElementById('openingBranchSelect');
+        if (opBranchSel && opBranchSel.value !== selectedBranchId) {
+          opBranchSel.value = selectedBranchId;
+          if (currentOwnerTab === 'lapak' && currentLapakSubtab === 'opening') {
+            loadOpeningPrefill();
+          }
+        }
+      }
+      renderOpeningHistoryList();
     }
 
     /**
@@ -1355,13 +1532,30 @@
         }
       });
 
+      const openingBranchSel = document.getElementById('openingBranchSelect');
+      if (openingBranchSel) {
+        const prevOpeningBranch = openingBranchSel.value;
+        openingBranchSel.innerHTML = branches.map(b => `
+          <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
+            ${escapeHtml(shortBranchLabel(b.branch_name))}
+          </option>
+        `).join('');
+        if (selectedBranchId !== 'all' && branches.some(b => b.branch_id === selectedBranchId)) {
+          openingBranchSel.value = selectedBranchId;
+        } else if (prevOpeningBranch && branches.some(b => b.branch_id === prevOpeningBranch)) {
+          openingBranchSel.value = prevOpeningBranch;
+        } else if (branches.length > 0) {
+          openingBranchSel.value = branches[0].branch_id;
+        }
+      }
+
       if (badge) {
         badge.innerText = selectedBranchId === 'all' ? `${branches.length} LAPAK` : 'TERPILIH';
       }
     }
 
     async function fetchAllData() {
-      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData(), fetchWarehouseData()]);
+      await Promise.all([fetchSummary(), fetchStockOpnames(), fetchCustomersData(), fetchWarehouseData(), fetchOpeningHistory()]);
     }
 
     async function fetchSummary() {
@@ -1529,6 +1723,9 @@
 
             <!-- AKSI KELOLA LAPAK -->
             <div class="flex flex-wrap items-center justify-end gap-1.5 pt-1.5 border-t border-slate-800/70">
+              <button type="button" onclick="openBranchDailyOpening('${escapeHtml(b.branch_id)}')" class="bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-amber-500/30 transition">
+                <i class="fa-solid fa-clipboard-list mr-1"></i>Opening Harian
+              </button>
               <button type="button" onclick="openBranchModal('edit', '${escapeHtml(b.branch_id)}')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-700 transition">
                 <i class="fa-solid fa-pen-to-square mr-1"></i>Edit Lapak
               </button>
@@ -4010,6 +4207,397 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    // =========================================================================
+    // TAB LAPAK (CABANG): SUB-TAB OPENING HARIAN (SEPERTI STOCK OPNAME LAPAK)
+    // =========================================================================
+    const OPENING_CATEGORY_META = [
+      { category: 'Kemasan', label: '🛍️ Bungkus / Kemasan' },
+      { category: 'Tortilla', label: '🥙 Tortilla' },
+      { category: 'Daging & Protein', label: '🥩 Daging & Protein' },
+      { category: 'Sayuran & Buah', label: '🥬 Sayuran & Buah' },
+      { category: 'Saus & Condiment', label: '🥫 Saus & Condiment' },
+      { category: 'Topping Tambahan', label: '🧀 Topping Tambahan' }
+    ];
+
+    function setLapakSubtab(subtab) {
+      currentLapakSubtab = subtab === 'opening' ? 'opening' : 'branches';
+      ['branches', 'opening'].forEach(key => {
+        const btn = document.querySelector(`[data-lapak-subtab="${key}"]`);
+        const panel = document.getElementById(`lapakPanel-${key}`);
+        const isActive = key === currentLapakSubtab;
+        if (btn) {
+          btn.className = isActive
+            ? 'px-3 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition'
+            : 'px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition';
+        }
+        if (panel) panel.classList.toggle('hidden', !isActive);
+      });
+
+      if (currentLapakSubtab === 'opening') {
+        initOpeningTabIfNeeded();
+      }
+    }
+
+    function openBranchDailyOpening(branchId) {
+      const sel = document.getElementById('openingBranchSelect');
+      if (sel && branchId) sel.value = branchId;
+      setLapakSubtab('opening');
+    }
+
+    function initOpeningTabIfNeeded() {
+      const dateEl = document.getElementById('openingDateInput');
+      if (dateEl && !dateEl.value) {
+        dateEl.value = getWibTodayISO();
+      }
+      if (currentLapakSubtab === 'opening') {
+        loadOpeningPrefill();
+        fetchOpeningHistory();
+      }
+    }
+
+    function onOpeningScopeChange() {
+      loadOpeningPrefill();
+    }
+
+    async function loadOpeningPrefill() {
+      const branchSel = document.getElementById('openingBranchSelect');
+      const dateEl = document.getElementById('openingDateInput');
+      const branchId = (branchSel && branchSel.value) || '';
+      const dateVal = (dateEl && dateEl.value) || getWibTodayISO();
+      if (!branchId) return;
+
+      try {
+        const res = await fetch(`/api/super-admin/stock-opening/prefill?branch_id=${encodeURIComponent(branchId)}&business_date=${encodeURIComponent(dateVal)}`).then(r => r.json());
+        if (!res.success || !res.data) return;
+
+        currentOpeningPrefill = res.data;
+        openingDraftValues.clear();
+
+        const existing = res.data.existing_opening;
+        const cashEl = document.getElementById('openingCashInput');
+        const staffEl = document.getElementById('openingStaffInput');
+        const notesEl = document.getElementById('openingNotesInput');
+        const statusBadge = document.getElementById('openingStatusBadge');
+        const datePill = document.getElementById('openingFormattedDatePill');
+        const hintBar = document.getElementById('openingPrefillHintBar');
+
+        if (datePill) datePill.innerText = res.data.opening_date || dateVal;
+
+        if (existing) {
+          if (cashEl) cashEl.value = existing.cash_opening ?? res.data.branch.cash_opening;
+          if (staffEl) staffEl.value = existing.staff_name || '';
+          if (notesEl) notesEl.value = existing.notes || '';
+          Object.entries(existing.stock_items || {}).forEach(([id, obj]) => {
+            const val = obj.opening_count ?? obj.physical_count;
+            if (val !== undefined && val !== null) openingDraftValues.set(id, Number(val));
+          });
+          if (statusBadge) {
+            statusBadge.className = 'bg-sky-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide inline-flex items-center gap-1';
+            statusBadge.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Tersimpan (${escapeHtml(existing.opening_date)})`;
+          }
+        } else {
+          if (cashEl) cashEl.value = res.data.branch.cash_opening ?? 100000;
+          if (notesEl) notesEl.value = '';
+          if (statusBadge) {
+            statusBadge.className = 'bg-emerald-500 text-slate-950 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wide inline-flex items-center gap-1';
+            statusBadge.innerHTML = `<i class="fa-solid fa-clipboard-check"></i> Form Siap Diisi (21 Bahan)`;
+          }
+        }
+
+        if (hintBar) {
+          const prevC = res.data.prev_closing;
+          const restockTotalItems = Object.values(res.data.restock_today || {}).filter(v => v > 0).length;
+          const parts = [];
+          if (prevC) parts.push(`<span><i class="fa-solid fa-clock-rotate-left text-amber-400 mr-1"></i>Closing Sebelumnya: <b class="text-slate-100">${escapeHtml(prevC.closing_date)}</b></span>`);
+          else parts.push(`<span class="text-slate-500">Belum ada closing sebelumnya untuk lapak ini.</span>`);
+          if (restockTotalItems > 0) {
+            parts.push(`<button type="button" onclick="addWarehouseRestockToOpening()" class="px-2.5 py-0.5 rounded-lg bg-sky-500/15 hover:bg-sky-500 text-sky-300 hover:text-slate-950 border border-sky-500/30 font-bold text-[10px] transition">+ Tambah Restock Gudang Hari Ini (${restockTotalItems} item)</button>`);
+          }
+          hintBar.innerHTML = parts.join('');
+          hintBar.classList.remove('hidden');
+        }
+
+        renderOpeningItemsForm();
+        updateOpeningSummaryCounters();
+      } catch (err) {
+        console.error('Gagal memuat prefill opening harian:', err);
+      }
+    }
+
+    function pullPrevClosingIntoOpening() {
+      if (!currentOpeningPrefill || !currentOpeningPrefill.prev_closing) {
+        alert('Belum ada data closing opname sebelumnya untuk cabang ini.');
+        return;
+      }
+      const prevItems = currentOpeningPrefill.prev_closing.stock_items || {};
+      let pulled = 0;
+      (currentOpeningPrefill.master_items || []).forEach(it => {
+        if (prevItems[it.id] && prevItems[it.id].physical_count != null) {
+          openingDraftValues.set(it.id, Number(prevItems[it.id].physical_count) || 0);
+          pulled += 1;
+        }
+      });
+      renderOpeningItemsForm();
+      updateOpeningSummaryCounters();
+      alert(`✅ ${pulled} bahan diisi dari sisa closing "${currentOpeningPrefill.prev_closing.closing_date}".`);
+    }
+
+    function addWarehouseRestockToOpening() {
+      if (!currentOpeningPrefill || !currentOpeningPrefill.restock_today) return;
+      const restockMap = currentOpeningPrefill.restock_today;
+      let updated = 0;
+      (currentOpeningPrefill.master_items || []).forEach(it => {
+        const addQty = Number(restockMap[it.id]) || 0;
+        if (addQty > 0) {
+          const base = Number(openingDraftValues.get(it.id)) || 0;
+          openingDraftValues.set(it.id, base + addQty);
+          updated += 1;
+        }
+      });
+      if (updated > 0) {
+        renderOpeningItemsForm();
+        updateOpeningSummaryCounters();
+        alert(`✅ Berhasil menambahkan kiriman Gudang Pusat pada ${updated} bahan ke stok opening.`);
+      }
+    }
+
+    function renderOpeningItemsForm() {
+      const container = document.getElementById('openingItemsGroupedContainer');
+      if (!container || !currentOpeningPrefill) return;
+
+      const q = (document.getElementById('openingSearchInput')?.value || '').trim().toLowerCase();
+      const master = currentOpeningPrefill.master_items || [];
+      const prevItems = (currentOpeningPrefill.prev_closing && currentOpeningPrefill.prev_closing.stock_items) || {};
+      const restockMap = currentOpeningPrefill.restock_today || {};
+
+      const groupsHtml = OPENING_CATEGORY_META.map(catMeta => {
+        const groupItems = master.filter(it =>
+          it.category === catMeta.category &&
+          (!q || it.name.toLowerCase().includes(q) || it.category.toLowerCase().includes(q))
+        );
+        if (groupItems.length === 0) return '';
+
+        const cardsHtml = groupItems.map(it => {
+          const val = openingDraftValues.has(it.id) ? openingDraftValues.get(it.id) : '';
+          const prevQty = prevItems[it.id] && prevItems[it.id].physical_count != null ? Number(prevItems[it.id].physical_count) : null;
+          const restockQty = Number(restockMap[it.id]) || 0;
+          const safeId = escapeJsArg(it.id);
+
+          return `
+            <div class="p-2.5 rounded-xl border border-slate-800 bg-slate-950/75 hover:border-amber-500/40 transition space-y-1.5">
+              <div class="flex items-start justify-between gap-1.5">
+                <span class="font-bold text-xs text-slate-100 leading-tight">${it.no}. ${escapeHtml(it.name)}</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold shrink-0">${escapeHtml(it.unit)}</span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                <span class="text-slate-500">Closing lalu: <b class="text-slate-300 tabular-nums">${prevQty !== null ? prevQty.toLocaleString('id-ID') : '-'}</b></span>
+                ${restockQty > 0 ? `<span class="text-sky-400 font-semibold">+Gudang: ${restockQty.toLocaleString('id-ID')}</span>` : ''}
+              </div>
+
+              <div class="relative">
+                <input type="number" min="0" placeholder="0" value="${val}" oninput="onOpeningItemInput('${safeId}', this.value)" class="w-full bg-slate-900 border border-slate-700 focus:border-amber-500 rounded-xl pl-3 pr-14 py-1.5 text-xs font-bold text-amber-300 text-right font-mono outline-none">
+                <span class="absolute right-3 top-1.5 text-[10px] font-semibold text-slate-500 pointer-events-none">${escapeHtml(it.unit)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-extrabold text-amber-300 uppercase tracking-wide flex items-center justify-between border-b border-slate-800/70 pb-1">
+              <span>${catMeta.label}</span>
+              <span class="text-[10px] text-slate-500 font-semibold">${groupItems.length} item</span>
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              ${cardsHtml}
+            </div>
+          </div>
+        `;
+      }).filter(Boolean).join('');
+
+      container.innerHTML = groupsHtml || `<div class="text-center py-6 text-xs text-slate-500">Tidak ada bahan baku yang cocok dengan pencarian.</div>`;
+    }
+
+    function onOpeningItemInput(itemId, rawVal) {
+      if (rawVal === '' || rawVal === null) {
+        openingDraftValues.delete(itemId);
+      } else {
+        const num = Number(rawVal);
+        if (!Number.isNaN(num) && num >= 0) openingDraftValues.set(itemId, num);
+      }
+      updateOpeningSummaryCounters();
+    }
+
+    function updateOpeningSummaryCounters() {
+      const cashVal = Number(document.getElementById('openingCashInput')?.value) || 0;
+      const cashDisplay = document.getElementById('openingCashSummaryDisplay');
+      const countDisplay = document.getElementById('openingFilledCountDisplay');
+      const totalItems = (currentOpeningPrefill && currentOpeningPrefill.master_items) ? currentOpeningPrefill.master_items.length : 21;
+
+      if (cashDisplay) cashDisplay.innerText = formatRp(cashVal);
+      if (countDisplay) countDisplay.innerText = `${openingDraftValues.size} / ${totalItems} Bahan`;
+    }
+
+    async function submitOwnerOpening() {
+      const branchId = document.getElementById('openingBranchSelect')?.value;
+      const dateVal = document.getElementById('openingDateInput')?.value || getWibTodayISO();
+      const cashOpening = Number(document.getElementById('openingCashInput')?.value) || 0;
+      const staffName = document.getElementById('openingStaffInput')?.value.trim() || 'Owner';
+      const notes = document.getElementById('openingNotesInput')?.value.trim() || '';
+
+      if (!branchId || !currentOpeningPrefill) {
+        alert('❌ Pilih lapak cabang terlebih dahulu.');
+        return;
+      }
+
+      const stock_items = {};
+      (currentOpeningPrefill.master_items || []).forEach(it => {
+        const qty = openingDraftValues.has(it.id) ? openingDraftValues.get(it.id) : 0;
+        stock_items[it.id] = {
+          name: it.name,
+          unit: it.unit,
+          opening_count: qty
+        };
+      });
+
+      const btn = document.getElementById('btnSubmitOwnerOpening');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Menyimpan...</span>`;
+      try {
+        const res = await fetch('/api/super-admin/stock-opening', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            branch_id: branchId,
+            business_date: dateVal,
+            opening_date: currentOpeningPrefill.opening_date,
+            staff_name: staffName,
+            cash_opening: cashOpening,
+            stock_items,
+            notes
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          alert('✅ ' + res.message);
+          await fetchAllData();
+          loadOpeningPrefill();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyimpan Opening Harian'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i><span>SIMPAN OPENING HARIAN</span>`;
+      }
+    }
+
+    async function fetchOpeningHistory() {
+      try {
+        const res = await fetch(`/api/super-admin/stock-opening${buildDateQueryString()}`).then(r => r.json());
+        if (res.success && Array.isArray(res.data)) {
+          cachedOpenings = res.data;
+          renderOpeningHistoryList();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil riwayat opening harian:', err);
+      }
+    }
+
+    function toggleOpeningCard(id) {
+      toggleAccordionSection(expandedOpeningCards, id, 'opening_card_body', 'opening_card_chevron');
+    }
+
+    function renderOpeningHistoryList() {
+      const container = document.getElementById('openingHistoryList');
+      if (!container) return;
+
+      const list = selectedBranchId === 'all'
+        ? cachedOpenings
+        : cachedOpenings.filter(op => op.branch_id === selectedBranchId);
+
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-xs text-slate-500">Belum ada catatan Opening Harian pada filter lapak ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map((op, idx) => {
+        const opId = escapeHtml(op.id || `opn_${idx}`);
+        const isOpen = expandedOpeningCards.has(opId);
+        const items = op.stock_items || {};
+        const itemEntries = Object.entries(items);
+        const safeIdArg = escapeJsArg(op.id);
+        const safeLblArg = escapeJsArg(op.opening_date || 'Opening Harian');
+
+        return `
+          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl overflow-hidden">
+            <button type="button" onclick="toggleOpeningCard('${opId}')" class="w-full px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 text-left hover:bg-slate-900/70 transition">
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0">
+                <span class="font-bold text-amber-400">${escapeHtml(op.opening_date || op.business_date)}</span>
+                <span class="text-slate-600">•</span>
+                <span class="font-semibold text-slate-200">${escapeHtml(shortBranchLabel(op.branch_name || op.branch_id))}</span>
+                <span class="text-[11px] text-slate-500">(${escapeHtml(op.staff_name || 'Owner')})</span>
+              </div>
+              <div class="flex items-center gap-2 shrink-0 ml-auto">
+                <span class="text-[11px] text-slate-400">Cash <b class="text-emerald-400 tabular-nums">${formatRp(op.cash_opening)}</b></span>
+                <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-semibold">${itemEntries.length} Bahan</span>
+                <i id="opening_card_chevron_${opId}" class="fa-solid fa-chevron-down text-[10px] text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}"></i>
+              </div>
+            </button>
+
+            <div id="opening_card_body_${opId}" class="${isOpen ? '' : 'hidden'} px-3 pb-3 pt-2 border-t border-slate-800/70 space-y-2.5 bg-slate-900/40">
+              ${op.notes ? `<p class="text-[11px] text-slate-300 italic bg-slate-950/60 border border-slate-800 rounded-lg px-2.5 py-1.5">"${escapeHtml(op.notes)}"</p>` : ''}
+
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
+                ${itemEntries.map(([, val]) => `
+                  <div class="bg-slate-950/75 border border-slate-800/80 rounded-lg px-2 py-1 flex items-center justify-between gap-1 text-[10px]">
+                    <span class="text-slate-400 truncate">${escapeHtml(val.name)}</span>
+                    <span class="font-bold text-slate-100 tabular-nums shrink-0">${Number(val.opening_count ?? val.physical_count ?? 0).toLocaleString('id-ID')} ${escapeHtml(val.unit || '')}</span>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="flex items-center justify-end gap-1.5 pt-1">
+                <button type="button" onclick="loadSavedOpeningIntoForm('${safeIdArg}')" class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-[10px] font-bold transition">
+                  <i class="fa-solid fa-pen-to-square mr-1"></i>Muat ke Form
+                </button>
+                <button type="button" onclick="deleteOpeningReport('${safeIdArg}', '${safeLblArg}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 text-[10px] font-semibold transition">
+                  <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function loadSavedOpeningIntoForm(openingId) {
+      const op = cachedOpenings.find(o => o.id === openingId);
+      if (!op) return;
+      const sel = document.getElementById('openingBranchSelect');
+      const dateEl = document.getElementById('openingDateInput');
+      if (sel) sel.value = op.branch_id;
+      if (dateEl && op.business_date) dateEl.value = op.business_date;
+      loadOpeningPrefill();
+      document.getElementById('lapakPanel-opening')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function deleteOpeningReport(openingId, label) {
+      if (!confirm(`Hapus catatan "${label}"?`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/stock-opening/${encodeURIComponent(openingId)}`, { method: 'DELETE' }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchAllData();
+          loadOpeningPrefill();
+        }
+      } catch (err) {
+        alert('❌ Gagal menghapus opening harian');
+      }
     }
 
     async function approveWithdrawal(id) {
