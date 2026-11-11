@@ -1288,9 +1288,16 @@
           attributionControl: false
         }).setView([-6.33304, 106.85337], 13);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          subdomains: 'abcd',
+        // Basemap radar gelap bebas API key & tanpa watermark (Esri Dark Gray Canvas + Label Wilayah)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+          maxNativeZoom: 16,
           maxZoom: 19
+        }).addTo(radarMap);
+
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+          maxNativeZoom: 16,
+          maxZoom: 19,
+          opacity: 0.9
         }).addTo(radarMap);
 
         radarLayersGroup = L.layerGroup().addTo(radarMap);
