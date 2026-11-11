@@ -24,6 +24,25 @@ function sanitizeCustomer(cust) {
   return safe;
 }
 
+function getOrderFoodAmount(o) {
+  if (!o) return 0;
+  if (o.food_subtotal != null) return Number(o.food_subtotal) || 0;
+  return Math.max(0, (Number(o.total_payment ?? o.total_price) || 0) - (Number(o.delivery_fee) || 0));
+}
+
+function getOrderTotalPaid(o) {
+  if (!o) return 0;
+  const direct = Number(o.total_payment ?? o.total_price);
+  if (!Number.isNaN(direct) && direct > 0) return direct;
+  return getOrderFoodAmount(o) + (Number(o.delivery_fee) || 0);
+}
+
+function isDeliveryOrder(o) {
+  if (!o) return false;
+  if (o.order_type === 'offline' || o.destination_type === 'offline_store') return false;
+  return o.order_type === 'delivery' || (Number(o.delivery_fee) || 0) > 0 || Boolean(o.delivery_address || o.customer_address);
+}
+
 function findCustomerEntry(wallets, identifier) {
   const customers = (wallets && wallets.customers) || {};
   const raw = String(identifier || '').trim();
@@ -2435,8 +2454,8 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
   const baseLat = Number(defaultBranch.latitude) || -6.33304;
   const baseLng = Number(defaultBranch.longitude) || 106.85337;
 
-  const readyOrdersRaw = orders.filter(o => o.order_type === 'delivery' && o.status === 'ready_for_pickup');
-  const activeOrdersRaw = orders.filter(o => o.order_type === 'delivery' && (o.status === 'accepted' || o.status === 'delivering'));
+  const readyOrdersRaw = orders.filter(o => isDeliveryOrder(o) && o.status === 'ready_for_pickup');
+  const activeOrdersRaw = orders.filter(o => isDeliveryOrder(o) && (o.status === 'accepted' || o.status === 'delivering'));
 
   const branchById = new Map(branches.map(b => [b.id, b]));
   const branchRadar = branches.map(b => ({
@@ -2459,7 +2478,7 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
       customer_name: o.customer_name || 'Pelanggan',
       delivery_address: o.delivery_address || '',
       delivery_fee: Number(o.delivery_fee) || 0,
-      total_price: Number(o.total_price) || 0,
+      total_price: getOrderTotalPaid(o),
       latitude: Number(o.branch_latitude ?? (br && br.latitude) ?? baseLat),
       longitude: Number(o.branch_longitude ?? (br && br.longitude) ?? baseLng),
       customer_latitude: o.customer_latitude != null ? Number(o.customer_latitude) : null,
@@ -2647,13 +2666,13 @@ app.get('/api/super-admin/customers', (req, res) => {
     });
 
     matchedOrders.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    const totalSpent = matchedOrders.reduce((sum, o) => sum + (Number(o.total_price) || 0), 0);
+    const totalSpent = matchedOrders.reduce((sum, o) => sum + getOrderTotalPaid(o), 0);
     const recentOrders = matchedOrders.slice(0, 5).map(o => ({
       id: o.id,
       branch_name: branchNameById.get(o.branch_id) || o.branch_name || o.branch_id || 'Lapak',
-      total_price: Number(o.total_price) || 0,
+      total_price: getOrderTotalPaid(o),
       status: o.status,
-      order_type: o.order_type || 'delivery',
+      order_type: isDeliveryOrder(o) ? 'delivery' : 'offline',
       created_at: o.created_at
     }));
 
@@ -3560,7 +3579,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
       const cl = bPeriodOpnames.find(op => op.business_date === d);
       const dayOrdRev = bPeriodOrders
         .filter(o => getWibDateISO(o.created_at) === d)
-        .reduce((s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)), 0);
+        .reduce((s, o) => s + getOrderFoodAmount(o), 0);
       const clRev = cl ? (Number(cl.total_omzet) || 0) : 0;
       const dayOmzet = cl ? Math.max(clRev, dayOrdRev) : dayOrdRev;
       omzet += dayOmzet;
@@ -3573,7 +3592,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
     });
 
     const ordFoodSum = bPeriodOrders.reduce(
-      (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+      (s, o) => s + getOrderFoodAmount(o),
       0
     );
     const ordersCount = bPeriodOrders.length;
@@ -3612,12 +3631,12 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const total_hpp = activeBranches.reduce((s, b) => s + b.hpp, 0);
   const gross_profit = total_omzet - total_hpp;
   const scopedFoodTotal = scopedOrders.reduce(
-    (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+    (s, o) => s + getOrderFoodAmount(o),
     0
   );
   const total_orders = scopedOrders.length;
   const avg_order_value = total_orders > 0 ? Math.round(scopedFoodTotal / total_orders) : 0;
-  const delivery_count = scopedOrders.filter(o => o.order_type === 'delivery').length;
+  const delivery_count = scopedOrders.filter(o => isDeliveryOrder(o)).length;
   const pos_count = total_orders - delivery_count;
   const food_cost_ratio = total_omzet > 0 && total_hpp > 0 ? Number(((total_hpp / total_omzet) * 100).toFixed(1)) : null;
 
@@ -3657,7 +3676,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
       const cl = periodOpnamesAll.find(op => op.branch_id === b.id && op.business_date === d);
       const dayOrders = periodOrdersAll.filter(o => o.branch_id === b.id && getWibDateISO(o.created_at) === d);
       const dayOrdRev = dayOrders.reduce(
-        (s, o) => s + Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0)),
+        (s, o) => s + getOrderFoodAmount(o),
         0
       );
       const dayOmzet = cl ? Math.max(Number(cl.total_omzet) || 0, dayOrdRev) : dayOrdRev;
@@ -3692,7 +3711,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
   scopedOrders.forEach(o => {
     const key = `${o.branch_id}__${getWibDateISO(o.created_at)}`;
     if (!closedKeys.has(key)) {
-      const amt = Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0));
+      const amt = getOrderFoodAmount(o);
       if (o.payment_method === 'cash') channelAcc.cash += amt;
       else if (o.payment_method === 'qris_statis' || o.payment_method === 'customer_balance') channelAcc.bca_qris += amt;
       else channelAcc.live_unclosed += amt;
@@ -3795,7 +3814,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
     }
     const b = hourBuckets.get(hr);
     b.order_count += 1;
-    b.revenue += Math.max(0, (Number(o.total_price) || 0) - (Number(o.delivery_fee) || 0));
+    b.revenue += getOrderFoodAmount(o);
   });
   const peak_hours = Array.from(hourBuckets.values()).sort((a, z) => a.hour - z.hour);
 
@@ -3841,7 +3860,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
     }
     const c = custOrderAgg.get(key);
     c.order_count += 1;
-    c.total_spent += Number(o.total_price) || 0;
+    c.total_spent += getOrderTotalPaid(o);
   });
   const buyersList = Array.from(custOrderAgg.values());
   const repeatCount = buyersList.filter(b => b.order_count > 1).length;
