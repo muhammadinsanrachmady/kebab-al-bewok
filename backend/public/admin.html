@@ -995,10 +995,14 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <!-- CLOSING DATE -->
           <div>
-            <label class="text-[11px] font-bold text-slate-700 block mb-1">
-              <i class="fa-solid fa-calendar-day mr-1 text-amber-600"></i> Tanggal Closing:
+            <label class="text-[11px] font-bold text-slate-700 block mb-1 flex items-center justify-between">
+              <span><i class="fa-solid fa-calendar-day mr-1 text-amber-600"></i> Tanggal Closing:</span>
+              <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Otomatis Sesi</span>
             </label>
-            <input type="text" id="opnameClosingDate" placeholder="Closing 07 November 2026" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none focus:border-amber-500 font-bold">
+            <div class="flex items-center gap-1.5">
+              <input type="text" id="opnameClosingDate" readonly placeholder="Closing 07 November 2026" class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-black text-slate-900 outline-none">
+              <input type="date" id="opnameBusinessDatePicker" onchange="onOpnameDatePickerChange(this.value)" title="Ubah tanggal closing" class="w-10 shrink-0 bg-white border border-slate-300 rounded-xl px-2 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-amber-500 cursor-pointer">
+            </div>
           </div>
 
           <!-- CASH OPENING (MODAL AWAL DIISI OWNER - HANYA BACA DI LAPAK) -->
@@ -4039,17 +4043,41 @@
       { id: 'tortilla_reguler_22cm', name: 'Tortilla Reguler 22 cm', unit: 'lembar', key_count: 'tortilla_reguler' }
     ];
 
-    function getDefaultClosingDateString() {
+    const ID_MONTHS_OPNAME = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    let isOpnameDateManuallyPicked = false;
+
+    function getDefaultBusinessDateISO() {
       const now = new Date();
-      // Jika dibuka dini hari s/d siang (sebelum 15:00), sesi ini adalah closing hari kemarin
       if (now.getHours() < 15) {
         now.setDate(now.getDate() - 1);
       }
-      const day = String(now.getDate()).padStart(2, '0');
-      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-      const monthName = months[now.getMonth()];
-      const year = now.getFullYear();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatClosingDateFromISO(isoStr) {
+      if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) {
+        return getDefaultClosingDateString();
+      }
+      const [year, monthNum, day] = isoStr.split('-');
+      const monthName = ID_MONTHS_OPNAME[Number(monthNum) - 1] || 'Januari';
       return `Closing ${day} ${monthName} ${year}`;
+    }
+
+    function getDefaultClosingDateString() {
+      const iso = getDefaultBusinessDateISO();
+      const [year, monthNum, day] = iso.split('-');
+      const monthName = ID_MONTHS_OPNAME[Number(monthNum) - 1] || 'Januari';
+      return `Closing ${day} ${monthName} ${year}`;
+    }
+
+    function onOpnameDatePickerChange(isoStr) {
+      if (!isoStr) return;
+      isOpnameDateManuallyPicked = true;
+      const closingInput = document.getElementById('opnameClosingDate');
+      if (closingInput) closingInput.value = formatClosingDateFromISO(isoStr);
     }
 
     function isCurrentTimeOpnameUnlocked() {
@@ -4175,10 +4203,15 @@
       }
       updateOpnameCountdown();
 
-      // Set default closing date jika kosong
+      // Selalu sinkronkan tanggal closing otomatis mengikuti sesi berjalan kecuali dipilih manual
+      const defaultIso = getDefaultBusinessDateISO();
+      const pickerInput = document.getElementById('opnameBusinessDatePicker');
       const closingInput = document.getElementById('opnameClosingDate');
-      if (closingInput && !closingInput.value) {
-        closingInput.value = getDefaultClosingDateString();
+      if (!isOpnameDateManuallyPicked) {
+        if (pickerInput) pickerInput.value = defaultIso;
+        if (closingInput) closingInput.value = formatClosingDateFromISO(defaultIso);
+      } else if (closingInput && !closingInput.value) {
+        closingInput.value = formatClosingDateFromISO(pickerInput ? pickerInput.value : defaultIso);
       }
 
       // Set branch Kalisari
@@ -4361,6 +4394,7 @@
           branch_name: branchName,
           staff_name: currentKitchenStaff ? (currentKitchenStaff.name || 'Kasir') : 'Kasir Lapak',
           closing_date: closingDate,
+          business_date: (document.getElementById('opnameBusinessDatePicker') && document.getElementById('opnameBusinessDatePicker').value) || getDefaultBusinessDateISO(),
           cash_opening: cashOpening,
           omzet_cash: omzetCash,
           omzet_bca: omzetBca,

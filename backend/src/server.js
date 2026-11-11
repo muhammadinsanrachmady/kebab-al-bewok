@@ -926,27 +926,147 @@ app.post('/api/admin/orders/offline', (req, res) => {
   });
 });
 
-// Ambil Riwayat Laporan Stock Opname Lapak
-app.get('/api/admin/stock-opname', (req, res) => {
-  const { branch_id } = req.query;
-  const list = readJSON(STOCK_OPNAME_FILE);
-  
-  const now = new Date();
-  // Tambahkan status lock dinamis berdasarkan deadline 15:00 WIB hari berikutnya
-  const enriched = list.map(item => {
-    let isLocked = false;
-    if (item.lock_deadline) {
-      isLocked = now.getTime() > new Date(item.lock_deadline).getTime();
+const ID_MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+function getLocalWibDate(dateInput = new Date()) {
+  const utcMs = new Date(dateInput).getTime();
+  return new Date(utcMs + 7 * 60 * 60 * 1000);
+}
+
+function getWibDateISO(dateInput = new Date()) {
+  if (!dateInput) return '';
+  return getLocalWibDate(dateInput).toISOString().split('T')[0];
+}
+
+function formatClosingDateId(dateInput = new Date()) {
+  const d = getLocalWibDate(dateInput);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const monthName = ID_MONTHS[d.getUTCMonth()] || 'Januari';
+  const year = d.getUTCFullYear();
+  return `Closing ${day} ${monthName} ${year}`;
+}
+
+function getDefaultBusinessDateISO(now = new Date()) {
+  const wib = getLocalWibDate(now);
+  if (wib.getUTCHours() < 15) {
+    wib.setUTCDate(wib.getUTCDate() - 1);
+  }
+  return wib.toISOString().split('T')[0];
+}
+
+function parseClosingDateToISO(closingDateStr, fallbackISO) {
+  if (closingDateStr) {
+    const match = String(closingDateStr).match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+    if (match) {
+      const day = match[1].padStart(2, '0');
+      const monthIdx = ID_MONTHS.findIndex(m => m.toLowerCase() === match[2].toLowerCase());
+      if (monthIdx >= 0) {
+        return `${match[3]}-${String(monthIdx + 1).padStart(2, '0')}-${day}`;
+      }
     }
-    return {
-      ...item,
-      is_locked: isLocked
-    };
+  }
+  return fallbackISO || getDefaultBusinessDateISO();
+}
+
+function isDateInRange(dateISO, startDate, endDate) {
+  if (!dateISO) return !startDate && !endDate;
+  if (startDate && dateISO < startDate) return false;
+  if (endDate && dateISO > endDate) return false;
+  return true;
+}
+
+function summarizePosOrders(ordersList) {
+  let foodRev = 0;
+  let delivFee = 0;
+  let cashRev = 0;
+  let qrisRev = 0;
+  let onlineCount = 0;
+  let offlineCount = 0;
+
+  ordersList.forEach(o => {
+    const food = Number(o.food_subtotal) || 0;
+    const deliv = Number(o.delivery_fee) || 0;
+    const total = Number(o.total_payment) || (food + deliv);
+    const method = (o.payment_method || '').toLowerCase();
+
+    foodRev += food;
+    delivFee += deliv;
+    if (method.includes('cash') || method.includes('tunai')) {
+      cashRev += total;
+    } else {
+      qrisRev += total;
+    }
+    if (o.order_type === 'offline') {
+      offlineCount++;
+    } else {
+      onlineCount++;
+    }
   });
 
-  if (branch_id) {
-    return res.json({ success: true, data: enriched.filter(op => op.branch_id === branch_id) });
+  return {
+    order_count: ordersList.length,
+    food_revenue: foodRev,
+    delivery_fee_held: delivFee,
+    cash_revenue: cashRev,
+    qris_revenue: qrisRev,
+    online_count: onlineCount,
+    offline_count: offlineCount
+  };
+}
+
+function enrichOpnameRecord(item, orders, now = new Date()) {
+  const businessDate = item.business_date || parseClosingDateToISO(item.closing_date, item.date);
+  let isLocked = false;
+  if (item.manual_locked) {
+    isLocked = true;
+  } else if (item.manual_unlocked) {
+    isLocked = false;
+  } else if (item.lock_deadline) {
+    isLocked = now.getTime() > new Date(item.lock_deadline).getTime();
   }
+
+  // Cocokkan transaksi POS pada tanggal bisnis & cabang yang sama untuk audit selisih kas/QRIS
+  const matchingOrders = (orders || []).filter(o =>
+    o.branch_id === item.branch_id &&
+    o.status !== 'pending_payment' &&
+    o.status !== 'cancelled' &&
+    getWibDateISO(o.created_at) === businessDate
+  );
+  const posSummary = summarizePosOrders(matchingOrders);
+  const omzetCash = Number(item.omzet_cash) || 0;
+  const omzetBca = Number(item.omzet_bca) || 0;
+
+  return {
+    ...item,
+    business_date: businessDate,
+    is_locked: isLocked,
+    pos_audit: {
+      order_count: posSummary.order_count,
+      pos_cash_total: posSummary.cash_revenue,
+      pos_qris_total: posSummary.qris_revenue,
+      pos_food_total: posSummary.food_revenue,
+      diff_cash: omzetCash - posSummary.cash_revenue,
+      diff_bca: omzetBca - posSummary.qris_revenue
+    }
+  };
+}
+
+// Ambil Riwayat Laporan Stock Opname Lapak
+app.get('/api/admin/stock-opname', (req, res) => {
+  const { branch_id, start_date, end_date } = req.query;
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const orders = readJSON(ORDERS_FILE);
+  const now = new Date();
+
+  let enriched = list.map(item => enrichOpnameRecord(item, orders, now));
+
+  if (branch_id && branch_id !== 'all') {
+    enriched = enriched.filter(op => op.branch_id === branch_id);
+  }
+  if (start_date || end_date) {
+    enriched = enriched.filter(op => isDateInRange(op.business_date, start_date, end_date));
+  }
+
   res.json({ success: true, data: enriched });
 });
 
@@ -957,6 +1077,7 @@ app.post('/api/admin/stock-opname', (req, res) => {
     branch_name,
     staff_name,
     closing_date,
+    business_date,
     cash_opening = 100000,
     omzet_cash = 0,
     omzet_bca = 0,
@@ -978,21 +1099,26 @@ app.post('/api/admin/stock-opname', (req, res) => {
   const now = new Date();
 
   // Hitung lock_deadline: Jam 15:00 WIB pada hari berikutnya
-  // Jika input dilakukan jam 22:30 malam, deadline adalah jam 15:00 besok
-  // Jika input dini hari sebelum jam 15:00, deadline adalah jam 15:00 hari ini
-  const deadline = new Date();
-  if (now.getHours() >= 15) {
-    // Malam hari (>= 15:00), deadline adalah besok jam 15:00
+  const deadline = new Date(now);
+  if (getLocalWibDate(now).getUTCHours() >= 15) {
     deadline.setDate(deadline.getDate() + 1);
   }
   deadline.setHours(15, 0, 0, 0);
 
-  // Cek apakah ada record yang sama untuk branch_id dan closing_date
-  const existingIndex = list.findIndex(op => op.branch_id === branch_id && op.closing_date === closing_date);
+  const formattedClosingDate = closing_date || formatClosingDateId(business_date || getDefaultBusinessDateISO(now));
+  const resolvedBusinessDate = business_date || parseClosingDateToISO(formattedClosingDate, getDefaultBusinessDateISO(now));
+
+  // Cek apakah ada record yang sama untuk branch_id dan closing_date / business_date
+  const existingIndex = list.findIndex(op =>
+    op.branch_id === branch_id &&
+    (op.closing_date === formattedClosingDate || (op.business_date && op.business_date === resolvedBusinessDate))
+  );
 
   if (existingIndex >= 0 && !is_bypass) {
     const existing = list[existingIndex];
-    if (existing.lock_deadline && now.getTime() > new Date(existing.lock_deadline).getTime()) {
+    const isCurrentlyLocked = existing.manual_locked ||
+      (!existing.manual_unlocked && existing.lock_deadline && now.getTime() > new Date(existing.lock_deadline).getTime());
+    if (isCurrentlyLocked) {
       return res.status(403).json({
         success: false,
         message: 'Laporan stock opname ini sudah terkunci permanen sejak pukul 15:00 WIB dan tidak dapat diubah lagi.'
@@ -1000,18 +1126,22 @@ app.post('/api/admin/stock-opname', (req, res) => {
     }
   }
 
-  const formattedClosingDate = closing_date || `Closing ${String(now.getDate()).padStart(2, '0')} November ${now.getFullYear()}`;
-
+  const prev = existingIndex >= 0 ? list[existingIndex] : {};
   const opnameRecord = {
-    id: existingIndex >= 0 ? list[existingIndex].id : `opname-${Date.now()}`,
+    id: prev.id || `opname-${Date.now()}`,
     branch_id,
     branch_name: branch_name || 'Kalisari',
     staff_name: staff_name || 'Kasir Lapak',
     closing_date: formattedClosingDate,
-    date: now.toISOString().split('T')[0],
-    created_at: existingIndex >= 0 ? list[existingIndex].created_at : now.toISOString(),
+    business_date: resolvedBusinessDate,
+    date: getWibDateISO(now),
+    created_at: prev.created_at || now.toISOString(),
     updated_at: now.toISOString(),
-    lock_deadline: deadline.toISOString(),
+    lock_deadline: prev.lock_deadline || deadline.toISOString(),
+    manual_unlocked: Boolean(prev.manual_unlocked),
+    manual_locked: Boolean(prev.manual_locked),
+    owner_verified: Boolean(prev.owner_verified),
+    owner_verified_at: prev.owner_verified_at || null,
     cash_opening: Number(cash_opening) || 100000,
     omzet_cash: Number(omzet_cash) || 0,
     omzet_bca: Number(omzet_bca) || 0,
@@ -1038,6 +1168,76 @@ app.post('/api/admin/stock-opname', (req, res) => {
     success: true,
     message: 'Laporan Stock Opname Harian berhasil dikirim ke Dashboard Owner!',
     data: opnameRecord
+  });
+});
+
+// Owner Verifikasi Setoran Closing Harian
+app.post('/api/super-admin/stock-opname/:id/verify', (req, res) => {
+  const { id } = req.params;
+  const { verified } = req.body || {};
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const idx = list.findIndex(op => op.id === id);
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
+  }
+
+  const nextVerified = verified !== undefined ? Boolean(verified) : !Boolean(list[idx].owner_verified);
+  list[idx].owner_verified = nextVerified;
+  list[idx].owner_verified_at = nextVerified ? new Date().toISOString() : null;
+  writeJSON(STOCK_OPNAME_FILE, list);
+
+  res.json({
+    success: true,
+    message: nextVerified ? 'Setoran closing berhasil diverifikasi Owner.' : 'Verifikasi setoran dibatalkan.',
+    data: list[idx]
+  });
+});
+
+// Owner Buka Kunci / Kunci Manual Laporan Closing (Override jam 15:00 WIB)
+app.post('/api/super-admin/stock-opname/:id/toggle-lock', (req, res) => {
+  const { id } = req.params;
+  const { unlock } = req.body || {};
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const idx = list.findIndex(op => op.id === id);
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
+  }
+
+  const now = new Date();
+  const currentlyLocked = list[idx].manual_locked ||
+    (!list[idx].manual_unlocked && list[idx].lock_deadline && now.getTime() > new Date(list[idx].lock_deadline).getTime());
+  const shouldUnlock = unlock !== undefined ? Boolean(unlock) : currentlyLocked;
+
+  list[idx].manual_unlocked = shouldUnlock;
+  list[idx].manual_locked = !shouldUnlock;
+  writeJSON(STOCK_OPNAME_FILE, list);
+
+  res.json({
+    success: true,
+    message: shouldUnlock ? 'Kunci laporan dibuka sementara agar kasir bisa merevisi.' : 'Laporan berhasil dikunci oleh Owner.',
+    data: list[idx]
+  });
+});
+
+// Owner Hapus Laporan Closing (untuk membersihkan data uji/salah input)
+app.delete('/api/super-admin/stock-opname/:id', (req, res) => {
+  const { id } = req.params;
+  const list = readJSON(STOCK_OPNAME_FILE);
+  const idx = list.findIndex(op => op.id === id);
+
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
+  }
+
+  const [removed] = list.splice(idx, 1);
+  writeJSON(STOCK_OPNAME_FILE, list);
+
+  res.json({
+    success: true,
+    message: `Laporan "${removed.closing_date || removed.id}" berhasil dihapus.`,
+    data: removed
   });
 });
 
@@ -1582,31 +1782,44 @@ app.post('/api/driver/wallet/withdraw', (req, res) => {
   });
 });
 
-// Ringkasan Finansial Seluruh Cabang & Tagihan Titipan Ongkir
+// Ringkasan Finansial Seluruh Cabang & Tagihan Titipan Ongkir (Mendukung Filter Tanggal)
 app.get('/api/super-admin/summary', (req, res) => {
+  const { start_date, end_date } = req.query;
   const branches = readJSON(BRANCHES_FILE);
   const orders = readJSON(ORDERS_FILE);
   const wallets = readJSON(WALLETS_FILE);
+
+  const validOrders = orders.filter(o => {
+    if (o.status === 'pending_payment' || o.status === 'cancelled') return false;
+    if (start_date || end_date) {
+      return isDateInRange(getWibDateISO(o.created_at), start_date, end_date);
+    }
+    return true;
+  });
 
   let total_food_revenue = 0;
   let total_delivery_fees = 0;
 
   const branchStats = branches.map(b => {
-    const branchOrders = orders.filter(o => o.branch_id === b.id && o.status !== 'pending_payment' && o.status !== 'cancelled');
-    const foodRev = branchOrders.reduce((sum, o) => sum + (o.food_subtotal || 0), 0);
-    const delivFee = branchOrders.reduce((sum, o) => sum + (o.delivery_fee || 0), 0);
+    const branchOrders = validOrders.filter(o => o.branch_id === b.id);
+    const pos = summarizePosOrders(branchOrders);
 
-    total_food_revenue += foodRev;
-    total_delivery_fees += delivFee;
+    total_food_revenue += pos.food_revenue;
+    total_delivery_fees += pos.delivery_fee_held;
 
     return {
       branch_id: b.id,
       branch_name: b.name,
       address: b.address,
+      is_open: b.is_open !== false,
       cash_opening: b.cash_opening !== undefined ? b.cash_opening : 100000,
-      order_count: branchOrders.length,
-      food_revenue: foodRev,
-      delivery_fee_held: delivFee // Ini uang ongkir kurir yang harus disetorkan cabang ke Pusat!
+      order_count: pos.order_count,
+      food_revenue: pos.food_revenue,
+      delivery_fee_held: pos.delivery_fee_held,
+      cash_revenue: pos.cash_revenue,
+      qris_revenue: pos.qris_revenue,
+      online_count: pos.online_count,
+      offline_count: pos.offline_count
     };
   });
 
@@ -1615,7 +1828,7 @@ app.get('/api/super-admin/summary', (req, res) => {
     data: {
       total_food_revenue,
       total_delivery_fees,
-      total_orders: orders.length,
+      total_orders: validOrders.length,
       branches: branchStats,
       drivers: Object.values(wallets.drivers || {}),
       withdrawals: wallets.withdrawals || []

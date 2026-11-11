@@ -105,16 +105,49 @@
     <!-- =================================================================== -->
     <!-- TAB 1: OMZET                                                        -->
     <!-- =================================================================== -->
-    <section id="tabView-omzet" class="owner-tab-view space-y-3.5">
+    <section id="tabView-omzet" class="owner-tab-view space-y-3">
+      <!-- FILTER PERIODE & EXPORT -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-xl p-1 overflow-x-auto no-scrollbar">
+          <button type="button" data-period-tab="today" onclick="selectOmzetPeriod('today')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 shrink-0 transition">Hari Ini</button>
+          <button type="button" data-period-tab="7d" onclick="selectOmzetPeriod('7d')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 shrink-0 transition">7 Hari</button>
+          <button type="button" data-period-tab="month" onclick="selectOmzetPeriod('month')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">Bulan Ini</button>
+          <button type="button" data-period-tab="all" onclick="selectOmzetPeriod('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 shrink-0 transition">Semua</button>
+          <button type="button" data-period-tab="custom" onclick="selectOmzetPeriod('custom')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 shrink-0 transition">Tanggal</button>
+        </div>
+
+        <button type="button" onclick="exportOmzetCsv()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-800 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 transition shrink-0">
+          <i class="fa-solid fa-file-csv text-emerald-400"></i>
+          <span>Export CSV</span>
+        </button>
+      </div>
+
+      <!-- RENTANG TANGGAL CUSTOM -->
+      <div id="customPeriodRow" class="hidden bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex flex-wrap items-center gap-2 text-[11px]">
+        <span class="text-slate-400 font-medium">Rentang:</span>
+        <input type="date" id="omzetStartDate" onchange="applyCustomDateRange()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 outline-none focus:border-amber-500">
+        <span class="text-slate-600">s/d</span>
+        <input type="date" id="omzetEndDate" onchange="applyCustomDateRange()" class="bg-slate-950 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 outline-none focus:border-amber-500">
+      </div>
+
       <!-- METRIK RINGKAS & MINIMALIS -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
           <div class="flex items-center justify-between text-[11px] text-slate-400">
-            <span>Omzet Bersih</span>
+            <span>Omzet Closing</span>
             <i class="fa-solid fa-coins text-amber-400/70 text-[11px]"></i>
           </div>
-          <div id="statTotalFood" class="text-base md:text-lg font-extrabold text-amber-400 tabular-nums mt-1">Rp 0</div>
-          <div id="statFoodHint" class="text-[10px] text-slate-500 truncate mt-0.5">Semua lapak</div>
+          <div id="statTotalClosingOmzet" class="text-base md:text-lg font-extrabold text-amber-400 tabular-nums mt-1">Rp 0</div>
+          <div id="statPosHint" class="text-[10px] text-slate-500 truncate mt-0.5">POS Sistem: Rp 0</div>
+        </div>
+
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>Total Setor Kas</span>
+            <i class="fa-solid fa-wallet text-emerald-400/70 text-[11px]"></i>
+          </div>
+          <div id="statTotalSetorKas" class="text-base md:text-lg font-extrabold text-emerald-400 tabular-nums mt-1">Rp 0</div>
+          <div id="statVerifiedHint" class="text-[10px] text-slate-500 truncate mt-0.5">0/0 terverifikasi</div>
         </div>
 
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
@@ -128,21 +161,17 @@
 
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
           <div class="flex items-center justify-between text-[11px] text-slate-400">
-            <span>Transaksi</span>
-            <i class="fa-solid fa-receipt text-emerald-400/70 text-[11px]"></i>
+            <span>Order POS & Web</span>
+            <i class="fa-solid fa-receipt text-sky-400/70 text-[11px]"></i>
           </div>
-          <div id="statTotalOrders" class="text-base md:text-lg font-extrabold text-emerald-400 tabular-nums mt-1">0</div>
-          <div class="text-[10px] text-slate-500 truncate mt-0.5">Pesanan selesai</div>
+          <div id="statTotalOrders" class="text-base md:text-lg font-extrabold text-slate-100 tabular-nums mt-1">0</div>
+          <div id="statOrdersSplitHint" class="text-[10px] text-slate-500 truncate mt-0.5">Cash Rp 0 • QRIS Rp 0</div>
         </div>
+      </div>
 
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
-          <div class="flex items-center justify-between text-[11px] text-slate-400">
-            <span>Laporan Closing</span>
-            <i class="fa-solid fa-clipboard-check text-sky-400/70 text-[11px]"></i>
-          </div>
-          <div id="statTotalOpname" class="text-base md:text-lg font-extrabold text-slate-100 tabular-nums mt-1">0</div>
-          <div class="text-[10px] text-slate-500 truncate mt-0.5">Setoran & stok harian</div>
-        </div>
+      <!-- RINGKASAN OMZET PER SALURAN -->
+      <div id="omzetChannelBreakdown" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+        <!-- Render via JS -->
       </div>
 
       <!-- DAFTAR CLOSING & SETORAN OMZET -->
@@ -150,14 +179,14 @@
         <div class="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
           <div>
             <h2 class="text-xs md:text-sm font-bold text-slate-100">Rekap Closing & Setoran Harian</h2>
-            <p class="text-[11px] text-slate-500">Klik baris closing untuk buka/tutup rincian omzet & 21 bahan</p>
+            <p class="text-[11px] text-slate-500">Klik baris closing untuk audit POS, verifikasi setoran, & 21 bahan</p>
           </div>
           <select id="opnameBranchSelect" onchange="selectOwnerBranch(this.value)" aria-label="Filter Lapak Closing" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-200 border border-slate-700 outline-none cursor-pointer transition shrink-0">
             <option value="all" class="bg-slate-900 text-slate-100">Semua Lapak</option>
           </select>
         </div>
 
-        <div id="opnameContainer" class="space-y-2.5">
+        <div id="opnameContainer" class="space-y-2">
           <div class="text-center py-6 text-slate-500 text-xs">Memuat laporan closing...</div>
         </div>
       </div>
@@ -312,9 +341,12 @@
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
     const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
     const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative';
+    const PERIOD_ACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition';
+    const PERIOD_INACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition';
 
     let currentOwnerTab = 'omzet';
     let selectedBranchId = 'all';
+    let currentOmzetPeriod = 'month';
     let cachedSummary = null;
     let cachedOpnames = [];
     const expandedOpnameCards = new Set();
@@ -330,6 +362,75 @@
 
     function formatRp(num) {
       return `Rp ${(Number(num) || 0).toLocaleString('id-ID')}`;
+    }
+
+    function getWibTodayISO() {
+      const wib = new Date(Date.now() + 7 * 60 * 60 * 1000);
+      return wib.toISOString().split('T')[0];
+    }
+
+    function shiftIsoDays(isoDate, deltaDays) {
+      const d = new Date(`${isoDate}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + deltaDays);
+      return d.toISOString().split('T')[0];
+    }
+
+    function getPeriodDateRange() {
+      const today = getWibTodayISO();
+      if (currentOmzetPeriod === 'today') {
+        return { start_date: today, end_date: today };
+      }
+      if (currentOmzetPeriod === '7d') {
+        return { start_date: shiftIsoDays(today, -6), end_date: today };
+      }
+      if (currentOmzetPeriod === 'month') {
+        const [y, m] = today.split('-');
+        return { start_date: `${y}-${m}-01`, end_date: `${y}-${m}-31` };
+      }
+      if (currentOmzetPeriod === 'custom') {
+        const start = (document.getElementById('omzetStartDate') && document.getElementById('omzetStartDate').value) || '';
+        const end = (document.getElementById('omzetEndDate') && document.getElementById('omzetEndDate').value) || '';
+        return { start_date: start, end_date: end };
+      }
+      return { start_date: '', end_date: '' };
+    }
+
+    function buildDateQueryString() {
+      const { start_date, end_date } = getPeriodDateRange();
+      const params = new URLSearchParams();
+      if (start_date) params.set('start_date', start_date);
+      if (end_date) params.set('end_date', end_date);
+      const q = params.toString();
+      return q ? `?${q}` : '';
+    }
+
+    function selectOmzetPeriod(period) {
+      currentOmzetPeriod = period || 'month';
+      document.querySelectorAll('[data-period-tab]').forEach(btn => {
+        const isActive = btn.getAttribute('data-period-tab') === currentOmzetPeriod;
+        btn.className = isActive ? PERIOD_ACTIVE_CLASS : PERIOD_INACTIVE_CLASS;
+      });
+
+      const customRow = document.getElementById('customPeriodRow');
+      if (customRow) {
+        const isCustom = currentOmzetPeriod === 'custom';
+        customRow.classList.toggle('hidden', !isCustom);
+        if (isCustom) {
+          const today = getWibTodayISO();
+          const startEl = document.getElementById('omzetStartDate');
+          const endEl = document.getElementById('omzetEndDate');
+          if (startEl && !startEl.value) startEl.value = shiftIsoDays(today, -6);
+          if (endEl && !endEl.value) endEl.value = today;
+        }
+      }
+
+      fetchAllData();
+    }
+
+    function applyCustomDateRange() {
+      if (currentOmzetPeriod === 'custom') {
+        fetchAllData();
+      }
     }
 
     /**
@@ -436,10 +537,9 @@
 
     async function fetchSummary() {
       try {
-        const res = await fetch('/api/super-admin/summary').then(r => r.json());
+        const res = await fetch(`/api/super-admin/summary${buildDateQueryString()}`).then(r => r.json());
         if (res.success) {
           cachedSummary = res.data;
-          // Reset ke 'all' bila cabang terpilih sudah tidak ada
           if (selectedBranchId !== 'all' && !(cachedSummary.branches || []).some(b => b.branch_id === selectedBranchId)) {
             selectedBranchId = 'all';
           }
@@ -453,24 +553,73 @@
       }
     }
 
+    function getFilteredOpnames() {
+      const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
+      const activeBranch = selectedBranchId === 'all' ? null : branches.find(b => b.branch_id === selectedBranchId);
+      return activeBranch
+        ? cachedOpnames.filter(op => isOpnameMatchBranch(op, activeBranch))
+        : cachedOpnames;
+    }
+
     function renderOmzetMetricsAndOpnames() {
       const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
       const activeBranch = selectedBranchId === 'all' ? null : branches.find(b => b.branch_id === selectedBranchId);
       const filteredBranches = activeBranch ? [activeBranch] : branches;
 
-      const totalFood = filteredBranches.reduce((sum, b) => sum + (Number(b.food_revenue) || 0), 0);
-      const totalDelivery = filteredBranches.reduce((sum, b) => sum + (Number(b.delivery_fee_held) || 0), 0);
-      const totalOrders = filteredBranches.reduce((sum, b) => sum + (Number(b.order_count) || 0), 0);
+      const posFood = filteredBranches.reduce((sum, b) => sum + (Number(b.food_revenue) || 0), 0);
+      const posDelivery = filteredBranches.reduce((sum, b) => sum + (Number(b.delivery_fee_held) || 0), 0);
+      const posOrders = filteredBranches.reduce((sum, b) => sum + (Number(b.order_count) || 0), 0);
+      const posCash = filteredBranches.reduce((sum, b) => sum + (Number(b.cash_revenue) || 0), 0);
+      const posQris = filteredBranches.reduce((sum, b) => sum + (Number(b.qris_revenue) || 0), 0);
 
-      const filteredOpnames = activeBranch
-        ? cachedOpnames.filter(op => isOpnameMatchBranch(op, activeBranch))
-        : cachedOpnames;
+      const filteredOpnames = getFilteredOpnames();
+      const closingTotals = filteredOpnames.reduce((acc, op) => {
+        const open = Number(op.cash_opening) || 100000;
+        const cash = Number(op.omzet_cash) || 0;
+        const bca = Number(op.omzet_bca) || 0;
+        const go = Number(op.omzet_gofood) || 0;
+        const grab = Number(op.omzet_grabfood) || 0;
+        const shopee = Number(op.omzet_shopeefood) || 0;
+        const omzet = Number(op.total_omzet) || (cash + bca + go + grab + shopee);
+        const setor = Number(op.total_setor_kas) || (open + cash);
 
-      document.getElementById('statTotalFood').innerText = formatRp(totalFood);
-      document.getElementById('statFoodHint').innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : 'Semua lapak';
-      document.getElementById('statTotalDelivery').innerText = formatRp(totalDelivery);
-      document.getElementById('statTotalOrders').innerText = `${totalOrders}`;
-      document.getElementById('statTotalOpname').innerText = `${filteredOpnames.length}`;
+        acc.omzet += omzet;
+        acc.setor += setor;
+        acc.opening += open;
+        acc.cash += cash;
+        acc.bca += bca;
+        acc.gofood += go;
+        acc.grabfood += grab;
+        acc.shopeefood += shopee;
+        if (op.owner_verified) acc.verified++;
+        return acc;
+      }, { omzet: 0, setor: 0, opening: 0, cash: 0, bca: 0, gofood: 0, grabfood: 0, shopee: 0, verified: 0 });
+
+      document.getElementById('statTotalClosingOmzet').innerText = formatRp(closingTotals.omzet);
+      document.getElementById('statPosHint').innerText = `POS Sistem: ${formatRp(posFood)}`;
+      document.getElementById('statTotalSetorKas').innerText = formatRp(closingTotals.setor);
+      document.getElementById('statVerifiedHint').innerText = `${closingTotals.verified}/${filteredOpnames.length} terverifikasi`;
+      document.getElementById('statTotalDelivery').innerText = formatRp(posDelivery);
+      document.getElementById('statTotalOrders').innerText = `${posOrders}`;
+      document.getElementById('statOrdersSplitHint').innerText = `Cash ${formatRp(posCash)} • QRIS ${formatRp(posQris)}`;
+
+      const channelGrid = document.getElementById('omzetChannelBreakdown');
+      if (channelGrid) {
+        const channelItems = [
+          { label: 'Cash Laci', val: closingTotals.cash, cls: 'text-emerald-400' },
+          { label: 'BCA / QRIS', val: closingTotals.bca, cls: 'text-sky-400' },
+          { label: 'GoFood', val: closingTotals.gofood, cls: 'text-slate-100' },
+          { label: 'GrabFood', val: closingTotals.grabfood, cls: 'text-slate-100' },
+          { label: 'ShopeeFood', val: closingTotals.shopeefood, cls: 'text-slate-100' },
+          { label: 'Modal Opening', val: closingTotals.opening, cls: 'text-amber-400' }
+        ];
+        channelGrid.innerHTML = channelItems.map(c => `
+          <div class="bg-slate-900/70 border border-slate-800/90 rounded-xl px-2.5 py-2">
+            <span class="text-[10px] text-slate-500 block">${c.label}</span>
+            <span class="text-xs font-bold ${c.cls} tabular-nums">${formatRp(c.val)}</span>
+          </div>
+        `).join('');
+      }
 
       renderOpnameList(filteredOpnames);
     }
@@ -591,7 +740,7 @@
 
     async function fetchStockOpnames() {
       try {
-        const res = await fetch('/api/admin/stock-opname').then(r => r.json());
+        const res = await fetch(`/api/admin/stock-opname${buildDateQueryString()}`).then(r => r.json());
         if (res.success && Array.isArray(res.data)) {
           cachedOpnames = res.data;
           renderOmzetMetricsAndOpnames();
@@ -603,6 +752,14 @@
       }
     }
 
+    function formatAuditDiffBadge(label, diff) {
+      if (diff === 0) {
+        return `<span class="text-emerald-400 font-semibold">${label}: Klop ✓</span>`;
+      }
+      const sign = diff > 0 ? '+' : '-';
+      return `<span class="text-rose-400 font-semibold">${label}: Selisih ${sign}${formatRp(Math.abs(diff))}</span>`;
+    }
+
     function renderOpnameList(list) {
       const container = document.getElementById('opnameContainer');
       if (!container) return;
@@ -611,21 +768,28 @@
         container.innerHTML = `
           <div class="text-center py-8 bg-slate-950/50 rounded-xl border border-dashed border-slate-800 space-y-1">
             <i class="fa-solid fa-box-open text-xl text-slate-600"></i>
-            <p class="text-xs font-medium text-slate-400">Belum ada laporan closing untuk lapak ini.</p>
+            <p class="text-xs font-medium text-slate-400">Belum ada laporan closing pada filter ini.</p>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = list.map(op => {
-        const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
+      container.innerHTML = list.map((op, idx) => {
+        const opId = escapeHtml(op.id || `op_${idx}`);
+        const isLocked = Boolean(op.is_locked);
+        const isVerified = Boolean(op.owner_verified);
         const items = op.stock_items || {};
         const itemKeys = Object.keys(items);
         const cashOpening = Number(op.cash_opening) || 100000;
         const omzetCash = Number(op.omzet_cash) || 0;
         const setorKas = Number(op.total_setor_kas) || (cashOpening + omzetCash);
-        const isCardOpen = expandedOpnameCards.has(op.id);
-        const isDetailsOpen = expandedOpnameDetails.has(op.id);
+        const isCardOpen = expandedOpnameCards.has(opId);
+        const isDetailsOpen = expandedOpnameDetails.has(opId);
+
+        const audit = op.pos_audit || {};
+        const hasPosOrders = (audit.order_count || 0) > 0;
+        const hasDiscrepancy = hasPosOrders && ((audit.diff_cash || 0) !== 0 || (audit.diff_bca || 0) !== 0);
+        const safeLabel = escapeHtml(op.closing_date || 'Closing Harian').replace(/'/g, "\\'");
 
         const channels = [
           { label: 'Opening', value: cashOpening, colorClass: 'text-slate-200' },
@@ -637,26 +801,28 @@
         ];
 
         return `
-          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl overflow-hidden hover:border-slate-700 transition">
+          <div class="bg-slate-950/60 border ${isVerified ? 'border-emerald-500/25' : 'border-slate-800/90'} rounded-xl overflow-hidden hover:border-slate-700 transition">
             <!-- BARIS RINGKAS DROPDOWN CLOSING (KLIK UNTUK BUKA/TUTUP) -->
-            <button type="button" onclick="toggleOpnameCard('${op.id}')" class="w-full px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 text-left hover:bg-slate-900/70 transition">
+            <button type="button" onclick="toggleOpnameCard('${opId}')" class="w-full px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 text-left hover:bg-slate-900/70 transition">
               <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs min-w-0">
                 <span class="font-bold text-amber-400">${escapeHtml(op.closing_date || 'Closing Harian')}</span>
                 <span class="text-slate-600">•</span>
                 <span class="font-semibold text-slate-200">${escapeHtml(shortBranchLabel(op.branch_name || 'Kalisari'))}</span>
                 <span class="text-[11px] text-slate-500">(${escapeHtml(op.staff_name || 'Kasir')})</span>
+                ${isVerified ? '<span class="text-[10px] text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i></span>' : ''}
+                ${hasDiscrepancy ? '<span class="text-[10px] text-rose-400 font-semibold" title="Ada selisih POS"><i class="fa-solid fa-triangle-exclamation"></i></span>' : ''}
               </div>
-              <div class="flex items-center gap-2.5 shrink-0 ml-auto">
+              <div class="flex items-center gap-2 shrink-0 ml-auto">
                 <span class="text-[11px] text-slate-400">Omzet <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
                 <span class="text-[10px] px-2 py-0.5 rounded-md font-semibold ${isLocked ? 'bg-slate-800 text-slate-400' : 'bg-emerald-500/15 text-emerald-400'}">
                   ${isLocked ? 'Terkunci' : 'Aktif'}
                 </span>
-                <i id="card_chevron_${op.id}" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform ${isCardOpen ? 'rotate-180' : ''}"></i>
+                <i id="card_chevron_${opId}" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform ${isCardOpen ? 'rotate-180' : ''}"></i>
               </div>
             </button>
 
             <!-- ISI RINCIAN CLOSING (MUNCUL SAAT DROPDOWN DIBUKA) -->
-            <div id="card_body_${op.id}" class="${isCardOpen ? '' : 'hidden'} px-3 pb-3 pt-2 border-t border-slate-800/70 space-y-2.5">
+            <div id="card_body_${opId}" class="${isCardOpen ? '' : 'hidden'} px-3 pb-3 pt-2 border-t border-slate-800/70 space-y-2.5">
               <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 text-left">
                 ${channels.map(ch => `
                   <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
@@ -666,20 +832,51 @@
                 `).join('')}
               </div>
 
+              <!-- AUDIT SISTEM POS VS CLOSING -->
+              <div class="bg-slate-900/60 border border-slate-800/80 rounded-lg px-2.5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                <span class="text-slate-400">
+                  <i class="fa-solid fa-scale-balanced text-amber-400/80 mr-1"></i>
+                  Audit POS (${audit.order_count || 0} order):
+                  ${hasPosOrders
+                    ? `<b class="text-slate-200 tabular-nums">Cash ${formatRp(audit.pos_cash_total)} • QRIS ${formatRp(audit.pos_qris_total)}</b>`
+                    : `<span class="text-slate-500">Belum ada transaksi POS di tanggal ini</span>`
+                  }
+                </span>
+                ${hasPosOrders ? `
+                  <div class="flex items-center gap-3 tabular-nums">
+                    ${formatAuditDiffBadge('Cash', audit.diff_cash || 0)}
+                    ${formatAuditDiffBadge('BCA', audit.diff_bca || 0)}
+                  </div>
+                ` : ''}
+              </div>
+
               <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70 text-[11px]">
                 <div class="flex flex-wrap items-center gap-3">
                   <span class="text-slate-400">Total Omzet: <b class="text-amber-400 tabular-nums">${formatRp(op.total_omzet)}</b></span>
                   <span class="text-slate-400">Setor Kas: <b class="text-emerald-400 tabular-nums">${formatRp(setorKas)}</b></span>
                 </div>
-                <button type="button" onclick="toggleOpnameDetails('${op.id}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
+                <button type="button" onclick="toggleOpnameDetails('${opId}')" class="text-[11px] text-slate-400 hover:text-amber-400 font-semibold flex items-center gap-1 transition">
                   <span>${itemKeys.length} Bahan</span>
-                  <i class="fa-solid fa-chevron-down text-[9px] transition-transform ${isDetailsOpen ? 'rotate-180' : ''}" id="icon_toggle_${op.id}"></i>
+                  <i class="fa-solid fa-chevron-down text-[9px] transition-transform ${isDetailsOpen ? 'rotate-180' : ''}" id="icon_toggle_${opId}"></i>
                 </button>
               </div>
 
               ${op.notes ? `<p class="text-[11px] text-slate-400 italic bg-slate-900/60 px-2.5 py-1.5 rounded-lg border border-slate-800/60">"${escapeHtml(op.notes)}"</p>` : ''}
 
-              <div id="details_${op.id}" class="${isDetailsOpen ? '' : 'hidden'} overflow-x-auto bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+              <!-- AKSI OWNER PADA CLOSING INI -->
+              <div class="flex flex-wrap items-center justify-end gap-1.5 pt-1">
+                <button type="button" onclick="verifyOpnameReport('${opId}', ${!isVerified})" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition ${isVerified ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-slate-900 text-slate-300 border-slate-700 hover:border-emerald-500/40 hover:text-emerald-400'}">
+                  <i class="fa-solid ${isVerified ? 'fa-circle-check' : 'fa-check'} mr-1"></i>${isVerified ? 'Terverifikasi Owner' : 'Verifikasi Setoran'}
+                </button>
+                <button type="button" onclick="toggleOpnameLock('${opId}', ${isLocked})" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-900 text-slate-300 border border-slate-700 hover:border-amber-500/40 hover:text-amber-400 transition">
+                  <i class="fa-solid ${isLocked ? 'fa-lock-open' : 'fa-lock'} mr-1"></i>${isLocked ? 'Buka Kunci Edit' : 'Kunci'}
+                </button>
+                <button type="button" onclick="deleteOpnameReport('${opId}', '${safeLabel}')" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-900 text-slate-400 border border-slate-800 hover:border-rose-500/40 hover:text-rose-400 transition">
+                  <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                </button>
+              </div>
+
+              <div id="details_${opId}" class="${isDetailsOpen ? '' : 'hidden'} overflow-x-auto bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
                 <table class="w-full text-[11px] text-left">
                   <thead class="text-[10px] uppercase text-slate-500 border-b border-slate-800">
                     <tr>
@@ -712,6 +909,75 @@
           </div>
         `;
       }).join('');
+    }
+
+    async function runOwnerOpnameAction(url, method, bodyObj) {
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyObj ? JSON.stringify(bodyObj) : undefined
+        }).then(r => r.json());
+        if (res.success) {
+          await fetchAllData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal memproses aksi'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    function verifyOpnameReport(id, nextVerified) {
+      runOwnerOpnameAction(`/api/super-admin/stock-opname/${encodeURIComponent(id)}/verify`, 'POST', { verified: nextVerified });
+    }
+
+    function toggleOpnameLock(id, shouldUnlock) {
+      runOwnerOpnameAction(`/api/super-admin/stock-opname/${encodeURIComponent(id)}/toggle-lock`, 'POST', { unlock: shouldUnlock });
+    }
+
+    function deleteOpnameReport(id, label) {
+      if (!confirm(`Hapus laporan "${label}" secara permanen?`)) return;
+      runOwnerOpnameAction(`/api/super-admin/stock-opname/${encodeURIComponent(id)}`, 'DELETE');
+    }
+
+    function exportOmzetCsv() {
+      const list = getFilteredOpnames();
+      if (list.length === 0) {
+        alert('Tidak ada data closing pada filter aktif untuk diexport.');
+        return;
+      }
+
+      const headers = ['Tanggal Bisnis', 'Closing Label', 'Cabang', 'Petugas', 'Opening', 'Omzet Cash', 'BCA/QRIS', 'GoFood', 'GrabFood', 'ShopeeFood', 'Total Omzet', 'Setor Kas', 'Terverifikasi', 'Catatan'];
+      const csvCell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = list.map(op => [
+        op.business_date || op.date || '',
+        op.closing_date || '',
+        op.branch_name || '',
+        op.staff_name || '',
+        Number(op.cash_opening) || 0,
+        Number(op.omzet_cash) || 0,
+        Number(op.omzet_bca) || 0,
+        Number(op.omzet_gofood) || 0,
+        Number(op.omzet_grabfood) || 0,
+        Number(op.omzet_shopeefood) || 0,
+        Number(op.total_omzet) || 0,
+        Number(op.total_setor_kas) || 0,
+        op.owner_verified ? 'Ya' : 'Belum',
+        op.notes || ''
+      ].map(csvCell).join(','));
+
+      const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rekap-omzet-${selectedBranchId}-${getWibTodayISO()}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     function toggleAccordionSection(stateSet, id, bodyPrefix, iconPrefix) {
