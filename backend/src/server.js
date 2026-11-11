@@ -623,7 +623,10 @@ app.post('/api/admin/branches', (req, res) => {
     longitude,
     qris_image,
     bank_info,
-    open_hours = '15:00 - 23:00'
+    open_hours = '15:00 - 23:00',
+    staff_pin = '1234',
+    cash_opening = 100000,
+    is_open = true
   } = req.body;
 
   if (!name || !address) {
@@ -631,25 +634,60 @@ app.post('/api/admin/branches', (req, res) => {
   }
 
   const branches = readJSON(BRANCHES_FILE);
-  const newNum = branches.length + 1;
-  const newId = `cabang-0${newNum}`;
+  // Cari nomor cabang tertinggi agar ID selalu unik walau cabang > 9 atau pernah dihapus
+  const maxNum = branches.reduce((max, b) => {
+    const m = String(b.id || '').match(/(\d+)$/);
+    return m ? Math.max(max, parseInt(m[1], 10)) : max;
+  }, 0);
+  let nextNum = maxNum + 1;
+  let newId = `cabang-${String(nextNum).padStart(2, '0')}`;
+  while (branches.some(b => b.id === newId)) {
+    nextNum++;
+    newId = `cabang-${String(nextNum).padStart(2, '0')}`;
+  }
+
+  const parsedLat = parseFloat(latitude);
+  const parsedLng = parseFloat(longitude);
+  const parsedCashOpening = Number(cash_opening);
+
   const newBranch = {
     id: newId,
-    name: name.trim(),
-    address: address.trim(),
-    phone: phone ? phone.trim() : '0852-8584-1330',
-    latitude: latitude ? parseFloat(latitude) : -6.2088,
-    longitude: longitude ? parseFloat(longitude) : 106.8456,
-    qris_image: qris_image || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_${newId}`,
-    bank_info: bank_info ? bank_info.trim() : 'BCA a/n Kebab AL Bewok',
-    is_open: true,
-    open_hours: open_hours.trim()
+    name: String(name).trim(),
+    address: String(address).trim(),
+    phone: phone ? String(phone).trim() : '0852-8584-1330',
+    latitude: !isNaN(parsedLat) ? parsedLat : -6.2088,
+    longitude: !isNaN(parsedLng) ? parsedLng : 106.8456,
+    qris_image: (qris_image && String(qris_image).trim()) ? String(qris_image).trim() : `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=QRIS_${newId}`,
+    bank_info: bank_info !== undefined && bank_info !== null ? String(bank_info).trim() : 'BCA a/n Kebab AL Bewok',
+    is_open: Boolean(is_open),
+    open_hours: String(open_hours || '15:00 - 23:00').trim(),
+    staff_pin: String(staff_pin || '1234').trim() || '1234',
+    out_of_stock: [],
+    cash_opening: !isNaN(parsedCashOpening) ? Math.max(0, parsedCashOpening) : 100000
   };
 
   branches.push(newBranch);
   writeJSON(BRANCHES_FILE, branches);
   console.log(`[BRANCH CREATE] Cabang baru ditambahkan: ${newBranch.name} (${newId})`);
   res.status(201).json({ success: true, message: 'Cabang baru berhasil ditambahkan', data: newBranch });
+});
+
+// Hapus Cabang Lapak (Minimal menyisakan 1 cabang aktif)
+app.delete('/api/admin/branches/:id', (req, res) => {
+  const { id } = req.params;
+  const branches = readJSON(BRANCHES_FILE);
+  if (branches.length <= 1) {
+    return res.status(400).json({ success: false, message: 'Minimal harus ada 1 lapak aktif di sistem.' });
+  }
+  const idx = branches.findIndex(b => b.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Cabang lapak tidak ditemukan' });
+  }
+
+  const [removed] = branches.splice(idx, 1);
+  writeJSON(BRANCHES_FILE, branches);
+  console.log(`[BRANCH DELETE] Cabang dihapus: ${removed.name} (${id})`);
+  res.json({ success: true, message: `Lapak "${removed.name}" berhasil dihapus.`, data: removed });
 });
 
 // Checkout Pesanan Baru
@@ -1811,6 +1849,13 @@ app.get('/api/super-admin/summary', (req, res) => {
       branch_id: b.id,
       branch_name: b.name,
       address: b.address,
+      phone: b.phone || '',
+      open_hours: b.open_hours || '15:00 - 23:00',
+      bank_info: b.bank_info || '',
+      staff_pin: b.staff_pin || '1234',
+      latitude: b.latitude ?? -6.2088,
+      longitude: b.longitude ?? 106.8456,
+      has_qris: Boolean(b.qris_image),
       is_open: b.is_open !== false,
       cash_opening: b.cash_opening !== undefined ? b.cash_opening : 100000,
       order_count: pos.order_count,

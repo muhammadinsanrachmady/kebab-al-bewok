@@ -195,34 +195,21 @@
     <!-- =================================================================== -->
     <!-- TAB 2: LAPAK                                                        -->
     <!-- =================================================================== -->
-    <section id="tabView-lapak" class="owner-tab-view hidden space-y-3.5">
+    <section id="tabView-lapak" class="owner-tab-view hidden space-y-3">
       <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
           <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Daftar Lapak & Modal Awal (Cash Opening)</h2>
-            <p class="text-[11px] text-slate-500">Modal awal hanya bisa diubah di sini (terkunci di aplikasi lapak)</p>
+            <h2 class="text-xs md:text-sm font-bold text-slate-100">Kelola Lapak & Modal Awal</h2>
+            <p class="text-[11px] text-slate-500">Tambah lapak baru, atur Cash Opening, PIN kasir, QRIS & jam buka</p>
           </div>
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <i class="fa-solid fa-lock text-[9px] mr-1"></i>Khusus Owner
-          </span>
+          <button type="button" onclick="openBranchModal('create')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
+            <i class="fa-solid fa-plus text-[11px]"></i>
+            <span>Tambah Lapak</span>
+          </button>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left">
-            <thead class="text-slate-500 uppercase text-[10px] border-b border-slate-800">
-              <tr>
-                <th class="py-2 px-2.5">Lapak</th>
-                <th class="py-2 px-2.5">Order</th>
-                <th class="py-2 px-2.5">Omzet</th>
-                <th class="py-2 px-2.5">Titipan Ongkir</th>
-                <th class="py-2 px-2.5">Cash Opening</th>
-                <th class="py-2 px-2.5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="branchTableBody" class="divide-y divide-slate-800/70 text-slate-200">
-              <!-- Render via JS -->
-            </tbody>
-          </table>
+        <div id="branchListContainer" class="space-y-2.5">
+          <div class="text-center py-6 text-slate-500 text-xs">Memuat daftar lapak...</div>
         </div>
       </div>
     </section>
@@ -335,6 +322,102 @@
       </div>
     </section>
 
+  </div>
+
+  <!-- MODAL TAMBAH / EDIT LAPAK -->
+  <div id="branchFormModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-4 space-y-3 max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div>
+          <h3 id="branchModalTitle" class="text-sm font-extrabold text-amber-400">Tambah Lapak Baru</h3>
+          <p id="branchModalSub" class="text-[11px] text-slate-400">Lapak baru langsung aktif di App Customer & Kasir</p>
+        </div>
+        <button type="button" onclick="closeBranchModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="saveBranchModal(event)" class="space-y-2.5 text-xs">
+        <input type="hidden" id="branchFormId">
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Nama Lapak Cabang <span class="text-rose-400">*</span></label>
+          <input type="text" id="branchFormName" required placeholder="Contoh: Kebab AL Bewok - Cibubur" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Alamat Lengkap <span class="text-rose-400">*</span></label>
+          <textarea id="branchFormAddress" required rows="2" placeholder="Contoh: Jl. Alternatif Cibubur No. 12 (Depan Alfamart)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">No. WhatsApp / Telepon</label>
+            <input type="text" id="branchFormPhone" placeholder="0852-8584-1330" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">Jam Operasional</label>
+            <input type="text" id="branchFormOpenHours" placeholder="15:00 - 23:00" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-amber-400 block mb-1">Cash Opening / Modal Awal (Rp)</label>
+            <input type="number" id="branchFormCashOpening" min="0" value="100000" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-100 outline-none focus:border-amber-500 tabular-nums">
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">PIN Masuk Kasir</label>
+            <input type="text" id="branchFormStaffPin" value="1234" placeholder="1234" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-300"><i class="fa-solid fa-map-pin text-amber-400 mr-1"></i>Koordinat GPS (Hitung Ongkir)</span>
+            <button type="button" onclick="fillCurrentCoordsInBranchModal()" class="text-[10px] font-semibold text-amber-400 hover:text-amber-300 underline">
+              Ambil Lokasi Saat Ini
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" step="any" id="branchFormLat" placeholder="-6.2088" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-slate-200 outline-none focus:border-amber-500">
+            <input type="number" step="any" id="branchFormLng" placeholder="106.8456" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-slate-200 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Info Rekening / Keterangan QRIS</label>
+          <input type="text" id="branchFormBankInfo" placeholder="BCA 1234567890 a/n Kebab AL Bewok" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+        </div>
+
+        <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <label class="text-[11px] font-semibold text-slate-300"><i class="fa-solid fa-qrcode text-sky-400 mr-1"></i>Gambar QRIS Lapak (Opsional)</label>
+            <label class="cursor-pointer text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-amber-400 px-2 py-1 rounded-lg border border-slate-700 transition">
+              <i class="fa-solid fa-upload mr-1"></i>Upload Foto
+              <input type="file" id="branchFormQrisFile" accept="image/*" onchange="handleBranchQrisFile(this)" class="hidden">
+            </label>
+          </div>
+          <input type="text" id="branchFormQrisUrl" oninput="updateBranchQrisPreview(this.value)" placeholder="URL gambar QRIS atau upload file (kosong = QR otomatis)" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-200 outline-none focus:border-amber-500">
+          <div id="branchFormQrisPreviewWrap" class="hidden flex items-center gap-2 pt-1">
+            <img id="branchFormQrisPreview" src="" alt="Preview QRIS" class="w-14 h-14 object-cover rounded-lg border border-slate-700 bg-white">
+            <button type="button" onclick="clearBranchQrisPreview()" class="text-[10px] text-rose-400 hover:underline">Hapus Gambar</button>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-0.5">
+          <input type="checkbox" id="branchFormIsOpen" checked class="w-4 h-4 accent-amber-500 rounded">
+          <span>Lapak dalam status <b class="text-emerald-400">BUKA</b> (menerima pesanan)</span>
+        </label>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closeBranchModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+          <button type="submit" id="btnSaveBranchModal" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">
+            Simpan Lapak
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -625,8 +708,8 @@
     }
 
     function renderBranchesTable() {
-      const bBody = document.getElementById('branchTableBody');
-      if (!bBody || !cachedSummary) return;
+      const container = document.getElementById('branchListContainer');
+      if (!container || !cachedSummary) return;
 
       const branches = cachedSummary.branches || [];
       const rows = selectedBranchId === 'all'
@@ -634,40 +717,291 @@
         : branches.filter(b => b.branch_id === selectedBranchId);
 
       if (rows.length === 0) {
-        bBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">Belum ada data lapak</td></tr>`;
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Belum ada data lapak</div>`;
         return;
       }
 
-      bBody.innerHTML = rows.map(b => {
+      container.innerHTML = rows.map(b => {
         const cashOpening = Number(b.cash_opening) || 100000;
+        const isOpen = b.is_open !== false;
         const safeName = escapeHtml(b.branch_name).replace(/'/g, "\\'");
+        const safePhone = escapeHtml(b.phone || '').replace(/'/g, "\\'");
+        const canDelete = branches.length > 1;
+
         return `
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-2.5 px-2.5">
-              <span class="font-semibold text-slate-100 block text-xs">${escapeHtml(b.branch_name)}</span>
-              <span class="text-slate-500 text-[10px]">${escapeHtml(b.address)}</span>
-            </td>
-            <td class="py-2.5 px-2.5 tabular-nums">${b.order_count}</td>
-            <td class="py-2.5 px-2.5 font-bold text-amber-400 tabular-nums">${formatRp(b.food_revenue)}</td>
-            <td class="py-2.5 px-2.5 font-bold text-rose-400 tabular-nums">${formatRp(b.delivery_fee_held)}</td>
-            <td class="py-2.5 px-2.5">
-              <div class="flex items-center space-x-1.5">
-                <span class="font-bold text-slate-100 bg-slate-950 px-2 py-0.5 rounded-md border border-slate-800 text-[11px] tabular-nums">
-                  ${formatRp(cashOpening)}
-                </span>
-                <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${safeName}', ${cashOpening})" class="bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-semibold px-2 py-0.5 rounded-md text-[10px] border border-amber-500/30 transition">
+          <div class="bg-slate-950/60 border border-slate-800/90 rounded-xl p-3 space-y-2.5 hover:border-slate-700 transition">
+            <!-- BARIS ATAS: IDENTITAS LAPAK & STATUS BUKA/TUTUP -->
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0 space-y-0.5">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="font-bold text-slate-100 text-xs md:text-sm">${escapeHtml(b.branch_name)}</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">${escapeHtml(b.branch_id)}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 truncate">${escapeHtml(b.address)}</p>
+                <div class="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 pt-0.5">
+                  <span><i class="fa-regular fa-clock mr-1 text-slate-600"></i>${escapeHtml(b.open_hours || '15:00 - 23:00')}</span>
+                  <span><i class="fa-solid fa-phone mr-1 text-slate-600"></i>${escapeHtml(b.phone || '-')}</span>
+                  <span><i class="fa-solid fa-key mr-1 text-slate-600"></i>PIN: <b class="text-slate-300 font-mono">${escapeHtml(b.staff_pin || '1234')}</b></span>
+                </div>
+              </div>
+
+              <button type="button" onclick="toggleBranchOpenStatus('${escapeHtml(b.branch_id)}', ${!isOpen})" title="Klik untuk ubah status Buka/Tutup" class="px-2.5 py-1 rounded-lg text-[10px] font-bold border transition shrink-0 ${isOpen ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'}">
+                <i class="fa-solid ${isOpen ? 'fa-door-open' : 'fa-door-closed'} mr-1"></i>${isOpen ? 'BUKA' : 'TUTUP'}
+              </button>
+            </div>
+
+            <!-- METRIK PER LAPAK -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-left">
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Order POS</span>
+                <span class="text-[11px] font-bold text-slate-200 tabular-nums">${b.order_count} transaksi</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Omzet POS</span>
+                <span class="text-[11px] font-bold text-amber-400 tabular-nums">${formatRp(b.food_revenue)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80">
+                <span class="text-[10px] text-slate-500 block">Titipan Ongkir</span>
+                <span class="text-[11px] font-bold text-rose-400 tabular-nums">${formatRp(b.delivery_fee_held)}</span>
+              </div>
+              <div class="bg-slate-900/90 px-2.5 py-1.5 rounded-lg border border-slate-800/80 flex items-center justify-between gap-1">
+                <div class="min-w-0">
+                  <span class="text-[10px] text-slate-500 block">Cash Opening</span>
+                  <span class="text-[11px] font-bold text-slate-100 tabular-nums">${formatRp(cashOpening)}</span>
+                </div>
+                <button type="button" onclick="editBranchCashOpening('${escapeHtml(b.branch_id)}', '${safeName}', ${cashOpening})" class="bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-semibold px-2 py-0.5 rounded text-[10px] border border-amber-500/30 transition shrink-0">
                   Ubah
                 </button>
               </div>
-            </td>
-            <td class="py-2.5 px-2.5 text-right">
-              <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held})" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-[11px] border border-emerald-500/30 transition">
-                <i class="fa-brands fa-whatsapp mr-1"></i>Tagih
+            </div>
+
+            <!-- AKSI KELOLA LAPAK -->
+            <div class="flex flex-wrap items-center justify-end gap-1.5 pt-1.5 border-t border-slate-800/70">
+              <button type="button" onclick="openBranchModal('edit', '${escapeHtml(b.branch_id)}')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-700 transition">
+                <i class="fa-solid fa-pen-to-square mr-1"></i>Edit Lapak
               </button>
-            </td>
-          </tr>
+              <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held}, '${safePhone}')" class="bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-emerald-500/30 transition">
+                <i class="fa-brands fa-whatsapp mr-1"></i>Tagih Ongkir
+              </button>
+              ${canDelete ? `
+                <button type="button" onclick="deleteBranch('${escapeHtml(b.branch_id)}', '${safeName}')" class="bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-800 hover:border-rose-500/30 transition">
+                  <i class="fa-solid fa-trash-can mr-1"></i>Hapus
+                </button>
+              ` : ''}
+            </div>
+          </div>
         `;
       }).join('');
+    }
+
+    async function openBranchModal(mode, branchId = '') {
+      const modal = document.getElementById('branchFormModal');
+      if (!modal) return;
+
+      document.getElementById('branchFormId').value = '';
+      document.getElementById('branchFormQrisFile').value = '';
+
+      if (mode === 'edit' && branchId) {
+        document.getElementById('branchModalTitle').innerText = 'Edit Profil Lapak';
+        document.getElementById('branchModalSub').innerText = `Perbarui pengaturan untuk ${branchId}`;
+        document.getElementById('btnSaveBranchModal').innerText = 'Simpan Perubahan';
+
+        try {
+          const res = await fetch(`/api/branches/${encodeURIComponent(branchId)}`).then(r => r.json());
+          if (!res.success || !res.data) {
+            alert('Gagal mengambil detail lapak.');
+            return;
+          }
+          const b = res.data;
+          document.getElementById('branchFormId').value = b.id || branchId;
+          document.getElementById('branchFormName').value = b.name || '';
+          document.getElementById('branchFormAddress').value = b.address || '';
+          document.getElementById('branchFormPhone').value = b.phone || '';
+          document.getElementById('branchFormOpenHours').value = b.open_hours || '15:00 - 23:00';
+          document.getElementById('branchFormCashOpening').value = b.cash_opening !== undefined ? b.cash_opening : 100000;
+          document.getElementById('branchFormStaffPin').value = b.staff_pin || '1234';
+          document.getElementById('branchFormLat').value = b.latitude ?? -6.2088;
+          document.getElementById('branchFormLng').value = b.longitude ?? 106.8456;
+          document.getElementById('branchFormBankInfo').value = b.bank_info || '';
+          document.getElementById('branchFormQrisUrl').value = b.qris_image || '';
+          document.getElementById('branchFormIsOpen').checked = b.is_open !== false;
+          updateBranchQrisPreview(b.qris_image || '');
+        } catch (err) {
+          console.error(err);
+          alert('Gagal memuat detail lapak');
+          return;
+        }
+      } else {
+        document.getElementById('branchModalTitle').innerText = 'Tambah Lapak Baru';
+        document.getElementById('branchModalSub').innerText = 'Lapak baru langsung muncul di App Customer & Kasir';
+        document.getElementById('btnSaveBranchModal').innerText = 'Tambah Lapak';
+        document.getElementById('branchFormName').value = '';
+        document.getElementById('branchFormAddress').value = '';
+        document.getElementById('branchFormPhone').value = '0852-8584-1330';
+        document.getElementById('branchFormOpenHours').value = '15:00 - 23:00';
+        document.getElementById('branchFormCashOpening').value = 100000;
+        document.getElementById('branchFormStaffPin').value = '1234';
+        document.getElementById('branchFormLat').value = -6.2088;
+        document.getElementById('branchFormLng').value = 106.8456;
+        document.getElementById('branchFormBankInfo').value = 'BCA a/n Kebab AL Bewok';
+        document.getElementById('branchFormQrisUrl').value = '';
+        document.getElementById('branchFormIsOpen').checked = true;
+        updateBranchQrisPreview('');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeBranchModal() {
+      const modal = document.getElementById('branchFormModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function updateBranchQrisPreview(src) {
+      const wrap = document.getElementById('branchFormQrisPreviewWrap');
+      const img = document.getElementById('branchFormQrisPreview');
+      if (!wrap || !img) return;
+      const clean = (src || '').trim();
+      if (clean) {
+        img.src = clean;
+        wrap.classList.remove('hidden');
+      } else {
+        img.src = '';
+        wrap.classList.add('hidden');
+      }
+    }
+
+    function clearBranchQrisPreview() {
+      document.getElementById('branchFormQrisUrl').value = '';
+      document.getElementById('branchFormQrisFile').value = '';
+      updateBranchQrisPreview('');
+    }
+
+    function handleBranchQrisFile(inputEl) {
+      const file = inputEl && inputEl.files && inputEl.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 600;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const ratio = Math.min(maxDim / width, maxDim / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.82);
+          document.getElementById('branchFormQrisUrl').value = compressed;
+          updateBranchQrisPreview(compressed);
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function fillCurrentCoordsInBranchModal() {
+      if (!navigator.geolocation) {
+        alert('Perangkat/browser tidak mendukung GPS.');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          document.getElementById('branchFormLat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('branchFormLng').value = pos.coords.longitude.toFixed(6);
+        },
+        () => alert('Gagal membaca GPS. Pastikan izin lokasi aktif atau isi koordinat secara manual.'),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function saveBranchModal(event) {
+      event.preventDefault();
+      const id = document.getElementById('branchFormId').value.trim();
+      const isEdit = Boolean(id);
+      const btn = document.getElementById('btnSaveBranchModal');
+      const originalText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const payload = {
+        name: document.getElementById('branchFormName').value.trim(),
+        address: document.getElementById('branchFormAddress').value.trim(),
+        phone: document.getElementById('branchFormPhone').value.trim(),
+        open_hours: document.getElementById('branchFormOpenHours').value.trim() || '15:00 - 23:00',
+        cash_opening: Number(document.getElementById('branchFormCashOpening').value) || 0,
+        staff_pin: document.getElementById('branchFormStaffPin').value.trim() || '1234',
+        latitude: parseFloat(document.getElementById('branchFormLat').value),
+        longitude: parseFloat(document.getElementById('branchFormLng').value),
+        bank_info: document.getElementById('branchFormBankInfo').value.trim(),
+        qris_image: document.getElementById('branchFormQrisUrl').value.trim(),
+        is_open: document.getElementById('branchFormIsOpen').checked
+      };
+
+      try {
+        const url = isEdit ? `/api/admin/branches/${encodeURIComponent(id)}` : '/api/admin/branches';
+        const res = await fetch(url, {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          closeBranchModal();
+          await fetchAllData();
+          alert(`✅ ${isEdit ? 'Perubahan lapak' : 'Lapak baru'} "${payload.name}" berhasil disimpan!`);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyimpan lapak'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('❌ Gagal menghubungi server');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    }
+
+    async function toggleBranchOpenStatus(branchId, nextIsOpen) {
+      try {
+        const res = await fetch(`/api/admin/branches/${encodeURIComponent(branchId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_open: nextIsOpen })
+        }).then(r => r.json());
+        if (res.success) {
+          await fetchAllData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal memperbarui status lapak'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function deleteBranch(branchId, branchName) {
+      if (!confirm(`Hapus lapak "${branchName}"?\n\nRiwayat transaksi lama tetap tersimpan di sistem, tetapi cabang ini akan dihapus dari pilihan Customer & Kasir.`)) {
+        return;
+      }
+      try {
+        const res = await fetch(`/api/admin/branches/${encodeURIComponent(branchId)}`, {
+          method: 'DELETE'
+        }).then(r => r.json());
+        if (res.success) {
+          if (selectedBranchId === branchId) selectedBranchId = 'all';
+          await fetchAllData();
+          alert(`✅ Lapak "${branchName}" berhasil dihapus.`);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menghapus lapak'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
     }
 
     function renderWithdrawalsTable() {
@@ -999,9 +1333,15 @@
       toggleAccordionSection(expandedOpnameDetails, id, 'details', 'icon_toggle');
     }
 
-    function sendInvoiceWA(branchName, amount) {
+    function sendInvoiceWA(branchName, amount, phone = '') {
       const msg = `Halo Kasir ${branchName}, rekap sistem Kebab AL Bewok mencatat titipan ongkir kurir sebesar ${formatRp(amount)} dari transaksi QRIS cabang Anda. Mohon disetorkan ke rekening Pusat. Terima kasih!`;
-      alert(`Pesan WhatsApp ke kasir:\n\n"${msg}"`);
+      let digits = String(phone || '').replace(/[^0-9]/g, '');
+      if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+      if (digits.length >= 10) {
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent(msg)}`, '_blank');
+      } else {
+        alert(`Pesan WhatsApp ke kasir:\n\n"${msg}"`);
+      }
     }
 
     async function approveWithdrawal(id) {
