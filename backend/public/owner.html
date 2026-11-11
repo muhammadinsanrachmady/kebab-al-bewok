@@ -6,153 +6,346 @@
   <title>Portal Owner - Kebab AL Bewok</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
 
-  <div class="max-w-6xl mx-auto space-y-6">
+  <div class="max-w-6xl mx-auto space-y-5">
 
     <!-- HEADER OWNER -->
-    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-5">
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
       <div class="flex items-center space-x-3">
         <div class="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg">
           👑
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-black text-amber-400">PORTAL PEMILIK (OWNER)</h1>
-          <p class="text-xs text-slate-400">Monitoring Omzet Multi-Cabang, Pengaturan Modal Awal (Cash Opening), & Analisis Stock Opname</p>
+          <p class="text-xs text-slate-400">Super Admin Kebab AL Bewok • Kendali Terpusat Multi-Cabang</p>
         </div>
       </div>
       <div class="flex items-center space-x-2 text-xs">
         <a href="/admin.html" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-3 py-2 rounded-xl border border-slate-700 transition">
           <i class="fa-solid fa-cash-register mr-1"></i> Buka Pos / Kasir Lapak
         </a>
-        <button onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95">
+        <button type="button" onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-black px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95">
           <i class="fa-solid fa-arrows-rotate"></i>
           <span>Segarkan Data</span>
         </button>
       </div>
     </header>
 
-    <!-- METRIK UTAMA FINANSIAL -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab</span>
-        <div id="statTotalFood" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">Rp 0</div>
-        <p class="text-[11px] text-slate-500 mt-1">Akumulasi seluruh lapak cabang</p>
-        <div class="absolute -right-3 -bottom-4 text-6xl text-slate-700/30">🍢</div>
-      </div>
+    <!-- NAVIGASI TAB UTAMA OWNER (7 TAB) -->
+    <nav aria-label="Navigasi Dashboard Owner" class="sticky top-2 z-30 bg-slate-950/90 backdrop-blur-md border border-slate-800 rounded-2xl p-1.5 shadow-xl">
+      <div id="ownerTabBar" class="flex md:grid md:grid-cols-7 gap-1.5 overflow-x-auto no-scrollbar">
+        <!-- 1. OMZET -->
+        <button type="button" data-owner-tab="omzet" onclick="switchOwnerTab('omzet')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-black bg-amber-500 text-slate-950 shadow">
+          <i class="fa-solid fa-sack-dollar text-sm"></i>
+          <span>Omzet</span>
+        </button>
 
-      <div class="bg-slate-800 border border-red-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Titipan Ongkir di Cabang</span>
-        <div id="statTotalDelivery" class="text-2xl md:text-3xl font-black text-red-400 mt-2">Rp 0</div>
-        <p class="text-[11px] text-red-300/60 mt-1">Wajib disetor cabang ke Pusat</p>
-        <div class="absolute -right-3 -bottom-4 text-6xl text-red-900/20">🛵</div>
-      </div>
+        <!-- 2. LAPAK -->
+        <button type="button" data-owner-tab="lapak" onclick="switchOwnerTab('lapak')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
+          <i class="fa-solid fa-store text-sm"></i>
+          <span>Lapak</span>
+        </button>
 
-      <div class="bg-slate-800 border border-emerald-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Total Transaksi Selesai</span>
-        <div id="statTotalOrders" class="text-2xl md:text-3xl font-black text-emerald-400 mt-2">0 Pesanan</div>
-        <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi penjualan sistem</p>
-        <div class="absolute -right-3 -bottom-4 text-6xl text-emerald-900/20">✅</div>
-      </div>
+        <!-- 3. KURIR -->
+        <button type="button" data-owner-tab="kurir" onclick="switchOwnerTab('kurir')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 relative">
+          <i class="fa-solid fa-motorcycle text-sm"></i>
+          <span>Kurir</span>
+          <span id="badgeKurirPending" class="hidden bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full leading-tight">0</span>
+        </button>
 
-      <div class="bg-slate-800 border border-amber-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
-        <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">Laporan Opname Masuk</span>
-        <div id="statTotalOpname" class="text-2xl md:text-3xl font-black text-amber-300 mt-2">0 Laporan</div>
-        <p class="text-[11px] text-amber-300/60 mt-1">Closing & rekap fisik bahan</p>
-        <div class="absolute -right-3 -bottom-4 text-6xl text-amber-900/20">📦</div>
-      </div>
-    </div>
+        <!-- 4. COSTUMER -->
+        <button type="button" data-owner-tab="costumer" onclick="switchOwnerTab('costumer')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
+          <i class="fa-solid fa-users text-sm"></i>
+          <span>Costumer</span>
+        </button>
 
-    <!-- TABEL 1: PENGATURAN CABANG, MODAL AWAL (CASH OPENING) & TITIPAN ONGKIR -->
-    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-            <i class="fa-solid fa-store mr-2 text-amber-400"></i>
-            <span>Rekapitulasi Cabang & Pengaturan Modal Awal (Cash Opening)</span>
-          </h2>
-          <p class="text-xs text-slate-400">Owner berwenang menetapkan Cash Opening (laci kasir) masing-masing cabang. Lapak hanya dapat membaca nilai ini.</p>
+        <!-- 5. GUDANG -->
+        <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
+          <i class="fa-solid fa-boxes-stacked text-sm"></i>
+          <span>Gudang</span>
+        </button>
+
+        <!-- 6. STATISTIK -->
+        <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
+          <i class="fa-solid fa-chart-line text-sm"></i>
+          <span>Statistik</span>
+        </button>
+
+        <!-- 7. PROFILE -->
+        <button type="button" data-owner-tab="profile" onclick="switchOwnerTab('profile')" class="shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80">
+          <i class="fa-solid fa-user-shield text-sm"></i>
+          <span>Profile</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: OMZET                                                        -->
+    <!-- =================================================================== -->
+    <section id="tabView-omzet" class="owner-tab-view space-y-6">
+      <!-- METRIK UTAMA FINANSIAL -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+          <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Omzet Bersih Kebab</span>
+          <div id="statTotalFood" class="text-2xl md:text-3xl font-black text-amber-400 mt-2">Rp 0</div>
+          <p class="text-[11px] text-slate-500 mt-1">Akumulasi seluruh lapak cabang</p>
+          <div class="absolute -right-3 -bottom-4 text-6xl text-slate-700/30">🍢</div>
         </div>
-        <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">
-          <i class="fa-solid fa-lock text-[10px] mr-1"></i>Otoritas Khusus Owner
-        </span>
-      </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
-            <tr>
-              <th class="p-3 rounded-l-xl">Nama Lapak Cabang</th>
-              <th class="p-3">Total Order</th>
-              <th class="p-3">Omzet Makanan (Hak Lapak)</th>
-              <th class="p-3 text-red-400">Titipan Ongkir</th>
-              <th class="p-3 text-amber-300">Cash Opening (Modal Awal dari Owner)</th>
-              <th class="p-3 rounded-r-xl text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="branchTableBody" class="divide-y divide-slate-700 text-slate-200">
-            <!-- Render via JS -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TABEL 2: LAPORAN STOCK OPNAME HARIAN & ANALISIS BAHAN DARI LAPAK -->
-    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
-        <div>
-          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-            <i class="fa-solid fa-boxes-stacked mr-2 text-amber-400"></i>
-            <span>Laporan Stock Opname Harian Gerai (Analisis Owner)</span>
-          </h2>
-          <p class="text-xs text-slate-400">Data setoran kasir, omzet multi-channel (Cash, BCA/QRIS, Gofood, Grabfood, Shopeefood) & sisa fisik 21 bahan baku</p>
+        <div class="bg-slate-800 border border-red-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+          <span class="text-xs text-red-300 font-bold uppercase tracking-wider">Titipan Ongkir di Cabang</span>
+          <div id="statTotalDelivery" class="text-2xl md:text-3xl font-black text-red-400 mt-2">Rp 0</div>
+          <p class="text-[11px] text-red-300/60 mt-1">Wajib disetor cabang ke Pusat</p>
+          <div class="absolute -right-3 -bottom-4 text-6xl text-red-900/20">🛵</div>
         </div>
-        <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
-          Sinkronisasi Lapak Real-Time
-        </span>
-      </div>
 
-      <div id="opnameContainer" class="space-y-4">
-        <!-- Render via JS -->
-        <div class="text-center py-8 text-slate-500 text-xs">Memuat laporan stock opname...</div>
-      </div>
-    </div>
-
-    <!-- TABEL 3: PERMINTAAN TARIK SALDO (WITHDRAWAL) KURIR FREELANCE -->
-    <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h2 class="font-extrabold text-base text-slate-100 flex items-center">
-            <i class="fa-solid fa-money-bill-transfer mr-2 text-emerald-400"></i>
-            <span>Antrean Pencairan Saldo Driver</span>
-          </h2>
-          <p class="text-xs text-slate-400">Driver freelance meminta penarikan dana ke rekening atau e-wallet mereka</p>
+        <div class="bg-slate-800 border border-emerald-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+          <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Total Transaksi Selesai</span>
+          <div id="statTotalOrders" class="text-2xl md:text-3xl font-black text-emerald-400 mt-2">0 Pesanan</div>
+          <p class="text-[11px] text-emerald-300/60 mt-1">Akumulasi penjualan sistem</p>
+          <div class="absolute -right-3 -bottom-4 text-6xl text-emerald-900/20">✅</div>
         </div>
-        <span class="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">Kurir Freelance</span>
+
+        <div class="bg-slate-800 border border-amber-500/30 rounded-3xl p-5 shadow-lg relative overflow-hidden">
+          <span class="text-xs text-amber-300 font-bold uppercase tracking-wider">Laporan Opname Masuk</span>
+          <div id="statTotalOpname" class="text-2xl md:text-3xl font-black text-amber-300 mt-2">0 Laporan</div>
+          <p class="text-[11px] text-amber-300/60 mt-1">Closing & rekap fisik bahan</p>
+          <div class="absolute -right-3 -bottom-4 text-6xl text-amber-900/20">📦</div>
+        </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
-            <tr>
-              <th class="p-3 rounded-l-xl">Nama Driver</th>
-              <th class="p-3">Nominal Tarik</th>
-              <th class="p-3">Rekening / E-Wallet</th>
-              <th class="p-3">Status</th>
-              <th class="p-3 rounded-r-xl text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="withdrawalTableBody" class="divide-y divide-slate-700 text-slate-200">
-            <!-- Render via JS -->
-          </tbody>
-        </table>
+      <!-- LAPORAN STOCK OPNAME HARIAN & SETORAN OMZET -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-file-invoice-dollar mr-2 text-amber-400"></i>
+              <span>Laporan Setoran Omzet & Closing Harian Gerai</span>
+            </h2>
+            <p class="text-xs text-slate-400">Data setoran kasir, omzet multi-channel (Cash, BCA/QRIS, Gofood, Grabfood, Shopeefood) & sisa fisik 21 bahan baku</p>
+          </div>
+          <span class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
+            Sinkronisasi Lapak Real-Time
+          </span>
+        </div>
+
+        <div id="opnameContainer" class="space-y-4">
+          <div class="text-center py-8 text-slate-500 text-xs">Memuat laporan closing & omzet...</div>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: LAPAK                                                        -->
+    <!-- =================================================================== -->
+    <section id="tabView-lapak" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-store mr-2 text-amber-400"></i>
+              <span>Rekapitulasi Cabang & Pengaturan Modal Awal (Cash Opening)</span>
+            </h2>
+            <p class="text-xs text-slate-400">Owner berwenang menetapkan Cash Opening (laci kasir) masing-masing cabang. Lapak hanya dapat membaca nilai ini.</p>
+          </div>
+          <span class="bg-amber-400/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/30">
+            <i class="fa-solid fa-lock text-[10px] mr-1"></i>Otoritas Khusus Owner
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+              <tr>
+                <th class="p-3 rounded-l-xl">Nama Lapak Cabang</th>
+                <th class="p-3">Total Order</th>
+                <th class="p-3">Omzet Makanan (Hak Lapak)</th>
+                <th class="p-3 text-red-400">Titipan Ongkir</th>
+                <th class="p-3 text-amber-300">Cash Opening (Modal Awal dari Owner)</th>
+                <th class="p-3 rounded-r-xl text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="branchTableBody" class="divide-y divide-slate-700 text-slate-200">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: KURIR                                                        -->
+    <!-- =================================================================== -->
+    <section id="tabView-kurir" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-money-bill-transfer mr-2 text-emerald-400"></i>
+              <span>Antrean Pencairan Saldo Driver</span>
+            </h2>
+            <p class="text-xs text-slate-400">Driver freelance meminta penarikan dana ke rekening atau e-wallet mereka</p>
+          </div>
+          <span class="bg-emerald-400/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-400/30">Kurir Freelance</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider">
+              <tr>
+                <th class="p-3 rounded-l-xl">Nama Driver</th>
+                <th class="p-3">Nominal Tarik</th>
+                <th class="p-3">Rekening / E-Wallet</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 rounded-r-xl text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawalTableBody" class="divide-y divide-slate-700 text-slate-200">
+              <!-- Render via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: COSTUMER                                                     -->
+    <!-- =================================================================== -->
+    <section id="tabView-costumer" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-users mr-2 text-sky-400"></i>
+              <span>Manajemen Costumer (Pelanggan)</span>
+            </h2>
+            <p class="text-xs text-slate-400">Database pelanggan aplikasi, kontak WhatsApp, riwayat pesanan & pelanggan setia</p>
+          </div>
+          <span class="bg-sky-500/20 text-sky-300 text-xs font-bold px-3 py-1 rounded-full border border-sky-500/30">Tab Siap Diisi</span>
+        </div>
+        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
+          <i class="fa-solid fa-address-book text-3xl text-sky-400/80"></i>
+          <p class="text-sm font-bold text-slate-200">Area Tab Costumer</p>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Costumer nanti kita akan isi daftar pelanggan, riwayat order, dan ringkasan pelanggan paling loyal.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: GUDANG                                                       -->
+    <!-- =================================================================== -->
+    <section id="tabView-gudang" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-boxes-stacked mr-2 text-amber-400"></i>
+              <span>Manajemen Gudang & 21 Bahan Baku</span>
+            </h2>
+            <p class="text-xs text-slate-400">Kontrol stok gudang pusat, distribusi/restok bahan baku ke lapak & batas minimum stok</p>
+          </div>
+          <span class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/30">Tab Siap Diisi</span>
+        </div>
+        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
+          <i class="fa-solid fa-warehouse text-3xl text-amber-400/80"></i>
+          <p class="text-sm font-bold text-slate-200">Area Tab Gudang</p>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Gudang nanti kita akan isi stok gudang pusat, pengiriman 21 bahan ke lapak, dan monitoring stok kritis.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 6: STATISTIK                                                    -->
+    <!-- =================================================================== -->
+    <section id="tabView-statistik" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-chart-line mr-2 text-purple-400"></i>
+              <span>Statistik Penjualan & Performa Bisnis</span>
+            </h2>
+            <p class="text-xs text-slate-400">Grafik tren omzet, menu kebab paling laris, perbandingan saluran bayar & performa cabang</p>
+          </div>
+          <span class="bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-500/30">Tab Siap Diisi</span>
+        </div>
+        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
+          <i class="fa-solid fa-chart-pie text-3xl text-purple-400/80"></i>
+          <p class="text-sm font-bold text-slate-200">Area Tab Statistik</p>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Statistik nanti kita akan isi analisis tren penjualan harian/bulanan, menu favorit, dan perbandingan antar lapak.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 7: PROFILE                                                      -->
+    <!-- =================================================================== -->
+    <section id="tabView-profile" class="owner-tab-view hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 pb-3">
+          <div>
+            <h2 class="font-extrabold text-base text-slate-100 flex items-center">
+              <i class="fa-solid fa-user-shield mr-2 text-emerald-400"></i>
+              <span>Profile Owner & Pengaturan Super Admin</span>
+            </h2>
+            <p class="text-xs text-slate-400">Akun pemilik, keamanan PIN/Login Owner, tarif ongkir global & konfigurasi sistem pusat</p>
+          </div>
+          <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">Tab Siap Diisi</span>
+        </div>
+        <div class="text-center py-12 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 space-y-2 px-4">
+          <i class="fa-solid fa-id-card-clip text-3xl text-emerald-400/80"></i>
+          <p class="text-sm font-bold text-slate-200">Area Tab Profile</p>
+          <p class="text-xs text-slate-400 max-w-md mx-auto">Struktur tab sudah siap. Di tahap pembahasan Tab Profile nanti kita akan isi data akun Owner, kunci keamanan login dashboard, serta pengaturan sistem global.</p>
+        </div>
+      </div>
+    </section>
 
   </div>
 
   <script>
+    const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
+    const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-black bg-amber-500 text-slate-950 shadow relative';
+    const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[92px] md:min-w-0 py-2.5 px-3 rounded-xl transition flex flex-col sm:flex-row items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-slate-100 hover:bg-slate-800/80 relative';
+
+    let currentOwnerTab = 'omzet';
+
+    /**
+     * Berpindah antar 7 tab utama Dashboard Owner dan memperbarui status aktif UI & hash URL.
+     */
+    function switchOwnerTab(tabKey) {
+      const targetTab = OWNER_TABS.includes(tabKey) ? tabKey : 'omzet';
+      currentOwnerTab = targetTab;
+
+      OWNER_TABS.forEach(tab => {
+        const btn = document.querySelector(`[data-owner-tab="${tab}"]`);
+        const view = document.getElementById(`tabView-${tab}`);
+        const isActive = tab === targetTab;
+
+        if (btn) {
+          btn.className = isActive ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+          btn.setAttribute('aria-selected', String(isActive));
+        }
+        if (view) {
+          view.classList.toggle('hidden', !isActive);
+        }
+      });
+
+      if (window.location.hash !== `#${targetTab}`) {
+        history.replaceState(null, '', `#${targetTab}`);
+      }
+    }
+
     async function fetchAllData() {
       await fetchSummary();
       await fetchStockOpnames();
@@ -171,6 +364,7 @@
           const bBody = document.getElementById('branchTableBody');
           bBody.innerHTML = d.branches.map(b => {
             const currentCashOpening = Number(b.cash_opening) || 100000;
+            const safeName = String(b.branch_name || '').replace(/'/g, "\\'");
             return `
               <tr class="hover:bg-slate-750 transition">
                 <td class="p-3">
@@ -185,20 +379,28 @@
                     <span class="font-black text-white bg-slate-900/90 px-2.5 py-1 rounded-xl border border-amber-500/30 text-xs">
                       Rp ${currentCashOpening.toLocaleString('id-ID')}
                     </span>
-                    <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${b.branch_name}', ${currentCashOpening})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded-xl text-[10px] flex items-center space-x-1 shadow transition active:scale-95">
+                    <button type="button" onclick="editBranchCashOpening('${b.branch_id}', '${safeName}', ${currentCashOpening})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-2.5 py-1 rounded-xl text-[10px] flex items-center space-x-1 shadow transition active:scale-95">
                       <i class="fa-solid fa-pen-to-square"></i>
                       <span>Ubah Modal</span>
                     </button>
                   </div>
                 </td>
                 <td class="p-3 text-right">
-                  <button onclick="sendInvoiceWA('${b.branch_name}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
+                  <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held})" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
                     <i class="fa-brands fa-whatsapp"></i> Tagih ke Kasir
                   </button>
                 </td>
               </tr>
             `;
           }).join('');
+
+          // Update badge antrean penarikan kurir
+          const pendingWithdrawals = (d.withdrawals || []).filter(w => w.status === 'pending').length;
+          const badgeKurir = document.getElementById('badgeKurirPending');
+          if (badgeKurir) {
+            badgeKurir.innerText = pendingWithdrawals;
+            badgeKurir.classList.toggle('hidden', pendingWithdrawals === 0);
+          }
 
           // Render Withdrawals
           const wBody = document.getElementById('withdrawalTableBody');
@@ -217,7 +419,7 @@
                 </td>
                 <td class="p-3 text-right">
                   ${w.status === 'pending' ? `
-                    <button onclick="approveWithdrawal('${w.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
+                    <button type="button" onclick="approveWithdrawal('${w.id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] shadow">
                       Tandai Sudah Transfer
                     </button>
                   ` : '<span class="text-slate-500 text-[10px]">Selesai</span>'}
@@ -280,7 +482,7 @@
             return;
           }
 
-          container.innerHTML = list.map((op, idx) => {
+          container.innerHTML = list.map(op => {
             const isLocked = op.is_locked || (op.lock_deadline && new Date() > new Date(op.lock_deadline));
             const items = op.stock_items || {};
             const itemKeys = Object.keys(items);
@@ -433,6 +635,9 @@
       }
     }
 
+    // Inisialisasi tab awal (dari hash URL bila ada, default 'omzet')
+    const initialHashTab = (window.location.hash || '').replace('#', '').toLowerCase();
+    switchOwnerTab(OWNER_TABS.includes(initialHashTab) ? initialHashTab : 'omzet');
     fetchAllData();
   </script>
 </body>
