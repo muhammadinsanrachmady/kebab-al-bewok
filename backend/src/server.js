@@ -2948,37 +2948,28 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     };
   });
 
-  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Integrasi Sheet HPP Outlet + Opening Harian Owner + Opname Kasir + Kiriman Gudang)
+  // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Mendukung Sesi Harian: Opening Harian Owner + Kiriman Gudang + Closing Opname Kasir)
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
   const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
-  const branchEvaluations = branches.map(b => {
-    const bOpnames = enrichedOpnames
-      .filter(op => op.branch_id === b.id && (!start_date || !end_date || isDateInRange(op.business_date, start_date, end_date)))
-      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
 
-    const allBranchOpnamesSorted = enrichedOpnames
-      .filter(op => op.branch_id === b.id)
-      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
-
-    const latestOpname = bOpnames[bOpnames.length - 1] || allBranchOpnamesSorted[allBranchOpnamesSorted.length - 1] || null;
-    const latestIdxAll = latestOpname ? allBranchOpnamesSorted.findIndex(op => op.id === latestOpname.id) : -1;
-    const prevOpname = latestIdxAll > 0 ? allBranchOpnamesSorted[latestIdxAll - 1] : null;
-    const matchingOpening = latestOpname
-      ? openingsRaw.find(o => o.branch_id === b.id && o.business_date === latestOpname.business_date)
-      : null;
+  function evaluateBranchSession(branch, sessionDate, sortedOpnames, branchOpenings) {
+    const closingOp = sortedOpnames.find(op => op.business_date === sessionDate) || null;
+    const closingIdx = closingOp ? sortedOpnames.findIndex(op => op.id === closingOp.id) : -1;
+    const prevClosingOp = closingIdx > 0 ? sortedOpnames[closingIdx - 1] : null;
+    const ownerOpening = branchOpenings.find(o => o.business_date === sessionDate) || null;
 
     const restockByItem = {};
     (wh.ledger || []).forEach(tx => {
-      if (tx.type !== 'branch_transfer' || tx.branch_id !== b.id) return;
-      // Jangan gandakan auto-transfer milik Opening Harian karena Opening Harian sudah masuk ke openingFromOwner
-      if (matchingOpening && tx.source_opening_id === matchingOpening.id) return;
+      if (tx.type !== 'branch_transfer' || tx.branch_id !== branch.id) return;
+      // Jangan gandakan auto-transfer milik Opening Harian karena sudah masuk ke ownerOpening
+      if (ownerOpening && tx.source_opening_id === ownerOpening.id) return;
       const txDate = tx.date || getWibDateISO(tx.created_at);
-      const matchesEvalWindow = latestOpname
-        ? (matchingOpening
-            ? txDate === latestOpname.business_date
-            : (prevOpname ? (txDate > prevOpname.business_date && txDate <= latestOpname.business_date) : txDate === latestOpname.business_date))
-        : inPeriod(txDate);
-      if (matchesEvalWindow) {
+      const matchesWindow = ownerOpening
+        ? txDate === sessionDate
+        : (closingOp && prevClosingOp
+            ? (txDate > prevClosingOp.business_date && txDate <= sessionDate)
+            : txDate === sessionDate);
+      if (matchesWindow) {
         (tx.items || []).forEach(r => {
           restockByItem[r.item_id] = (restockByItem[r.item_id] || 0) + (Number(r.qty) || 0);
         });
@@ -2990,24 +2981,26 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     let comparableItemCount = 0;
 
     const materialUsageRows = wh.items.map(it => {
-      const openingFromOwner = matchingOpening && matchingOpening.stock_items && matchingOpening.stock_items[it.id] != null
-        ? Number(matchingOpening.stock_items[it.id].opening_count ?? matchingOpening.stock_items[it.id].physical_count)
+      const openingFromOwner = ownerOpening && ownerOpening.stock_items && ownerOpening.stock_items[it.id] != null
+        ? Number(ownerOpening.stock_items[it.id].opening_count ?? ownerOpening.stock_items[it.id].physical_count)
         : null;
       const openingQty = openingFromOwner !== null
         ? openingFromOwner
-        : (prevOpname && prevOpname.stock_items && prevOpname.stock_items[it.id] != null
-            ? Number(prevOpname.stock_items[it.id].physical_count)
+        : (prevClosingOp && prevClosingOp.stock_items && prevClosingOp.stock_items[it.id] != null
+            ? Number(prevClosingOp.stock_items[it.id].physical_count)
             : null);
-      const closingQty = latestOpname && latestOpname.stock_items && latestOpname.stock_items[it.id] != null
-        ? Number(latestOpname.stock_items[it.id].physical_count)
+      const closingQty = closingOp && closingOp.stock_items && closingOp.stock_items[it.id] != null
+        ? Number(closingOp.stock_items[it.id].physical_count)
         : null;
       const restockQty = restockByItem[it.id] || 0;
       const unitCost = Number(it.unit_cost) || 0;
 
+      // Jika hanya Opening / Kirim Tambahan belum ada Closing -> Opening / Awal tetap tampil penuh!
+      const effectiveOpening = openingQty !== null ? openingQty : (restockQty > 0 ? 0 : null);
       let usageQty = null;
       let subtotalHpp = 0;
-      if (openingQty !== null && closingQty !== null) {
-        usageQty = Math.max(0, openingQty + restockQty - closingQty);
+      if (effectiveOpening !== null && closingQty !== null) {
+        usageQty = Math.max(0, effectiveOpening + restockQty - closingQty);
         subtotalHpp = usageQty * unitCost;
         comparableItemCount += 1;
       }
@@ -3020,7 +3013,7 @@ app.get('/api/super-admin/warehouse', (req, res) => {
         category: it.category,
         name: it.name,
         unit: it.unit,
-        opening_qty: openingQty,
+        opening_qty: effectiveOpening,
         restock_qty: restockQty,
         closing_qty: closingQty,
         usage_qty: usageQty,
@@ -3029,8 +3022,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       };
     });
 
-    const omzet = latestOpname ? (Number(latestOpname.total_omzet) || 0) : 0;
-    const grossProfit = omzet - totalHpp;
+    const omzet = closingOp ? (Number(closingOp.total_omzet) || 0) : 0;
+    const grossProfit = closingOp ? (omzet - totalHpp) : 0;
     const foodCostRatio = omzet > 0 && comparableItemCount > 0 ? Number(((totalHpp / omzet) * 100).toFixed(1)) : null;
 
     const hppByCategory = WAREHOUSE_CATEGORIES.map(cat => {
@@ -3042,14 +3035,24 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       };
     });
 
+    const prettyDate = formatClosingDateId(new Date(`${sessionDate}T12:00:00Z`), '').trim();
+    const statusTag = ownerOpening && closingOp
+      ? 'Opening & Closing Lengkap'
+      : ownerOpening
+        ? 'Opening Terisi (Menunggu Closing)'
+        : closingOp
+          ? 'Closing Tercatat'
+          : 'Kirim Gudang';
+
     return {
-      branch_id: b.id,
-      branch_name: b.name,
-      has_opname_pair: Boolean((matchingOpening || prevOpname) && latestOpname),
-      has_latest_opname: Boolean(latestOpname),
-      opening_date: matchingOpening ? matchingOpening.opening_date : (prevOpname ? prevOpname.closing_date : null),
-      closing_date: latestOpname ? latestOpname.closing_date : null,
-      business_date: latestOpname ? latestOpname.business_date : null,
+      business_date: sessionDate,
+      session_label: `${prettyDate} • ${statusTag}`,
+      has_opening: Boolean(ownerOpening),
+      has_closing: Boolean(closingOp),
+      has_opname_pair: Boolean((ownerOpening || prevClosingOp) && closingOp),
+      has_latest_opname: Boolean(closingOp),
+      opening_date: ownerOpening ? ownerOpening.opening_date : (prevClosingOp ? prevClosingOp.closing_date : null),
+      closing_date: closingOp ? closingOp.closing_date : null,
       gross_sales: omzet,
       total_hpp: totalHpp,
       gross_profit: grossProfit,
@@ -3057,9 +3060,44 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       hpp_by_category: hppByCategory,
       items: materialUsageRows
     };
+  }
+
+  const branchEvaluations = branches.map(b => {
+    const sortedOpnames = enrichedOpnames
+      .filter(op => op.branch_id === b.id)
+      .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
+    const branchOpenings = openingsRaw.filter(o => o.branch_id === b.id);
+
+    const dateSet = new Set();
+    branchOpenings.forEach(o => { if (o.business_date) dateSet.add(o.business_date); });
+    sortedOpnames.forEach(op => { if (op.business_date) dateSet.add(op.business_date); });
+    (wh.ledger || []).forEach(tx => {
+      if (tx.type === 'branch_transfer' && tx.branch_id === b.id) {
+        const d = tx.date || getWibDateISO(tx.created_at);
+        if (d) dateSet.add(d);
+      }
+    });
+
+    const allDatesDesc = Array.from(dateSet).sort((a, z) => z.localeCompare(a));
+    const filteredDatesDesc = (start_date || end_date)
+      ? allDatesDesc.filter(d => isDateInRange(d, start_date, end_date))
+      : allDatesDesc;
+    const sessionDates = filteredDatesDesc.length > 0 ? filteredDatesDesc : allDatesDesc;
+
+    const sessions = sessionDates.map(d => evaluateBranchSession(b, d, sortedOpnames, branchOpenings));
+    const activeEval = sessions[0] || evaluateBranchSession(b, getWibDateISO(new Date()), sortedOpnames, branchOpenings);
+
+    return {
+      branch_id: b.id,
+      branch_name: b.name,
+      ...activeEval,
+      sessions
+    };
   });
 
-  const ratios = branchEvaluations.map(e => e.food_cost_ratio).filter(v => v !== null);
+  const ratios = branchEvaluations
+    .map(e => (e.food_cost_ratio !== null ? e.food_cost_ratio : ((e.sessions || []).find(s => s.food_cost_ratio !== null) || {}).food_cost_ratio ?? null))
+    .filter(v => v !== null);
   const avgFoodCostRatio = ratios.length > 0
     ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
     : null;
