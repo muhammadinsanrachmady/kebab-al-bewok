@@ -110,6 +110,277 @@ const STOCK_OPENING_FILE = path.join(DATA_DIR, 'stock_opening.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 const WAREHOUSE_FILE = path.join(DATA_DIR, 'warehouse.json');
+const PORTAL_ACCOUNTS_FILE = path.join(DATA_DIR, 'portal_accounts.json');
+
+const PORTAL_TAB_KEYS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
+const PORTAL_ROLE_LABELS = {
+  owner: 'Owner Utama',
+  mitra: 'Mitra Cabang',
+  management: 'Management Operasional'
+};
+
+function hashPortalPassword(password, salt) {
+  return crypto.scryptSync(String(password || ''), String(salt || ''), 32).toString('hex');
+}
+
+function verifyPortalPassword(password, account) {
+  if (!account || !account.password_hash || !account.password_salt) return false;
+  const candidateHex = hashPortalPassword(password, account.password_salt);
+  const a = Buffer.from(candidateHex, 'hex');
+  const b = Buffer.from(String(account.password_hash), 'hex');
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+function normalizePortalPermissions(role, rawPerms = {}) {
+  if (role === 'owner') {
+    return {
+      tabs: [...PORTAL_TAB_KEYS],
+      can_edit: true,
+      can_view_finance: true,
+      can_manage_accounts: true
+    };
+  }
+  const src = rawPerms && typeof rawPerms === 'object' ? rawPerms : {};
+  const fallbackTabs = role === 'mitra'
+    ? ['omzet', 'lapak', 'statistik']
+    : ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik'];
+  const rawTabs = Array.isArray(src.tabs) ? src.tabs : fallbackTabs;
+  const tabSet = new Set(rawTabs.filter(t => PORTAL_TAB_KEYS.includes(t)));
+  tabSet.add('profile'); // Profile selalu dapat diakses untuk lihat akun & ganti sandi sendiri
+  const orderedTabs = PORTAL_TAB_KEYS.filter(t => tabSet.has(t));
+
+  return {
+    tabs: orderedTabs,
+    can_edit: Boolean(src.can_edit),
+    can_view_finance: src.can_view_finance !== undefined ? Boolean(src.can_view_finance) : (role === 'mitra'),
+    can_manage_accounts: false
+  };
+}
+
+function getOrInitPortalAccounts() {
+  const existing = readJSON(PORTAL_ACCOUNTS_FILE, null);
+  const nowIso = new Date().toISOString();
+  if (!existing || !Array.isArray(existing.accounts) || existing.accounts.length === 0) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const initial = {
+      session_secret: crypto.randomBytes(32).toString('hex'),
+      accounts: [
+        {
+          id: 'owner-utama',
+          username: 'AlbewokOwner',
+          full_name: 'Owner Utama - Kebab AL Bewok',
+          role: 'owner',
+          password_salt: salt,
+          password_hash: hashPortalPassword('Albewok2025', salt),
+          is_active: true,
+          branch_scope: 'all',
+          allowed_branches: [],
+          permissions: normalizePortalPermissions('owner'),
+          notes: 'Super Admin & Pemilik Utama',
+          created_at: nowIso,
+          updated_at: nowIso,
+          last_login_at: null
+        }
+      ]
+    };
+    writeJSON(PORTAL_ACCOUNTS_FILE, initial);
+    return initial;
+  }
+  let changed = false;
+  if (!existing.session_secret) {
+    existing.session_secret = crypto.randomBytes(32).toString('hex');
+    changed = true;
+  }
+  if (!existing.accounts.some(a => a.role === 'owner')) {
+    const salt = crypto.randomBytes(16).toString('hex');
+    existing.accounts.unshift({
+      id: 'owner-utama',
+      username: 'AlbewokOwner',
+      full_name: 'Owner Utama - Kebab AL Bewok',
+      role: 'owner',
+      password_salt: salt,
+      password_hash: hashPortalPassword('Albewok2025', salt),
+      is_active: true,
+      branch_scope: 'all',
+      allowed_branches: [],
+      permissions: normalizePortalPermissions('owner'),
+      notes: 'Super Admin & Pemilik Utama',
+      created_at: nowIso,
+      updated_at: nowIso,
+      last_login_at: null
+    });
+    changed = true;
+  }
+  if (changed) writeJSON(PORTAL_ACCOUNTS_FILE, existing);
+  return existing;
+}
+
+function sanitizePortalAccount(acc) {
+  if (!acc) return null;
+  const role = ['owner', 'mitra', 'management'].includes(acc.role) ? acc.role : 'management';
+  const branchScope = role === 'owner' ? 'all' : (acc.branch_scope === 'selected' ? 'selected' : 'all');
+  const allowedBranches = branchScope === 'selected' && Array.isArray(acc.allowed_branches)
+    ? acc.allowed_branches.map(id => String(id).trim()).filter(Boolean)
+    : [];
+  return {
+    id: acc.id,
+    username: acc.username,
+    full_name: acc.full_name || acc.username,
+    role,
+    role_label: PORTAL_ROLE_LABELS[role] || 'Staff Management',
+    is_active: acc.is_active !== false,
+    branch_scope: branchScope,
+    allowed_branches: allowedBranches,
+    permissions: normalizePortalPermissions(role, acc.permissions),
+    notes: acc.notes || '',
+    created_at: acc.created_at || null,
+    updated_at: acc.updated_at || null,
+    last_login_at: acc.last_login_at || null
+  };
+}
+
+function signPortalToken(account, sessionSecret) {
+  const payload = {
+    sub: account.id,
+    role: account.role,
+    iat: Date.now(),
+    exp: Date.now() + (30 * 24 * 60 * 60 * 1000)
+  };
+  const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const sig = crypto.createHmac('sha256', String(sessionSecret)).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
+}
+
+function resolvePortalUserFromReq(req) {
+  const authHeader = String(req.headers['authorization'] || '');
+  const headerToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : String(req.headers['x-portal-token'] || '').trim();
+  if (!headerToken || !headerToken.includes('.')) return null;
+
+  const [encoded, sig] = headerToken.split('.');
+  if (!encoded || !sig) return null;
+
+  const store = getOrInitPortalAccounts();
+  const expectedSig = crypto.createHmac('sha256', String(store.session_secret)).update(encoded).digest('base64url');
+  const a = Buffer.from(sig, 'utf8');
+  const b = Buffer.from(expectedSig, 'utf8');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    if (!payload || !payload.sub || (payload.exp && Date.now() > Number(payload.exp))) return null;
+    const liveAccount = store.accounts.find(acc => acc.id === payload.sub);
+    if (!liveAccount || liveAccount.is_active === false) return null;
+    return sanitizePortalAccount(liveAccount);
+  } catch (e) {
+    return null;
+  }
+}
+
+function portalUserHasTab(portalUser, tabKey) {
+  if (!portalUser) return true;
+  if (portalUser.role === 'owner') return true;
+  const tabs = (portalUser.permissions && portalUser.permissions.tabs) || [];
+  return tabs.includes(tabKey);
+}
+
+function canViewPortalFinance(portalUser) {
+  if (!portalUser) return true;
+  if (portalUser.role === 'owner') return true;
+  return Boolean(portalUser.permissions && portalUser.permissions.can_view_finance);
+}
+
+function getAllowedBranchIdSet(portalUser) {
+  if (!portalUser || portalUser.role === 'owner' || portalUser.branch_scope !== 'selected') {
+    return null;
+  }
+  return new Set(portalUser.allowed_branches || []);
+}
+
+function isBranchAllowedForPortalUser(portalUser, branchId) {
+  const allowedSet = getAllowedBranchIdSet(portalUser);
+  if (!allowedSet) return true;
+  if (!branchId || branchId === 'all') return false;
+  return allowedSet.has(branchId);
+}
+
+function filterAllowedBranches(portalUser, branchesList = []) {
+  const allowedSet = getAllowedBranchIdSet(portalUser);
+  if (!allowedSet) return branchesList;
+  return branchesList.filter(b => allowedSet.has(b.id || b.branch_id));
+}
+
+function getRequiredTabForSuperAdmin(reqPath) {
+  const p = String(reqPath || '');
+  if (p.startsWith('/portal-accounts')) return '__owner_only__';
+  if (p.startsWith('/summary')) return null;
+  if (p.startsWith('/stock-opname')) return 'omzet';
+  if (p.startsWith('/stock-opening')) return 'lapak';
+  if (p.startsWith('/courier-radar') || p.startsWith('/drivers') || p.startsWith('/withdrawals') || p.startsWith('/wallet-changes')) return 'kurir';
+  if (p.startsWith('/customers')) return 'costumer';
+  if (p.startsWith('/warehouse')) return 'gudang';
+  if (p.startsWith('/statistics')) return 'statistik';
+  return null;
+}
+
+function enforceSuperAdminRbac(req, res, next) {
+  if (!req.portalUser) {
+    return res.status(401).json({
+      success: false,
+      auth_required: true,
+      message: 'Sesi portal tidak valid atau telah berakhir. Silakan login terlebih dahulu.'
+    });
+  }
+
+  const reqTab = getRequiredTabForSuperAdmin(req.path);
+  if (reqTab === '__owner_only__' && req.portalUser.role !== 'owner') {
+    return res.status(403).json({
+      success: false,
+      message: 'Hanya Owner Utama yang diizinkan mengelola akun akses portal.'
+    });
+  }
+
+  if (reqTab && reqTab !== '__owner_only__' && !portalUserHasTab(req.portalUser, reqTab)) {
+    return res.status(403).json({
+      success: false,
+      message: `Akun Anda (${req.portalUser.role_label}) tidak memiliki izin akses untuk menu "${reqTab}".`
+    });
+  }
+
+  const isWriteMethod = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
+  if (isWriteMethod && reqTab !== '__owner_only__' && !(req.portalUser.permissions && req.portalUser.permissions.can_edit)) {
+    return res.status(403).json({
+      success: false,
+      message: 'Akun Anda dalam mode Lihat Saja (Read-Only) dan tidak dapat mengubah data.'
+    });
+  }
+
+  if (req.portalUser.role !== 'owner' && req.portalUser.branch_scope === 'selected') {
+    const qBranch = req.query && req.query.branch_id;
+    const bBranch = req.body && req.body.branch_id;
+    if (qBranch && qBranch !== 'all' && !isBranchAllowedForPortalUser(req.portalUser, qBranch)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses ditolak: lapak cabang ini di luar cakupan akun Anda.'
+      });
+    }
+    if (bBranch && !isBranchAllowedForPortalUser(req.portalUser, bBranch)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akses ditolak: Anda tidak diizinkan mengubah data lapak cabang ini.'
+      });
+    }
+  }
+
+  next();
+}
+
+app.use('/api', (req, res, next) => {
+  req.portalUser = resolvePortalUserFromReq(req);
+  next();
+});
 
 const WAREHOUSE_CATEGORIES = [
   'Kemasan',
@@ -447,6 +718,288 @@ if (!fs.existsSync(WALLETS_FILE)) {
     history: []
   });
 }
+
+// ============================================================================
+// PORTAL OWNER, MITRA & MANAGEMENT AUTH + MANAJEMEN AKUN AKSES
+// ============================================================================
+app.post('/api/portal/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const cleanUser = String(username || '').trim().toLowerCase();
+  const rawPass = String(password || '');
+
+  if (!cleanUser || !rawPass) {
+    return res.status(400).json({ success: false, message: 'ID / Username dan Password wajib diisi.' });
+  }
+
+  const store = getOrInitPortalAccounts();
+  const acc = store.accounts.find(a => String(a.username || '').toLowerCase() === cleanUser);
+  if (!acc || !verifyPortalPassword(rawPass, acc)) {
+    return res.status(401).json({ success: false, message: 'ID / Username atau Password salah.' });
+  }
+
+  if (acc.is_active === false) {
+    return res.status(403).json({ success: false, message: 'Akun ini sedang dinonaktifkan oleh Owner Utama.' });
+  }
+
+  acc.last_login_at = new Date().toISOString();
+  writeJSON(PORTAL_ACCOUNTS_FILE, store);
+
+  const token = signPortalToken(acc, store.session_secret);
+  res.json({
+    success: true,
+    message: `Selamat datang, ${acc.full_name || acc.username}!`,
+    data: {
+      token,
+      account: sanitizePortalAccount(acc)
+    }
+  });
+});
+
+app.get('/api/portal/me', (req, res) => {
+  if (!req.portalUser) {
+    return res.status(401).json({ success: false, auth_required: true, message: 'Sesi login tidak valid atau telah berakhir.' });
+  }
+  res.json({ success: true, data: req.portalUser });
+});
+
+app.post('/api/portal/change-password', (req, res) => {
+  if (!req.portalUser) {
+    return res.status(401).json({ success: false, auth_required: true, message: 'Silakan login terlebih dahulu.' });
+  }
+  const { current_password, new_password, full_name, username } = req.body || {};
+  const store = getOrInitPortalAccounts();
+  const idx = store.accounts.findIndex(a => a.id === req.portalUser.id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Akun tidak ditemukan.' });
+  }
+  const acc = store.accounts[idx];
+
+  if (new_password && String(new_password).trim().length > 0) {
+    if (!current_password || !verifyPortalPassword(current_password, acc)) {
+      return res.status(400).json({ success: false, message: 'Password saat ini tidak sesuai.' });
+    }
+    if (String(new_password).trim().length < 6) {
+      return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter.' });
+    }
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    acc.password_salt = newSalt;
+    acc.password_hash = hashPortalPassword(String(new_password).trim(), newSalt);
+  }
+
+  if (full_name !== undefined && String(full_name).trim().length >= 2) {
+    acc.full_name = String(full_name).trim();
+  }
+
+  if (username !== undefined && acc.role === 'owner') {
+    const cleanNextUser = String(username).trim();
+    if (cleanNextUser.length < 4 || /\s/.test(cleanNextUser)) {
+      return res.status(400).json({ success: false, message: 'Username minimal 4 karakter dan tanpa spasi.' });
+    }
+    const duplicate = store.accounts.some(a => a.id !== acc.id && a.username.toLowerCase() === cleanNextUser.toLowerCase());
+    if (duplicate) {
+      return res.status(409).json({ success: false, message: 'Username sudah dipakai oleh akun lain.' });
+    }
+    acc.username = cleanNextUser;
+  }
+
+  acc.updated_at = new Date().toISOString();
+  writeJSON(PORTAL_ACCOUNTS_FILE, store);
+
+  res.json({
+    success: true,
+    message: 'Profil akun Anda berhasil diperbarui!',
+    data: sanitizePortalAccount(acc)
+  });
+});
+
+// Middleware Proteksi RBAC Seluruh Endpoint /api/super-admin/*
+app.use('/api/super-admin', enforceSuperAdminRbac);
+
+app.get('/api/super-admin/portal-accounts', (req, res) => {
+  const store = getOrInitPortalAccounts();
+  res.json({
+    success: true,
+    data: store.accounts.map(sanitizePortalAccount)
+  });
+});
+
+app.post('/api/super-admin/portal-accounts', (req, res) => {
+  const {
+    username,
+    full_name,
+    password,
+    role = 'mitra',
+    branch_scope = 'selected',
+    allowed_branches = [],
+    permissions = {},
+    is_active = true,
+    notes = ''
+  } = req.body || {};
+
+  const cleanUser = String(username || '').trim();
+  const cleanName = String(full_name || '').trim();
+  const cleanPass = String(password || '').trim();
+  const cleanRole = ['mitra', 'management'].includes(role) ? role : 'mitra';
+
+  if (cleanUser.length < 4 || /\s/.test(cleanUser)) {
+    return res.status(400).json({ success: false, message: 'ID / Username minimal 4 karakter tanpa spasi.' });
+  }
+  if (!cleanName) {
+    return res.status(400).json({ success: false, message: 'Nama lengkap akun wajib diisi.' });
+  }
+  if (cleanPass.length < 6) {
+    return res.status(400).json({ success: false, message: 'Password akun minimal 6 karakter.' });
+  }
+
+  const store = getOrInitPortalAccounts();
+  if (store.accounts.some(a => String(a.username || '').toLowerCase() === cleanUser.toLowerCase())) {
+    return res.status(409).json({ success: false, message: `ID / Username "${cleanUser}" sudah digunakan.` });
+  }
+
+  const resolvedScope = branch_scope === 'all' ? 'all' : 'selected';
+  const cleanBranches = resolvedScope === 'selected' && Array.isArray(allowed_branches)
+    ? allowed_branches.map(id => String(id).trim()).filter(Boolean)
+    : [];
+
+  if (resolvedScope === 'selected' && cleanBranches.length === 0) {
+    return res.status(400).json({ success: false, message: 'Pilih minimal 1 lapak cabang atau pilih Semua Lapak.' });
+  }
+
+  const salt = crypto.randomBytes(16).toString('hex');
+  const nowIso = new Date().toISOString();
+  const newAccount = {
+    id: `acc-${Date.now()}`,
+    username: cleanUser,
+    full_name: cleanName,
+    role: cleanRole,
+    password_salt: salt,
+    password_hash: hashPortalPassword(cleanPass, salt),
+    is_active: Boolean(is_active),
+    branch_scope: resolvedScope,
+    allowed_branches: cleanBranches,
+    permissions: normalizePortalPermissions(cleanRole, permissions),
+    notes: String(notes || '').trim(),
+    created_at: nowIso,
+    updated_at: nowIso,
+    last_login_at: null
+  };
+
+  store.accounts.push(newAccount);
+  writeJSON(PORTAL_ACCOUNTS_FILE, store);
+
+  res.status(201).json({
+    success: true,
+    message: `Akun ${PORTAL_ROLE_LABELS[cleanRole]} (${cleanUser}) berhasil dibuat!`,
+    data: sanitizePortalAccount(newAccount)
+  });
+});
+
+app.put('/api/super-admin/portal-accounts/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    username,
+    full_name,
+    password,
+    role,
+    branch_scope,
+    allowed_branches,
+    permissions,
+    is_active,
+    notes
+  } = req.body || {};
+
+  const store = getOrInitPortalAccounts();
+  const idx = store.accounts.findIndex(a => a.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Akun akses tidak ditemukan.' });
+  }
+  const acc = store.accounts[idx];
+
+  if (acc.role === 'owner' && is_active === false) {
+    return res.status(400).json({ success: false, message: 'Akun Owner Utama tidak boleh dinonaktifkan.' });
+  }
+
+  if (username !== undefined) {
+    const cleanUser = String(username).trim();
+    if (cleanUser.length < 4 || /\s/.test(cleanUser)) {
+      return res.status(400).json({ success: false, message: 'ID / Username minimal 4 karakter tanpa spasi.' });
+    }
+    if (store.accounts.some(a => a.id !== acc.id && a.username.toLowerCase() === cleanUser.toLowerCase())) {
+      return res.status(409).json({ success: false, message: `Username "${cleanUser}" sudah dipakai akun lain.` });
+    }
+    acc.username = cleanUser;
+  }
+
+  if (full_name !== undefined && String(full_name).trim()) {
+    acc.full_name = String(full_name).trim();
+  }
+
+  if (password !== undefined && String(password).trim() !== '') {
+    const cleanPass = String(password).trim();
+    if (cleanPass.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter.' });
+    }
+    const newSalt = crypto.randomBytes(16).toString('hex');
+    acc.password_salt = newSalt;
+    acc.password_hash = hashPortalPassword(cleanPass, newSalt);
+  }
+
+  if (acc.role !== 'owner') {
+    const nextRole = ['mitra', 'management'].includes(role) ? role : acc.role;
+    acc.role = nextRole;
+
+    if (branch_scope !== undefined) {
+      acc.branch_scope = branch_scope === 'all' ? 'all' : 'selected';
+    }
+    if (allowed_branches !== undefined) {
+      acc.allowed_branches = acc.branch_scope === 'selected' && Array.isArray(allowed_branches)
+        ? allowed_branches.map(bid => String(bid).trim()).filter(Boolean)
+        : [];
+    }
+    if (acc.branch_scope === 'selected' && (!acc.allowed_branches || acc.allowed_branches.length === 0)) {
+      return res.status(400).json({ success: false, message: 'Pilih minimal 1 lapak cabang atau gunakan Semua Lapak.' });
+    }
+    if (permissions !== undefined) {
+      acc.permissions = normalizePortalPermissions(nextRole, permissions);
+    }
+    if (is_active !== undefined) {
+      acc.is_active = Boolean(is_active);
+    }
+  }
+
+  if (notes !== undefined) {
+    acc.notes = String(notes || '').trim();
+  }
+
+  acc.updated_at = new Date().toISOString();
+  writeJSON(PORTAL_ACCOUNTS_FILE, store);
+
+  res.json({
+    success: true,
+    message: `Akun "${acc.full_name}" berhasil diperbarui.`,
+    data: sanitizePortalAccount(acc)
+  });
+});
+
+app.delete('/api/super-admin/portal-accounts/:id', (req, res) => {
+  const { id } = req.params;
+  const store = getOrInitPortalAccounts();
+  const idx = store.accounts.findIndex(a => a.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: 'Akun akses tidak ditemukan.' });
+  }
+  if (store.accounts[idx].role === 'owner') {
+    return res.status(403).json({ success: false, message: 'Akun Owner Utama tidak dapat dihapus.' });
+  }
+
+  const [removed] = store.accounts.splice(idx, 1);
+  writeJSON(PORTAL_ACCOUNTS_FILE, store);
+  res.json({
+    success: true,
+    message: `Akun "${removed.full_name}" (@${removed.username}) telah dihapus.`,
+    data: sanitizePortalAccount(removed)
+  });
+});
 
 // ==========================================
 // 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
@@ -1029,6 +1582,17 @@ function computeBranchProfitMetrics({ branch, omzet = 0, totalHpp = 0, closingOp
 // Update Profil Lapak: Nama, Lokasi (Alamat, Lat, Lng), Nomor Telepon & QRIS Lapak
 app.put('/api/admin/branches/:id', (req, res) => {
   const { id } = req.params;
+  if (req.portalUser) {
+    if (!portalUserHasTab(req.portalUser, 'lapak')) {
+      return res.status(403).json({ success: false, message: 'Akses ke menu Lapak tidak diizinkan untuk akun ini.' });
+    }
+    if (!(req.portalUser.permissions && req.portalUser.permissions.can_edit)) {
+      return res.status(403).json({ success: false, message: 'Akun Anda dalam mode Lihat Saja (Read-Only).' });
+    }
+    if (!isBranchAllowedForPortalUser(req.portalUser, id)) {
+      return res.status(403).json({ success: false, message: 'Lapak cabang ini di luar cakupan akun Anda.' });
+    }
+  }
   const {
     name,
     address,
@@ -1077,12 +1641,14 @@ app.put('/api/admin/branches/:id', (req, res) => {
     branches[idx].cash_opening = Math.max(0, Number(cash_opening));
   }
   if (fixed_expenses !== undefined && fixed_expenses !== null && typeof fixed_expenses === 'object') {
-    const norm = normalizeFixedExpenses(fixed_expenses);
-    branches[idx].fixed_expenses = {
-      monthly_salary: norm.monthly_salary,
-      monthly_rent: norm.monthly_rent,
-      monthly_utilities: norm.monthly_utilities
-    };
+    if (!req.portalUser || (req.portalUser.role !== 'mitra' && canViewPortalFinance(req.portalUser))) {
+      const norm = normalizeFixedExpenses(fixed_expenses);
+      branches[idx].fixed_expenses = {
+        monthly_salary: norm.monthly_salary,
+        monthly_rent: norm.monthly_rent,
+        monthly_utilities: norm.monthly_utilities
+      };
+    }
   }
 
   writeJSON(BRANCHES_FILE, branches);
@@ -1096,6 +1662,11 @@ app.put('/api/admin/branches/:id', (req, res) => {
 
 // Tambah Cabang Baru
 app.post('/api/admin/branches', (req, res) => {
+  if (req.portalUser) {
+    if (req.portalUser.role === 'mitra' || !portalUserHasTab(req.portalUser, 'lapak') || !(req.portalUser.permissions && req.portalUser.permissions.can_edit)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki izin menambahkan lapak cabang baru.' });
+    }
+  }
   const {
     name,
     address,
@@ -1162,6 +1733,11 @@ app.post('/api/admin/branches', (req, res) => {
 
 // Hapus Cabang Lapak (Minimal menyisakan 1 cabang aktif)
 app.delete('/api/admin/branches/:id', (req, res) => {
+  if (req.portalUser) {
+    if (req.portalUser.role === 'mitra' || !portalUserHasTab(req.portalUser, 'lapak') || !(req.portalUser.permissions && req.portalUser.permissions.can_edit)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak memiliki izin menghapus lapak cabang.' });
+    }
+  }
   const { id } = req.params;
   const branches = readJSON(BRANCHES_FILE);
   if (branches.length <= 1) {
@@ -1643,6 +2219,9 @@ app.get('/api/admin/opname-items', (req, res) => {
 
 // Ambil Riwayat Laporan Stock Opname Lapak
 app.get('/api/admin/stock-opname', (req, res) => {
+  if (req.portalUser && !portalUserHasTab(req.portalUser, 'omzet')) {
+    return res.status(403).json({ success: false, message: 'Akses ke data Closing & Omzet tidak diizinkan.' });
+  }
   const { branch_id, start_date, end_date } = req.query;
   const list = readJSON(STOCK_OPNAME_FILE);
   const orders = readJSON(ORDERS_FILE);
@@ -1650,6 +2229,10 @@ app.get('/api/admin/stock-opname', (req, res) => {
 
   let enriched = list.map(item => enrichOpnameRecord(item, orders, now));
 
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
+  if (allowedSet) {
+    enriched = enriched.filter(op => allowedSet.has(op.branch_id));
+  }
   if (branch_id && branch_id !== 'all') {
     enriched = enriched.filter(op => op.branch_id === branch_id);
   }
@@ -1798,6 +2381,9 @@ app.post('/api/super-admin/stock-opname/:id/petty-cash', (req, res) => {
   if (idx === -1) {
     return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan.' });
   }
+  if (!isBranchAllowedForPortalUser(req.portalUser, list[idx].branch_id)) {
+    return res.status(403).json({ success: false, message: 'Laporan lapak cabang ini di luar cakupan akun Anda.' });
+  }
 
   const cleanPetty = Math.max(0, Number(petty_cash) || 0);
   const cleanNote = String(petty_cash_note || '').trim();
@@ -1828,6 +2414,9 @@ app.post('/api/super-admin/stock-opname/:id/verify', (req, res) => {
   if (idx === -1) {
     return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
   }
+  if (!isBranchAllowedForPortalUser(req.portalUser, list[idx].branch_id)) {
+    return res.status(403).json({ success: false, message: 'Laporan lapak cabang ini di luar cakupan akun Anda.' });
+  }
 
   const nextVerified = verified !== undefined ? Boolean(verified) : !Boolean(list[idx].owner_verified);
   list[idx].owner_verified = nextVerified;
@@ -1850,6 +2439,9 @@ app.post('/api/super-admin/stock-opname/:id/toggle-lock', (req, res) => {
 
   if (idx === -1) {
     return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
+  }
+  if (!isBranchAllowedForPortalUser(req.portalUser, list[idx].branch_id)) {
+    return res.status(403).json({ success: false, message: 'Laporan lapak cabang ini di luar cakupan akun Anda.' });
   }
 
   const now = new Date();
@@ -1876,6 +2468,9 @@ app.delete('/api/super-admin/stock-opname/:id', (req, res) => {
 
   if (idx === -1) {
     return res.status(404).json({ success: false, message: 'Laporan closing tidak ditemukan' });
+  }
+  if (!isBranchAllowedForPortalUser(req.portalUser, list[idx].branch_id)) {
+    return res.status(403).json({ success: false, message: 'Laporan lapak cabang ini di luar cakupan akun Anda.' });
   }
 
   const [removed] = list.splice(idx, 1);
@@ -2492,12 +3087,20 @@ app.post('/api/driver/wallet/withdraw', (req, res) => {
 // Ringkasan Finansial Seluruh Cabang & Tagihan Titipan Ongkir (Mendukung Filter Tanggal)
 app.get('/api/super-admin/summary', (req, res) => {
   const { start_date, end_date } = req.query;
-  const branches = readJSON(BRANCHES_FILE);
+  const branchesAll = readJSON(BRANCHES_FILE) || [];
+  const branches = filterAllowedBranches(req.portalUser, branchesAll);
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
+  const allowFinance = canViewPortalFinance(req.portalUser);
+  const allowKurir = portalUserHasTab(req.portalUser, 'kurir');
+  const allowCostumer = portalUserHasTab(req.portalUser, 'costumer');
+  const allowGudang = portalUserHasTab(req.portalUser, 'gudang');
+
   const orders = readJSON(ORDERS_FILE);
   const wallets = readJSON(WALLETS_FILE);
 
   const validOrders = orders.filter(o => {
     if (o.status === 'pending_payment' || o.status === 'cancelled') return false;
+    if (allowedSet && !allowedSet.has(o.branch_id)) return false;
     if (start_date || end_date) {
       return isDateInRange(getWibDateISO(o.created_at), start_date, end_date);
     }
@@ -2527,7 +3130,7 @@ app.get('/api/super-admin/summary', (req, res) => {
       has_qris: Boolean(b.qris_image),
       is_open: b.is_open !== false,
       cash_opening: b.cash_opening !== undefined ? b.cash_opening : 100000,
-      fixed_expenses: normalizeFixedExpenses(b.fixed_expenses),
+      fixed_expenses: allowFinance ? normalizeFixedExpenses(b.fixed_expenses) : null,
       order_count: pos.order_count,
       food_revenue: pos.food_revenue,
       delivery_fee_held: pos.delivery_fee_held,
@@ -2545,11 +3148,13 @@ app.get('/api/super-admin/summary', (req, res) => {
       total_delivery_fees,
       total_orders: validOrders.length,
       branches: branchStats,
-      drivers: Object.values(wallets.drivers || {}),
-      withdrawals: wallets.withdrawals || [],
-      wallet_change_requests: wallets.wallet_change_requests || [],
-      customer_password_resets_pending: (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length,
-      warehouse_reorder_alerts: getWarehouseReorderCount()
+      drivers: allowKurir ? Object.values(wallets.drivers || {}) : [],
+      withdrawals: allowKurir ? (wallets.withdrawals || []) : [],
+      wallet_change_requests: allowKurir ? (wallets.wallet_change_requests || []) : [],
+      customer_password_resets_pending: allowCostumer
+        ? (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length
+        : 0,
+      warehouse_reorder_alerts: allowGudang ? getWarehouseReorderCount() : 0
     }
   });
 });
@@ -2577,17 +3182,23 @@ app.post('/api/super-admin/withdrawals/:id/approve', (req, res) => {
 // RADAR LALU LINTAS KURIR (ATC FLIGHT RADAR STYLE) & KONTROL ADMIN KURIR
 // ============================================================================
 app.get('/api/super-admin/courier-radar', (req, res) => {
-  const branches = readJSON(BRANCHES_FILE) || [];
+  const branchesAll = readJSON(BRANCHES_FILE) || [];
+  const branches = filterAllowedBranches(req.portalUser, branchesAll);
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
   const orders = readJSON(ORDERS_FILE) || [];
   const wallets = readJSON(WALLETS_FILE) || {};
   const driversObj = wallets.drivers || {};
 
-  const defaultBranch = branches[0] || { latitude: -6.33304, longitude: 106.85337 };
+  const defaultBranch = branches[0] || branchesAll[0] || { latitude: -6.33304, longitude: 106.85337 };
   const baseLat = Number(defaultBranch.latitude) || -6.33304;
   const baseLng = Number(defaultBranch.longitude) || 106.85337;
 
-  const readyOrdersRaw = orders.filter(o => isDeliveryOrder(o) && o.status === 'ready_for_pickup');
-  const activeOrdersRaw = orders.filter(o => isDeliveryOrder(o) && (o.status === 'accepted' || o.status === 'delivering'));
+  const readyOrdersRaw = orders.filter(o =>
+    isDeliveryOrder(o) && o.status === 'ready_for_pickup' && (!allowedSet || allowedSet.has(o.branch_id))
+  );
+  const activeOrdersRaw = orders.filter(o =>
+    isDeliveryOrder(o) && (o.status === 'accepted' || o.status === 'delivering') && (!allowedSet || allowedSet.has(o.branch_id))
+  );
 
   const branchById = new Map(branches.map(b => [b.id, b]));
   const branchRadar = branches.map(b => ({
@@ -3227,10 +3838,28 @@ app.get('/api/super-admin/warehouse', (req, res) => {
   });
 
   // Evaluasi HPP & Food Cost Ratio Per Lapak Cabang (Memakai helper evaluateBranchSession bersama Tab Statistik)
+  const visibleBranches = filterAllowedBranches(req.portalUser, branches);
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
+  const allowFinance = canViewPortalFinance(req.portalUser);
+  const redactEval = ev => (allowFinance ? ev : {
+    ...ev,
+    gross_sales: null,
+    total_hpp: null,
+    gross_profit: null,
+    petty_cash: null,
+    fixed_prorata: null,
+    total_opex: null,
+    net_profit: null,
+    net_margin_pct: null,
+    food_cost_ratio: null,
+    hpp_by_category: (ev.hpp_by_category || []).map(c => ({ ...c, hpp: null, share_pct: null })),
+    items: (ev.items || []).map(r => ({ ...r, unit_cost: null, subtotal_hpp: null }))
+  });
+
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
   const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
 
-  const branchEvaluations = branches.map(b => {
+  const branchEvaluations = visibleBranches.map(b => {
     const sortedOpnames = enrichedOpnames
       .filter(op => op.branch_id === b.id)
       .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
@@ -3252,8 +3881,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       : allDatesDesc;
     const sessionDates = filteredDatesDesc.length > 0 ? filteredDatesDesc : allDatesDesc;
 
-    const sessions = sessionDates.map(d => evaluateBranchSession(wh, b, d, sortedOpnames, branchOpenings));
-    const activeEval = sessions[0] || evaluateBranchSession(wh, b, getWibDateISO(new Date()), sortedOpnames, branchOpenings);
+    const sessions = sessionDates.map(d => redactEval(evaluateBranchSession(wh, b, d, sortedOpnames, branchOpenings)));
+    const activeEval = sessions[0] || redactEval(evaluateBranchSession(wh, b, getWibDateISO(new Date()), sortedOpnames, branchOpenings));
 
     return {
       branch_id: b.id,
@@ -3263,9 +3892,11 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     };
   });
 
-  const ratios = branchEvaluations
-    .map(e => (e.food_cost_ratio !== null ? e.food_cost_ratio : ((e.sessions || []).find(s => s.food_cost_ratio !== null) || {}).food_cost_ratio ?? null))
-    .filter(v => v !== null);
+  const ratios = allowFinance
+    ? branchEvaluations
+        .map(e => (e.food_cost_ratio !== null ? e.food_cost_ratio : ((e.sessions || []).find(s => s.food_cost_ratio !== null) || {}).food_cost_ratio ?? null))
+        .filter(v => v !== null)
+    : [];
   const avgFoodCostRatio = ratios.length > 0
     ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
     : null;
@@ -3277,28 +3908,40 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
   );
 
+  const visibleTransferTotals = Array.from(branchTransferTotalsMap.values())
+    .filter(bt => !allowedSet || allowedSet.has(bt.branch_id))
+    .map(bt => allowFinance ? bt : { ...bt, total_value: null, returned_value: null });
+
+  const responseItems = allowFinance ? items : items.map(it => ({
+    ...it,
+    unit_cost: null,
+    asset_value: null,
+    used_value: null
+  }));
+
   res.json({
     success: true,
     data: {
       meta: wh.meta,
+      finance_restricted: !allowFinance,
       categories: WAREHOUSE_CATEGORIES,
-      branches: branches.map(b => ({ id: b.id, name: b.name })),
+      branches: visibleBranches.map(b => ({ id: b.id, name: b.name })),
       stats: {
-        total_asset_value: items.reduce((s, it) => s + it.asset_value, 0),
+        total_asset_value: allowFinance ? items.reduce((s, it) => s + it.asset_value, 0) : null,
         reorder_count: items.filter(it => it.status === 'REORDER').length,
         warning_count: items.filter(it => it.status === 'WARNING').length,
-        total_transfer_value: totalTransferValue,
-        total_returned_value: totalReturnedValue,
-        total_used_value: items.reduce((s, it) => s + (it.used_value || 0), 0),
-        total_supplier_in_value: totalSupplierInValue,
-        total_waste_value: totalWasteValue,
-        transfer_by_branch_totals: Array.from(branchTransferTotalsMap.values()),
+        total_transfer_value: allowFinance ? totalTransferValue : null,
+        total_returned_value: allowFinance ? totalReturnedValue : null,
+        total_used_value: allowFinance ? items.reduce((s, it) => s + (it.used_value || 0), 0) : null,
+        total_supplier_in_value: allowFinance ? totalSupplierInValue : null,
+        total_waste_value: allowFinance ? totalWasteValue : null,
+        transfer_by_branch_totals: visibleTransferTotals,
         pending_po_count: purchaseOrders.filter(po => po.status === 'ordered').length,
         avg_food_cost_ratio: avgFoodCostRatio
       },
-      items,
+      items: responseItems,
       branch_evaluations: branchEvaluations,
-      purchase_orders: purchaseOrders,
+      purchase_orders: allowFinance ? purchaseOrders : purchaseOrders.map(po => ({ ...po, total_cost: null })),
       ledger: recentLedger.slice(0, 60)
     }
   });
@@ -3497,10 +4140,14 @@ app.post('/api/super-admin/warehouse/purchase-orders/:id/cancel', (req, res) => 
 app.get('/api/super-admin/stock-opening', (req, res) => {
   const { branch_id, start_date, end_date } = req.query;
   const list = readJSON(STOCK_OPENING_FILE, []);
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
   let filtered = [...list].sort((a, b) =>
     (b.business_date || '').localeCompare(a.business_date || '') ||
     new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
   );
+  if (allowedSet) {
+    filtered = filtered.filter(item => allowedSet.has(item.branch_id));
+  }
   if (branch_id && branch_id !== 'all') {
     filtered = filtered.filter(item => item.branch_id === branch_id);
   }
@@ -3513,10 +4160,16 @@ app.get('/api/super-admin/stock-opening', (req, res) => {
 app.get('/api/super-admin/stock-opening/prefill', (req, res) => {
   const { branch_id, business_date } = req.query;
   const targetDate = business_date || getWibDateISO(new Date());
-  const branches = readJSON(BRANCHES_FILE) || [];
-  const branch = branches.find(b => b.id === branch_id) || branches[0] || null;
+  const branchesAll = readJSON(BRANCHES_FILE) || [];
+  const visibleBranches = filterAllowedBranches(req.portalUser, branchesAll);
+  const branch = branch_id
+    ? (visibleBranches.find(b => b.id === branch_id) || null)
+    : (visibleBranches[0] || null);
   if (!branch) {
-    return res.status(404).json({ success: false, message: 'Lapak tidak ditemukan' });
+    return res.status(branch_id && branchesAll.some(b => b.id === branch_id) ? 403 : 404).json({
+      success: false,
+      message: 'Lapak tidak ditemukan atau di luar akses akun Anda.'
+    });
   }
 
   const openings = readJSON(STOCK_OPENING_FILE, []);
@@ -3668,6 +4321,9 @@ app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
   if (idx === -1) {
     return res.status(404).json({ success: false, message: 'Data opening harian tidak ditemukan.' });
   }
+  if (!isBranchAllowedForPortalUser(req.portalUser, openings[idx].branch_id)) {
+    return res.status(403).json({ success: false, message: 'Opening harian cabang ini di luar akses akun Anda.' });
+  }
   const removed = openings.splice(idx, 1)[0];
   writeJSON(STOCK_OPENING_FILE, openings);
 
@@ -3685,15 +4341,20 @@ app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
 // ============================================================================
 app.get('/api/super-admin/statistics', (req, res) => {
   const { branch_id = 'all', start_date, end_date } = req.query;
-  const branches = readJSON(BRANCHES_FILE) || [];
+  const branchesAll = readJSON(BRANCHES_FILE) || [];
+  const branches = filterAllowedBranches(req.portalUser, branchesAll);
+  const allowedSet = getAllowedBranchIdSet(req.portalUser);
+  const allowFinance = canViewPortalFinance(req.portalUser);
+
   const ordersAll = readJSON(ORDERS_FILE) || [];
-  const opnamesRaw = readJSON(STOCK_OPNAME_FILE, []);
-  const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
+  const opnamesRaw = (readJSON(STOCK_OPNAME_FILE, []) || []).filter(op => !allowedSet || allowedSet.has(op.branch_id));
+  const openingsRaw = (readJSON(STOCK_OPENING_FILE, []) || []).filter(o => !allowedSet || allowedSet.has(o.branch_id));
   const wallets = readJSON(WALLETS_FILE, {});
   const wh = getOrInitWarehouse();
 
   const validOrders = ordersAll.filter(o =>
-    o.status !== 'pending_payment' && o.status !== 'cancelled' && o.status !== 'rejected'
+    o.status !== 'pending_payment' && o.status !== 'cancelled' && o.status !== 'rejected' &&
+    (!allowedSet || allowedSet.has(o.branch_id))
   );
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, validOrders));
 
@@ -4058,28 +4719,48 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const repeat_rate_pct = buyersList.length > 0 ? Number(((repeatCount / buyersList.length) * 100).toFixed(1)) : 0;
   const top_customers = buyersList.sort((a, z) => z.total_spent - a.total_spent || z.order_count - a.order_count).slice(0, 5);
 
+  const redactedLeaderboard = allowFinance ? branch_leaderboard : branch_leaderboard.map(b => ({
+    ...b,
+    hpp: null,
+    profit: null,
+    petty_cash: null,
+    fixed_prorata: null,
+    total_opex: null,
+    net_profit: null,
+    net_margin_pct: null,
+    monthly_fixed_total: null,
+    food_cost_ratio: null
+  }));
+  const redactedDailyTrend = allowFinance ? daily_trend : daily_trend.map(r => ({
+    ...r,
+    hpp: 0,
+    opex: 0,
+    profit: null,
+    net_profit: null
+  }));
+
   res.json({
     success: true,
     data: {
-      scope: { branch_id, start_date: start_date || null, end_date: end_date || null },
+      scope: { branch_id, start_date: start_date || null, end_date: end_date || null, finance_restricted: !allowFinance },
       kpis: {
         total_omzet,
-        total_hpp,
-        gross_profit,
-        total_petty_cash,
-        total_fixed_prorata,
-        total_opex,
-        net_profit,
-        net_margin_pct,
-        food_cost_ratio,
+        total_hpp: allowFinance ? total_hpp : null,
+        gross_profit: allowFinance ? gross_profit : null,
+        total_petty_cash: allowFinance ? total_petty_cash : null,
+        total_fixed_prorata: allowFinance ? total_fixed_prorata : null,
+        total_opex: allowFinance ? total_opex : null,
+        net_profit: allowFinance ? net_profit : null,
+        net_margin_pct: allowFinance ? net_margin_pct : null,
+        food_cost_ratio: allowFinance ? food_cost_ratio : null,
         total_orders,
         avg_order_value,
         delivery_count,
         pos_count,
         closing_count: scopedOpnames.length
       },
-      daily_trend,
-      branch_leaderboard,
+      daily_trend: redactedDailyTrend,
+      branch_leaderboard: redactedLeaderboard,
       channel_mix,
       menu_insights: {
         total_porsi: totalPorsi,
@@ -4089,9 +4770,9 @@ app.get('/api/super-admin/statistics', (req, res) => {
         toppings
       },
       peak_hours,
-      courier_top,
+      courier_top: allowedSet && !portalUserHasTab(req.portalUser, 'kurir') ? [] : courier_top,
       customer_insights: {
-        total_customers: allCustomers.length,
+        total_customers: allowedSet ? buyersList.length : allCustomers.length,
         active_buyers: buyersList.length,
         repeat_buyers: repeatCount,
         repeat_rate_pct,

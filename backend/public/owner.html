@@ -52,35 +52,99 @@
     .atc-pulse-ring {
       animation: atcPulse 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
     }
+    #ownerAppShell.portal-readonly .portal-edit-only {
+      display: none !important;
+    }
+    #ownerAppShell.portal-mitra .portal-no-mitra {
+      display: none !important;
+    }
+    #ownerAppShell.portal-no-finance .portal-finance-only {
+      display: none !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-3 md:p-6 antialiased">
 
-  <div class="max-w-5xl mx-auto space-y-3.5">
+  <!-- LAYAR LOGIN PORTAL (OWNER UTAMA, MITRA & MANAGEMENT OPERASIONAL) -->
+  <div id="portalLoginOverlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl">
+      <div class="text-center space-y-1.5">
+        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center text-2xl">
+          👑
+        </div>
+        <h1 class="text-base font-extrabold text-slate-100 tracking-tight">Portal Owner &amp; Management</h1>
+        <p class="text-[11px] text-slate-400">Kebab AL Bewok • Masuk menggunakan akun Owner, Mitra, atau tim Management</p>
+      </div>
+
+      <div id="portalLoginError" class="hidden bg-rose-500/15 border border-rose-500/35 text-rose-300 rounded-xl px-3 py-2 text-[11px] font-medium"></div>
+
+      <form onsubmit="submitPortalLogin(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">ID / Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user text-slate-500 absolute left-3 top-2.5 text-[11px]"></i>
+            <input type="text" id="portalLoginUsername" required autocomplete="username" placeholder="Masukkan ID / Username" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock text-slate-500 absolute left-3 top-2.5 text-[11px]"></i>
+            <input type="password" id="portalLoginPassword" required autocomplete="current-password" placeholder="Masukkan Password" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-9 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+            <button type="button" onclick="toggleInputVisibility('portalLoginPassword', this)" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs px-1" aria-label="Tampilkan Password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="btnPortalLoginSubmit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition active:scale-98 flex items-center justify-center gap-1.5 shadow-lg">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Masuk ke Dashboard</span>
+        </button>
+      </form>
+
+      <p class="text-[10px] text-center text-slate-500 leading-relaxed border-t border-slate-800/80 pt-3">
+        Akun <b class="text-slate-300">Mitra</b> &amp; <b class="text-slate-300">Management Operasional</b> dibuat oleh Owner Utama pada Tab Profile.
+      </p>
+    </div>
+  </div>
+
+  <div id="ownerAppShell" class="max-w-5xl mx-auto space-y-3.5 hidden">
 
     <!-- HEADER COMPACT -->
     <header class="flex items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
       <div class="flex items-center space-x-2.5 min-w-0">
-        <div class="w-9 h-9 bg-amber-500/15 border border-amber-500/30 rounded-xl flex items-center justify-center text-base shrink-0">
+        <div id="headerRoleIcon" class="w-9 h-9 bg-amber-500/15 border border-amber-500/30 rounded-xl flex items-center justify-center text-base shrink-0">
           👑
         </div>
         <div class="min-w-0">
-          <h1 class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight truncate">Portal Owner</h1>
-          <p class="text-[11px] text-slate-400 truncate">Kebab AL Bewok • Super Admin</p>
+          <h1 id="headerPortalTitle" class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight truncate">Portal Owner</h1>
+          <p id="headerUserSubtitle" class="text-[11px] text-slate-400 truncate">Kebab AL Bewok • Super Admin</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-1.5 text-[11px] shrink-0">
-        <a href="/admin.html" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 transition flex items-center space-x-1">
+        <a href="/admin.html" class="portal-no-mitra bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 transition flex items-center space-x-1">
           <i class="fa-solid fa-cash-register text-[10px]"></i>
           <span class="hidden sm:inline">Kasir</span>
         </a>
         <button type="button" onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95">
           <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-          <span>Refresh</span>
+          <span class="hidden sm:inline">Refresh</span>
+        </button>
+        <button type="button" onclick="logoutPortal()" title="Keluar / Ganti Akun" class="bg-slate-900 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-rose-500/30 flex items-center space-x-1 transition">
+          <i class="fa-solid fa-arrow-right-from-bracket text-[10px]"></i>
+          <span class="hidden sm:inline">Keluar</span>
         </button>
       </div>
     </header>
+
+    <!-- BANNER AKSES TERBATAS (MUNCUL OTOMATIS UNTUK MITRA / MANAGEMENT) -->
+    <div id="portalScopeNoticeBanner" class="hidden bg-slate-900/90 border border-sky-500/25 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+      <div id="portalScopeNoticeText" class="text-slate-300 flex flex-wrap items-center gap-2"></div>
+      <button type="button" onclick="switchOwnerTab('profile')" class="text-[10px] font-bold text-amber-400 hover:underline shrink-0">Lihat Izin Saya</button>
+    </div>
 
     <!-- NAVIGASI 7 TAB MINIMALIS -->
     <nav aria-label="Navigasi Dashboard Owner" class="sticky top-2 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-1 shadow-lg">
@@ -246,7 +310,7 @@
           </button>
         </div>
 
-        <button type="button" onclick="openBranchModal('create')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
+        <button type="button" onclick="openBranchModal('create')" class="portal-edit-only portal-no-mitra bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
           <i class="fa-solid fa-plus text-[11px]"></i>
           <span>Tambah Lapak</span>
         </button>
@@ -762,7 +826,7 @@
           <button type="button" data-wh-period="all" onclick="setWarehousePeriod('all')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">Semua</button>
         </div>
 
-        <div class="flex flex-wrap items-center gap-1.5">
+        <div class="portal-edit-only flex flex-wrap items-center gap-1.5">
           <button type="button" onclick="openWarehouseTxModal('supplier_in')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 transition">
             <i class="fa-solid fa-box-open"></i>
             <span>Terima Supplier</span>
@@ -1043,7 +1107,7 @@
           <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
           Memuat rincian komponen omzet, HPP, dan biaya operasional...
         </div>
-        <button type="button" onclick="switchOwnerTab('lapak')" class="text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded-lg border border-slate-700 shrink-0 transition">
+        <button type="button" onclick="switchOwnerTab('lapak')" class="portal-edit-only portal-no-mitra portal-finance-only text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-amber-300 px-2.5 py-1 rounded-lg border border-slate-700 shrink-0 transition">
           <i class="fa-solid fa-sliders mr-1"></i>Atur Gaji/Sewa Cabang
         </button>
       </div>
@@ -1166,24 +1230,257 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 7: PROFILE                                                      -->
+    <!-- TAB 7: PROFILE & MANAJEMEN AKUN MITRA / MANAGEMENT OPERASIONAL      -->
     <!-- =================================================================== -->
-    <section id="tabView-profile" class="owner-tab-view hidden">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
-          <div>
-            <h2 class="text-xs md:text-sm font-bold text-slate-100">Profile & Pengaturan</h2>
-            <p class="text-[11px] text-slate-500">Keamanan PIN Owner, tarif ongkir & konfigurasi pusat</p>
+    <section id="tabView-profile" class="owner-tab-view hidden space-y-3">
+      <!-- KARTU PROFIL AKUN SEDANG LOGIN & UBAH SANDI -->
+      <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="profileAccountAvatar" class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center text-lg shrink-0">
+              👑
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 id="profileFullName" class="text-sm font-extrabold text-slate-100 truncate">Owner Utama</h2>
+                <span id="profileRoleBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">Owner Utama</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate">
+                ID Login: <b id="profileUsernameDisplay" class="text-slate-200 font-mono">-</b>
+                <span class="mx-1 text-slate-600">•</span>
+                Cakupan: <b id="profileBranchScopeDisplay" class="text-sky-300">Semua Lapak</b>
+              </p>
+            </div>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-400">Tahap Berikutnya</span>
+
+          <button type="button" onclick="logoutPortal()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500 text-rose-300 hover:text-white border border-rose-500/30 text-[11px] font-bold flex items-center gap-1.5 transition shrink-0">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Keluar Akun</span>
+          </button>
         </div>
-        <div class="text-center py-8 text-xs text-slate-500">
-          <i class="fa-solid fa-user-shield text-xl text-slate-600 mb-1.5 block"></i>
-          Wadah Tab Profile siap diisi pada langkah selanjutnya.
+
+        <!-- RINGKASAN HAK AKSES AKUN AKTIF -->
+        <div id="profilePermissionChips" class="flex flex-wrap gap-1.5 text-[10px]">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- FORM PENGATURAN PROFIL & GANTI PASSWORD AKUN AKTIF -->
+        <form onsubmit="submitOwnProfileUpdate(event)" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs">
+          <div class="space-y-2.5">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">Nama Tampilan</label>
+              <input type="text" id="ownProfileNameInput" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+            </div>
+            <div id="ownProfileUsernameWrap" class="hidden">
+              <label class="text-[11px] font-semibold text-amber-300 block mb-1">ID / Username Login Owner Utama</label>
+              <input type="text" id="ownProfileUsernameInput" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div class="space-y-2.5">
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">Password Saat Ini <span class="text-slate-500 font-normal">(isi jika ganti sandi)</span></label>
+              <input type="password" id="ownCurrentPasswordInput" autocomplete="current-password" placeholder="Kosongkan jika hanya ubah nama" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-slate-300 block mb-1">Password Baru <span class="text-slate-500 font-normal">(min. 6 karakter)</span></label>
+              <input type="password" id="ownNewPasswordInput" autocomplete="new-password" placeholder="Masukkan password baru" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+            </div>
+          </div>
+
+          <div class="md:col-span-2 flex items-center justify-end gap-2">
+            <button type="submit" id="btnSaveOwnProfile" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Simpan Profil Saya</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- KHUSUS OWNER UTAMA: MANAJEMEN AKUN MITRA & MANAGEMENT OPERASIONAL -->
+      <div id="ownerAccountManagerCard" class="hidden bg-slate-900/75 border border-amber-500/25 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div>
+            <h2 class="text-xs md:text-sm font-extrabold text-amber-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-users-gear"></i>
+              <span>Akun Akses Mitra &amp; Management Operasional</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Buatkan ID &amp; Password untuk Mitra atau tim Management dengan batasan cabang, menu, &amp; hak akses finansial.</p>
+          </div>
+
+          <button type="button" onclick="openPortalAccountModal('create')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 shadow transition active:scale-95 shrink-0">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Buat Akun Akses</span>
+          </button>
+        </div>
+
+        <!-- 4 STATISTIK RINGKAS AKUN PORTAL -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Total Akun Portal</span>
+            <p id="statAccTotal" class="text-base font-extrabold text-slate-100 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-emerald-500/20 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Akun Aktif</span>
+            <p id="statAccActive" class="text-base font-extrabold text-emerald-400 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-sky-500/20 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Akun Mitra</span>
+            <p id="statAccMitra" class="text-base font-extrabold text-sky-400 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-amber-500/20 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Management Ops</span>
+            <p id="statAccManagement" class="text-base font-extrabold text-amber-400 tabular-nums mt-0.5">0</p>
+          </div>
+        </div>
+
+        <div id="portalAccountsListContainer" class="space-y-2">
+          <div class="text-center py-6 text-xs text-slate-500">Memuat daftar akun akses...</div>
         </div>
       </div>
     </section>
 
+  </div>
+
+  <!-- MODAL BUAT / EDIT AKUN MITRA & MANAGEMENT OPERASIONAL -->
+  <div id="portalAccountModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-4 space-y-3 max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div>
+          <h3 id="portalAccModalTitle" class="text-sm font-extrabold text-amber-400">Buat Akun Akses Baru</h3>
+          <p id="portalAccModalSub" class="text-[11px] text-slate-400">Berikan ID &amp; Password kepada Mitra atau Management Operasional</p>
+        </div>
+        <button type="button" onclick="closePortalAccountModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form onsubmit="submitPortalAccountModal(event)" class="space-y-3 text-xs">
+        <input type="hidden" id="portalAccFormId">
+
+        <!-- PILIH ROLE / PRESET PERAN -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-semibold text-slate-300 block">Jenis Peran (Role Preset)</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="roleBtnMitra" onclick="selectPortalAccountRole('mitra', true)" class="p-2.5 rounded-xl border border-sky-500 bg-sky-500/15 text-left transition">
+              <div class="font-extrabold text-sky-300 text-xs">🤝 Mitra Cabang</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Fokus pantau lapak miliknya (Omzet, Lapak &amp; Statistik)</p>
+            </button>
+            <button type="button" id="roleBtnManagement" onclick="selectPortalAccountRole('management', true)" class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-left transition">
+              <div class="font-extrabold text-amber-300 text-xs">🛠️ Management Ops</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Kelola operasional lintas cabang, kurir, &amp; gudang</p>
+            </button>
+          </div>
+          <input type="hidden" id="portalAccRoleValue" value="mitra">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">Nama Lengkap <span class="text-rose-400">*</span></label>
+            <input type="text" id="portalAccFullName" required placeholder="Contoh: Pak Andi (Mitra Pekayon)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">ID / Username Login <span class="text-rose-400">*</span></label>
+            <input type="text" id="portalAccUsername" required placeholder="tanpa spasi, mis: mitra_pekayon" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">
+              Password <span id="portalAccPassHint" class="text-slate-500 font-normal">(min. 6 karakter)</span>
+            </label>
+            <div class="relative">
+              <input type="password" id="portalAccPassword" placeholder="Minimal 6 karakter" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 pr-8 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+              <button type="button" onclick="toggleInputVisibility('portalAccPassword', this)" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-300 block mb-1">Catatan Keterangan</label>
+            <input type="text" id="portalAccNotes" placeholder="Contoh: Mitra modal 40% / SPV Malam" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+          </div>
+        </div>
+
+        <!-- CAKUPAN LAPAK CABANG -->
+        <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-3 space-y-2">
+          <span class="text-[11px] font-bold text-slate-200 block"><i class="fa-solid fa-store text-amber-400 mr-1"></i>Cakupan Lapak Cabang yang Bisa Diakses</span>
+          <div class="flex flex-wrap items-center gap-3 text-[11px]">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="portalAccBranchScope" value="all" onchange="onPortalAccBranchScopeChange()" class="accent-amber-500">
+              <span class="text-slate-200 font-semibold">Semua Lapak</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="radio" name="portalAccBranchScope" value="selected" checked onchange="onPortalAccBranchScopeChange()" class="accent-amber-500">
+              <span class="text-sky-300 font-semibold">Lapak Terpilih Saja</span>
+            </label>
+          </div>
+          <div id="portalAccBranchChecklistWrap" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+            <!-- Branch checkboxes via JS -->
+          </div>
+        </div>
+
+        <!-- CHECKLIST TAB MENU -->
+        <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-3 space-y-2">
+          <span class="text-[11px] font-bold text-slate-200 block"><i class="fa-solid fa-table-cells-large text-emerald-400 mr-1"></i>Tab Menu yang Ditampilkan</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 text-[11px]">
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="omzet" class="accent-amber-500">
+              <span>Omzet &amp; Closing</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="lapak" class="accent-amber-500">
+              <span>Lapak &amp; Opening</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="kurir" class="accent-amber-500">
+              <span>Kurir &amp; Radar</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="costumer" class="accent-amber-500">
+              <span>Costumer</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="gudang" class="accent-amber-500">
+              <span>Gudang Pusat</span>
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 cursor-pointer">
+              <input type="checkbox" name="portalAccTab" value="statistik" class="accent-amber-500">
+              <span>Statistik</span>
+            </label>
+          </div>
+          <p class="text-[10px] text-slate-500">Tab <b>Profile</b> khusus akun ini hanya menampilkan info akun &amp; ganti sandi (kelola tim tetap eksklusif milik Owner Utama).</p>
+        </div>
+
+        <!-- HAK AKSI & PRIVASI KEUANGAN -->
+        <div class="bg-slate-950/75 border border-slate-800 rounded-xl p-3 space-y-2 text-[11px]">
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input type="checkbox" id="portalAccCanEdit" class="w-4 h-4 mt-0.5 accent-amber-500 rounded shrink-0">
+            <span>
+              <b class="text-slate-100 block">Boleh Mengubah / Input Data Operasional</b>
+              <span class="text-[10px] text-slate-400">Jika dimatikan, akun hanya berstatus <b>Lihat Saja (Read-Only)</b>.</span>
+            </span>
+          </label>
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input type="checkbox" id="portalAccCanFinance" class="w-4 h-4 mt-0.5 accent-emerald-500 rounded shrink-0">
+            <span>
+              <b class="text-emerald-300 block">Boleh Lihat Data Profit, HPP, Gaji/Sewa &amp; Laba Bersih</b>
+              <span class="text-[10px] text-slate-400">Jika dimatikan, akun fokus operasional (stok/order) tanpa angka profit pusat.</span>
+            </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer pt-1 border-t border-slate-800">
+            <input type="checkbox" id="portalAccIsActive" checked class="w-4 h-4 accent-emerald-500 rounded">
+            <span class="text-slate-200 font-semibold">Akun berstatus <b class="text-emerald-400">AKTIF</b> (diizinkan login)</span>
+          </label>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="closePortalAccountModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
+          <button type="submit" id="btnSavePortalAcc" class="px-4 py-1.5 rounded-xl text-xs font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL TAMBAH / EDIT LAPAK -->
@@ -1458,6 +1755,42 @@
   </div>
 
   <script>
+    const PORTAL_TOKEN_KEY = 'kebab_portal_token';
+    let currentPortalUser = null;
+    let cachedPortalAccounts = [];
+
+    function getPortalToken() {
+      try { return localStorage.getItem(PORTAL_TOKEN_KEY) || ''; } catch (e) { return ''; }
+    }
+    function setPortalToken(token) {
+      try {
+        if (token) localStorage.setItem(PORTAL_TOKEN_KEY, token);
+        else localStorage.removeItem(PORTAL_TOKEN_KEY);
+      } catch (e) {}
+    }
+
+    // Interceptor fetch global: menyisipkan token login & menangani 401 otomatis
+    const _rawFetch = window.fetch.bind(window);
+    window.fetch = async function(input, init = {}) {
+      const url = typeof input === 'string' ? input : (input && input.url) || '';
+      const opts = { ...init };
+      if (url.startsWith('/api/') && url !== '/api/portal/login') {
+        const token = getPortalToken();
+        if (token) {
+          opts.headers = Object.assign({}, opts.headers || {}, { 'Authorization': `Bearer ${token}` });
+        }
+      }
+      const res = await _rawFetch(input, opts);
+      if (res.status === 401 && url.startsWith('/api/') && url !== '/api/portal/login') {
+        setPortalToken('');
+        currentPortalUser = null;
+        if (typeof showPortalLoginScreen === 'function') {
+          showPortalLoginScreen('Sesi login berakhir atau akun dinonaktifkan. Silakan login kembali.');
+        }
+      }
+      return res;
+    };
+
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
     const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
     const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative';
@@ -1681,16 +2014,22 @@
      * Berpindah antar 7 tab utama Dashboard Owner.
      */
     function switchOwnerTab(tabKey) {
-      const targetTab = OWNER_TABS.includes(tabKey) ? tabKey : 'omzet';
+      let targetTab = OWNER_TABS.includes(tabKey) ? tabKey : 'omzet';
+      if (currentPortalUser && !portalHasTab(targetTab)) {
+        const firstAllowed = OWNER_TABS.find(t => portalHasTab(t)) || 'profile';
+        targetTab = firstAllowed;
+      }
       currentOwnerTab = targetTab;
 
       OWNER_TABS.forEach(tab => {
         const btn = document.querySelector(`[data-owner-tab="${tab}"]`);
         const view = document.getElementById(`tabView-${tab}`);
-        const isActive = tab === targetTab;
+        const isAllowed = !currentPortalUser || portalHasTab(tab);
+        const isActive = tab === targetTab && isAllowed;
 
         if (btn) {
           btn.className = isActive ? TAB_ACTIVE_CLASS : TAB_INACTIVE_CLASS;
+          btn.classList.toggle('hidden', !isAllowed);
           btn.setAttribute('aria-selected', String(isActive));
         }
         if (view) {
@@ -1723,6 +2062,11 @@
           fetchWarehouseData();
         } else if (targetTab === 'statistik') {
           fetchStatisticsData();
+        } else if (targetTab === 'profile') {
+          renderProfileTab();
+          if (currentPortalUser && currentPortalUser.role === 'owner') {
+            fetchPortalAccounts();
+          }
         }
       }
     }
@@ -1756,14 +2100,22 @@
     function renderBranchSelectOptions() {
       const badge = document.getElementById('ownerBranchBadge');
       const branches = (cachedSummary && cachedSummary.branches) ? cachedSummary.branches : [];
-      const optionsHtml = [
-        `<option value="all" class="bg-slate-900 text-slate-100">Semua Lapak (${branches.length} Cabang)</option>`,
-        ...branches.map(b => `
-          <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
-            ${escapeHtml(shortBranchLabel(b.branch_name))}
-          </option>
-        `)
-      ].join('');
+      const isSingleScoped = currentPortalUser && currentPortalUser.branch_scope === 'selected' && branches.length === 1;
+      if (isSingleScoped) {
+        selectedBranchId = branches[0].branch_id;
+      }
+
+      const branchOptions = branches.map(b => `
+        <option value="${escapeHtml(b.branch_id)}" class="bg-slate-900 text-slate-100">
+          ${escapeHtml(shortBranchLabel(b.branch_name))}
+        </option>
+      `);
+      const optionsHtml = isSingleScoped
+        ? branchOptions.join('')
+        : [
+            `<option value="all" class="bg-slate-900 text-slate-100">${currentPortalUser && currentPortalUser.branch_scope === 'selected' ? `Semua Lapak Akses (${branches.length} Cabang)` : `Semua Lapak (${branches.length} Cabang)`}</option>`,
+            ...branchOptions
+          ].join('');
 
       ['ownerBranchSelect', 'opnameBranchSelect'].forEach(selectId => {
         const selectEl = document.getElementById(selectId);
@@ -1796,14 +2148,15 @@
     }
 
     async function fetchAllData() {
-      await Promise.all([
-        fetchSummary(),
-        fetchStockOpnames(),
-        fetchCustomersData(),
-        fetchWarehouseData(),
-        fetchOpeningHistory(),
-        fetchStatisticsData()
-      ]);
+      if (!currentPortalUser) return;
+      const tasks = [fetchSummary()];
+      if (portalHasTab('omzet')) tasks.push(fetchStockOpnames());
+      if (portalHasTab('costumer')) tasks.push(fetchCustomersData());
+      if (portalHasTab('gudang')) tasks.push(fetchWarehouseData());
+      if (portalHasTab('lapak')) tasks.push(fetchOpeningHistory());
+      if (portalHasTab('statistik')) tasks.push(fetchStatisticsData());
+      if (currentPortalUser.role === 'owner') tasks.push(fetchPortalAccounts());
+      await Promise.all(tasks);
     }
 
     async function fetchSummary() {
@@ -1818,6 +2171,8 @@
           renderOmzetMetricsAndOpnames();
           renderBranchesTable();
           renderCourierFinanceSection();
+          if (currentOwnerTab === 'profile') renderProfileTab();
+          if (cachedPortalAccounts.length > 0) renderPortalAccountsList();
           if (typeof cachedSummary.customer_password_resets_pending === 'number') {
             updateCustomerPendingBadge(cachedSummary.customer_password_resets_pending);
           }
@@ -1968,7 +2323,7 @@
                   <span class="text-[10px] text-slate-500 block">Cash Opening</span>
                   <span class="text-[11px] font-bold text-slate-100 tabular-nums">${formatRp(cashOpening)}</span>
                 </div>
-                <button type="button" onclick="editBranchCashOpening('${escapeHtml(b.branch_id)}', '${safeName}', ${cashOpening})" class="bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-semibold px-2 py-0.5 rounded text-[10px] border border-amber-500/30 transition shrink-0">
+                <button type="button" onclick="editBranchCashOpening('${escapeHtml(b.branch_id)}', '${safeName}', ${cashOpening})" class="portal-edit-only bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-slate-950 font-semibold px-2 py-0.5 rounded text-[10px] border border-amber-500/30 transition shrink-0">
                   Ubah
                 </button>
               </div>
@@ -1979,14 +2334,14 @@
               <button type="button" onclick="openBranchDailyOpening('${escapeHtml(b.branch_id)}')" class="bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-amber-500/30 transition">
                 <i class="fa-solid fa-clipboard-list mr-1"></i>Opening Harian
               </button>
-              <button type="button" onclick="openBranchModal('edit', '${escapeHtml(b.branch_id)}')" class="bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-700 transition">
+              <button type="button" onclick="openBranchModal('edit', '${escapeHtml(b.branch_id)}')" class="portal-edit-only portal-no-mitra bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-700 transition">
                 <i class="fa-solid fa-pen-to-square mr-1"></i>Edit Lapak
               </button>
-              <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held}, '${safePhone}')" class="bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-emerald-500/30 transition">
+              <button type="button" onclick="sendInvoiceWA('${safeName}', ${b.delivery_fee_held}, '${safePhone}')" class="portal-no-mitra bg-emerald-600/15 hover:bg-emerald-600 text-emerald-400 hover:text-white font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-emerald-500/30 transition">
                 <i class="fa-brands fa-whatsapp mr-1"></i>Tagih Ongkir
               </button>
               ${canDelete ? `
-                <button type="button" onclick="deleteBranch('${escapeHtml(b.branch_id)}', '${safeName}')" class="bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-800 hover:border-rose-500/30 transition">
+                <button type="button" onclick="deleteBranch('${escapeHtml(b.branch_id)}', '${safeName}')" class="portal-edit-only portal-no-mitra bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 font-semibold px-2.5 py-1 rounded-lg text-[10px] border border-slate-800 hover:border-rose-500/30 transition">
                   <i class="fa-solid fa-trash-can mr-1"></i>Hapus
                 </button>
               ` : ''}
@@ -3859,8 +4214,9 @@
       const elFoodCostSub = document.getElementById('kpiWhFoodCostSub');
       const poBadge = document.getElementById('subtabBadgeWhPo');
 
-      if (elAsset) elAsset.innerText = formatRp(s.total_asset_value || 0);
-      if (elAssetSub) elAssetSub.innerText = `${items.length} item • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
+      if (elAsset) elAsset.innerText = hideFin ? 'Terbatas' : formatRp(s.total_asset_value || 0);
+      if (elAssetSub) elAssetSub.innerText = hideFin ? `${items.length} item • Akses Stok` : `${items.length} item • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
       const stockBtn = document.getElementById('subtabBtnWhStock');
       if (stockBtn) stockBtn.innerText = `Mutasi Stok Pusat (${items.length} Item)`;
 
@@ -3879,9 +4235,9 @@
           : 'text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition';
       }
 
-      if (elTransfer) elTransfer.innerText = formatRp(s.total_transfer_value || 0);
+      if (elTransfer) elTransfer.innerText = hideFin ? 'Terbatas' : formatRp(s.total_transfer_value || 0);
       if (elTransferSub) {
-        elTransferSub.innerText = `Kembali: ${formatRp(s.total_returned_value || 0)} • Terpakai: ${formatRp(s.total_used_value || 0)}`;
+        elTransferSub.innerText = hideFin ? 'Fokus jumlah fisik/unit' : `Kembali: ${formatRp(s.total_returned_value || 0)} • Terpakai: ${formatRp(s.total_used_value || 0)}`;
       }
 
       if (elFoodCost) {
@@ -3920,11 +4276,12 @@
         strip.innerHTML = '';
         return;
       }
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
       strip.innerHTML = `
         <span class="text-slate-500 font-semibold">Ringkasan Cabang:</span>
         ${totals.map(b => `
           <span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 tabular-nums">
-            <b class="text-sky-400">${escapeHtml(shortBranchLabel(b.branch_name))}</b>: Kirim ${formatRp(b.total_value)} • Kembali ${formatRp(b.returned_value || 0)}
+            <b class="text-sky-400">${escapeHtml(shortBranchLabel(b.branch_name))}</b>: ${hideFin ? `${Number(b.qty_units || 0).toLocaleString('id-ID')} kirim • ${Number(b.returned_units || 0).toLocaleString('id-ID')} kembali` : `Kirim ${formatRp(b.total_value)} • Kembali ${formatRp(b.returned_value || 0)}`}
           </span>
         `).join('')}
       `;
@@ -3957,6 +4314,7 @@
         return;
       }
 
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
       tbody.innerHTML = items.map(it => {
         const meta = WH_STATUS_META[it.status] || WH_STATUS_META.SAFE;
         const safeId = escapeJsArg(it.id);
@@ -3984,7 +4342,7 @@
             </td>
             <td class="py-2 px-2 text-right tabular-nums">
               <span class="${usedCount > 0 ? 'text-amber-300 font-bold' : 'text-slate-500'}">${usedCount.toLocaleString('id-ID')}</span>
-              ${usedCount > 0 ? `<span class="block text-[9px] text-rose-400/90 whitespace-nowrap">${formatRp(it.used_value || 0)}</span>` : ''}
+              ${usedCount > 0 && !hideFin ? `<span class="block text-[9px] text-rose-400/90 whitespace-nowrap">${formatRp(it.used_value || 0)}</span>` : ''}
             </td>
             <td class="py-2 px-2 text-right tabular-nums ${it.waste > 0 ? 'text-rose-400' : 'text-slate-500'}">${Number(it.waste).toLocaleString('id-ID')}</td>
             <td class="py-2 px-2 text-right font-extrabold tabular-nums ${it.status === 'REORDER' ? 'text-rose-400' : 'text-slate-100'}">${Number(it.current_stock).toLocaleString('id-ID')}</td>
@@ -3992,10 +4350,10 @@
             <td class="py-2 px-2 text-center whitespace-nowrap">
               <span class="px-1.5 py-0.5 rounded border text-[9px] font-semibold ${meta.cls}">${meta.label}</span>
             </td>
-            <td class="py-2 px-2 text-right tabular-nums text-slate-300 whitespace-nowrap">${formatRp(it.unit_cost)}</td>
-            <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums whitespace-nowrap">${formatRp(it.asset_value)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-slate-300 whitespace-nowrap">${hideFin ? '•••' : formatRp(it.unit_cost)}</td>
+            <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums whitespace-nowrap">${hideFin ? '•••' : formatRp(it.asset_value)}</td>
             <td class="py-2 px-2 text-right whitespace-nowrap">
-              <button type="button" onclick="openWarehouseItemModal('${safeId}')" class="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
+              <button type="button" onclick="openWarehouseItemModal('${safeId}')" class="portal-edit-only px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
                 Edit
               </button>
             </td>
@@ -4009,9 +4367,9 @@
         tfoot.innerHTML = `
           <tr>
             <td colspan="6" class="py-2 px-2 text-right text-[10px] uppercase tracking-wide text-slate-400">Total Terpakai (HPP):</td>
-            <td class="py-2 px-2 text-right text-rose-400 font-bold tabular-nums whitespace-nowrap">${formatRp(totalUsedVal)}</td>
+            <td class="py-2 px-2 text-right text-rose-400 font-bold tabular-nums whitespace-nowrap">${hideFin ? 'Terbatas' : formatRp(totalUsedVal)}</td>
             <td colspan="5" class="py-2 px-2 text-right text-[10px] uppercase tracking-wide text-slate-400">Total Valuasi Aset:</td>
-            <td class="py-2 px-2 text-right text-amber-400 font-extrabold tabular-nums whitespace-nowrap">${formatRp(totalVal)}</td>
+            <td class="py-2 px-2 text-right text-amber-400 font-extrabold tabular-nums whitespace-nowrap">${hideFin ? 'Terbatas' : formatRp(totalVal)}</td>
             <td></td>
           </tr>
         `;
@@ -4113,12 +4471,13 @@
         }
       }
 
-      if (omzetEl) omzetEl.innerText = formatRp(ev.gross_sales);
-      if (hppEl) hppEl.innerText = formatRp(ev.total_hpp);
-      if (profitEl) profitEl.innerText = formatRp(ev.gross_profit);
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
+      if (omzetEl) omzetEl.innerText = hideFin ? 'Terbatas' : formatRp(ev.gross_sales);
+      if (hppEl) hppEl.innerText = hideFin ? 'Terbatas' : formatRp(ev.total_hpp);
+      if (profitEl) profitEl.innerText = hideFin ? 'Terbatas' : formatRp(ev.gross_profit);
       if (ratioEl) {
-        if (ev.food_cost_ratio === null) {
-          ratioEl.innerText = '-';
+        if (hideFin || ev.food_cost_ratio === null) {
+          ratioEl.innerText = hideFin ? 'Terbatas' : '-';
           ratioEl.className = 'text-sm font-extrabold text-slate-400 tabular-nums mt-0.5';
         } else {
           const r = ev.food_cost_ratio;
@@ -4131,16 +4490,16 @@
       const pettyVal = Number(ev.petty_cash) || 0;
       const fixedVal = Number(ev.fixed_prorata) || 0;
       const netVal = Number(ev.net_profit) || 0;
-      if (opexEl) opexEl.innerText = formatRp(opexVal);
+      if (opexEl) opexEl.innerText = hideFin ? 'Terbatas' : formatRp(opexVal);
       if (opexSubEl) {
-        opexSubEl.innerText = `Kas ${formatRp(pettyVal)} • Tetap ${formatRp(fixedVal)}`;
+        opexSubEl.innerText = hideFin ? 'Akses profit dibatasi' : `Kas ${formatRp(pettyVal)} • Tetap ${formatRp(fixedVal)}`;
       }
       if (netProfitEl) {
-        netProfitEl.innerText = formatRp(netVal);
-        netProfitEl.className = `text-sm font-extrabold tabular-nums mt-0.5 ${netVal >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        netProfitEl.innerText = hideFin ? 'Terbatas' : formatRp(netVal);
+        netProfitEl.className = `text-sm font-extrabold tabular-nums mt-0.5 ${hideFin ? 'text-slate-400' : (netVal >= 0 ? 'text-emerald-400' : 'text-rose-400')}`;
       }
       if (netMarginSubEl) {
-        netMarginSubEl.innerText = ev.net_margin_pct !== null && ev.net_margin_pct !== undefined
+        netMarginSubEl.innerText = !hideFin && ev.net_margin_pct !== null && ev.net_margin_pct !== undefined
           ? `Margin Bersih: ${ev.net_margin_pct}%`
           : 'Margin Bersih -';
       }
@@ -5057,34 +5416,44 @@
         scopeHint.innerText = activeBranch ? shortBranchLabel(activeBranch.branch_name) : `Semua Lapak (${branches.length})`;
       }
 
+      const hideFin = Boolean((cachedStatData.scope && cachedStatData.scope.finance_restricted) || k.gross_profit === null);
+
       document.getElementById('kpiStatOmzet').innerText = formatRp(k.total_omzet || 0);
       document.getElementById('kpiStatOmzetSub').innerText = `${k.total_orders || 0} transaksi • ${k.closing_count || 0} closing`;
 
-      document.getElementById('kpiStatProfit').innerText = formatRp(k.gross_profit || 0);
-      document.getElementById('kpiStatProfitSub').innerText = `HPP ${formatRp(k.total_hpp || 0)} • Food Cost ${k.food_cost_ratio !== null ? `${k.food_cost_ratio}%` : '-'}`;
+      document.getElementById('kpiStatProfit').innerText = hideFin ? 'Terbatas' : formatRp(k.gross_profit || 0);
+      document.getElementById('kpiStatProfitSub').innerText = hideFin
+        ? 'Akses profit dibatasi'
+        : `HPP ${formatRp(k.total_hpp || 0)} • Food Cost ${k.food_cost_ratio !== null ? `${k.food_cost_ratio}%` : '-'}`;
 
       const netProfit = Number(k.net_profit) || 0;
       const netProfitEl = document.getElementById('kpiStatNetProfit');
       if (netProfitEl) {
-        netProfitEl.innerText = formatRp(netProfit);
-        netProfitEl.className = `text-base md:text-lg font-extrabold mt-0.5 tabular-nums truncate ${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        netProfitEl.innerText = hideFin ? 'Terbatas' : formatRp(netProfit);
+        netProfitEl.className = `text-base md:text-lg font-extrabold mt-0.5 tabular-nums truncate ${hideFin ? 'text-slate-400' : (netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400')}`;
       }
       const netProfitSubEl = document.getElementById('kpiStatNetProfitSub');
       if (netProfitSubEl) {
-        netProfitSubEl.innerText = `Biaya Ops ${formatRp(k.total_opex || 0)} • Margin ${k.net_margin_pct !== null && k.net_margin_pct !== undefined ? `${k.net_margin_pct}%` : '-'}`;
+        netProfitSubEl.innerText = hideFin
+          ? 'Khusus akun dengan izin keuangan'
+          : `Biaya Ops ${formatRp(k.total_opex || 0)} • Margin ${k.net_margin_pct !== null && k.net_margin_pct !== undefined ? `${k.net_margin_pct}%` : '-'}`;
       }
 
       const formulaBarEl = document.getElementById('statProfitFormulaBar');
       if (formulaBarEl) {
-        const opexParts = [`Kas Kecil ${formatRp(k.total_petty_cash || 0)}`, `Tetap Prorata ${formatRp(k.total_fixed_prorata || 0)}`];
-        formulaBarEl.innerHTML = `
-          <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
-          Omzet <b class="text-amber-300">${formatRp(k.total_omzet || 0)}</b>
-          − HPP <b class="text-rose-300">${formatRp(k.total_hpp || 0)}</b>
-          = Laba Kotor <b class="text-emerald-300">${formatRp(k.gross_profit || 0)}</b>
-          − Biaya Ops <b class="text-orange-300">${formatRp(k.total_opex || 0)}</b> <span class="text-slate-500">(${opexParts.join(' + ')})</span>
-          = <b class="${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">Laba Bersih ${formatRp(netProfit)}</b>
-        `;
+        if (hideFin) {
+          formulaBarEl.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-lock text-amber-400 mr-1"></i>Rincian HPP, Biaya Operasional, dan Laba Bersih disembunyikan sesuai izin akun Anda.</span>`;
+        } else {
+          const opexParts = [`Kas Kecil ${formatRp(k.total_petty_cash || 0)}`, `Tetap Prorata ${formatRp(k.total_fixed_prorata || 0)}`];
+          formulaBarEl.innerHTML = `
+            <span class="font-bold text-emerald-400"><i class="fa-solid fa-calculator mr-1"></i>Rumus Laba Bersih:</span>
+            Omzet <b class="text-amber-300">${formatRp(k.total_omzet || 0)}</b>
+            − HPP <b class="text-rose-300">${formatRp(k.total_hpp || 0)}</b>
+            = Laba Kotor <b class="text-emerald-300">${formatRp(k.gross_profit || 0)}</b>
+            − Biaya Ops <b class="text-orange-300">${formatRp(k.total_opex || 0)}</b> <span class="text-slate-500">(${opexParts.join(' + ')})</span>
+            = <b class="${netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">Laba Bersih ${formatRp(netProfit)}</b>
+          `;
+        }
       }
 
       document.getElementById('kpiStatAov').innerText = formatRp(k.avg_order_value || 0);
@@ -5226,13 +5595,14 @@
         return;
       }
 
+      const hideFin = Boolean(cachedStatData.scope && cachedStatData.scope.finance_restricted);
       tbody.innerHTML = list.map((b, idx) => {
         const isFocus = selectedBranchId !== 'all' && selectedBranchId === b.branch_id;
-        const fcColor = b.food_cost_ratio === null
+        const fcColor = hideFin || b.food_cost_ratio === null
           ? 'text-slate-500'
           : (b.food_cost_ratio <= 40 ? 'text-emerald-400' : b.food_cost_ratio <= 48 ? 'text-amber-400' : 'text-rose-400');
         const netVal = Number(b.net_profit ?? b.profit ?? 0);
-        const netColor = netVal >= 0 ? 'text-emerald-400' : 'text-rose-400';
+        const netColor = hideFin ? 'text-slate-500' : (netVal >= 0 ? 'text-emerald-400' : 'text-rose-400');
 
         return `
           <tr class="hover:bg-slate-800/40 transition ${isFocus ? 'bg-amber-500/10' : ''}">
@@ -5244,13 +5614,13 @@
             <td class="py-2 px-2 text-right tabular-nums text-sky-400">${formatRp(b.avg_order_value)}</td>
             <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums">${formatRp(b.omzet)}</td>
             <td class="py-2 px-2 text-right tabular-nums text-slate-400">${b.share_pct}%</td>
-            <td class="py-2 px-2 text-right tabular-nums text-rose-400">${formatRp(b.hpp)}</td>
-            <td class="py-2 px-2 text-right font-bold tabular-nums ${fcColor}">${b.food_cost_ratio !== null ? `${b.food_cost_ratio}%` : '-'}</td>
-            <td class="py-2 px-2 text-right font-semibold text-emerald-300 tabular-nums">${formatRp(b.profit)}</td>
-            <td class="py-2 px-2 text-right tabular-nums text-orange-400" title="Kas Kecil ${formatRp(b.petty_cash || 0)} + Tetap ${formatRp(b.fixed_prorata || 0)}">${formatRp(b.total_opex || 0)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-rose-400">${hideFin || b.hpp === null ? '•••' : formatRp(b.hpp)}</td>
+            <td class="py-2 px-2 text-right font-bold tabular-nums ${fcColor}">${hideFin || b.food_cost_ratio === null ? '-' : `${b.food_cost_ratio}%`}</td>
+            <td class="py-2 px-2 text-right font-semibold text-emerald-300 tabular-nums">${hideFin || b.profit === null ? '•••' : formatRp(b.profit)}</td>
+            <td class="py-2 px-2 text-right tabular-nums text-orange-400" title="${hideFin ? 'Terbatas' : `Kas Kecil ${formatRp(b.petty_cash || 0)} + Tetap ${formatRp(b.fixed_prorata || 0)}`}">${hideFin || b.total_opex === null ? '•••' : formatRp(b.total_opex || 0)}</td>
             <td class="py-2 px-2 text-right font-bold tabular-nums ${netColor}">
-              ${formatRp(netVal)}
-              ${b.net_margin_pct !== null && b.net_margin_pct !== undefined ? `<span class="block text-[9px] text-slate-500 font-normal">${b.net_margin_pct}%</span>` : ''}
+              ${hideFin || b.net_profit === null ? '•••' : formatRp(netVal)}
+              ${!hideFin && b.net_margin_pct !== null && b.net_margin_pct !== undefined ? `<span class="block text-[9px] text-slate-500 font-normal">${b.net_margin_pct}%</span>` : ''}
             </td>
           </tr>
         `;
@@ -5423,9 +5793,649 @@
       }
     }
 
-    const initialHashTab = (window.location.hash || '').replace('#', '').toLowerCase();
-    switchOwnerTab(OWNER_TABS.includes(initialHashTab) ? initialHashTab : 'omzet');
-    fetchAllData();
+    // =========================================================================
+    // PORTAL AUTH, RBAC & TAB PROFILE (MANAJEMEN AKUN MITRA & MANAGEMENT OPS)
+    // =========================================================================
+    const PORTAL_TAB_LABELS = {
+      omzet: 'Omzet',
+      lapak: 'Lapak',
+      kurir: 'Kurir',
+      costumer: 'Costumer',
+      gudang: 'Gudang',
+      statistik: 'Statistik',
+      profile: 'Profile'
+    };
+
+    const PORTAL_ROLE_STYLES = {
+      owner: { icon: '👑', badge: 'Owner Utama', cls: 'bg-amber-500/15 text-amber-300 border-amber-500/35' },
+      mitra: { icon: '🤝', badge: 'Mitra Cabang', cls: 'bg-sky-500/15 text-sky-300 border-sky-500/35' },
+      management: { icon: '🛠️', badge: 'Management Ops', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35' }
+    };
+
+    function portalHasTab(tabKey) {
+      if (!currentPortalUser) return false;
+      if (currentPortalUser.role === 'owner') return true;
+      const tabs = (currentPortalUser.permissions && currentPortalUser.permissions.tabs) || [];
+      return tabs.includes(tabKey);
+    }
+
+    function portalCanEdit() {
+      if (!currentPortalUser) return false;
+      if (currentPortalUser.role === 'owner') return true;
+      return Boolean(currentPortalUser.permissions && currentPortalUser.permissions.can_edit);
+    }
+
+    function portalCanViewFinance() {
+      if (!currentPortalUser) return false;
+      if (currentPortalUser.role === 'owner') return true;
+      return Boolean(currentPortalUser.permissions && currentPortalUser.permissions.can_view_finance);
+    }
+
+    function toggleInputVisibility(inputId, btnEl) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      const nextType = inp.type === 'password' ? 'text' : 'password';
+      inp.type = nextType;
+      if (btnEl) {
+        btnEl.innerHTML = nextType === 'text' ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+      }
+    }
+
+    function showPortalLoginScreen(errMsg = '') {
+      stopCourierRadarPolling();
+      const overlay = document.getElementById('portalLoginOverlay');
+      const shell = document.getElementById('ownerAppShell');
+      const errBox = document.getElementById('portalLoginError');
+      if (shell) shell.classList.add('hidden');
+      if (overlay) overlay.classList.remove('hidden');
+      if (errBox) {
+        if (errMsg) {
+          errBox.innerText = errMsg;
+          errBox.classList.remove('hidden');
+        } else {
+          errBox.classList.add('hidden');
+        }
+      }
+      setTimeout(() => {
+        const u = document.getElementById('portalLoginUsername');
+        if (u) u.focus();
+      }, 60);
+    }
+
+    async function submitPortalLogin(event) {
+      event.preventDefault();
+      const username = (document.getElementById('portalLoginUsername')?.value || '').trim();
+      const password = document.getElementById('portalLoginPassword')?.value || '';
+      const errBox = document.getElementById('portalLoginError');
+      const btn = document.getElementById('btnPortalLoginSubmit');
+      if (errBox) errBox.classList.add('hidden');
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Memeriksa akun...</span>`;
+      }
+      try {
+        const res = await fetch('/api/portal/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        }).then(r => r.json());
+
+        if (!res.success || !res.data || !res.data.token) {
+          if (errBox) {
+            errBox.innerText = res.message || 'Gagal masuk. Periksa ID / Password.';
+            errBox.classList.remove('hidden');
+          }
+          return;
+        }
+
+        setPortalToken(res.data.token);
+        currentPortalUser = res.data.account;
+        const passInput = document.getElementById('portalLoginPassword');
+        if (passInput) passInput.value = '';
+        enterAuthorizedPortal();
+      } catch (err) {
+        if (errBox) {
+          errBox.innerText = 'Gagal terhubung ke server portal.';
+          errBox.classList.remove('hidden');
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i><span>Masuk ke Dashboard</span>`;
+        }
+      }
+    }
+
+    function logoutPortal() {
+      stopCourierRadarPolling();
+      setPortalToken('');
+      currentPortalUser = null;
+      cachedSummary = null;
+      cachedOpnames = [];
+      cachedWarehouseData = null;
+      cachedStatData = null;
+      cachedPortalAccounts = [];
+      selectedBranchId = 'all';
+      showPortalLoginScreen();
+    }
+
+    function applyPortalPermissionsUi() {
+      if (!currentPortalUser) return;
+      const shell = document.getElementById('ownerAppShell');
+      if (shell) {
+        shell.classList.toggle('portal-readonly', !portalCanEdit());
+        shell.classList.toggle('portal-mitra', currentPortalUser.role === 'mitra');
+        shell.classList.toggle('portal-no-finance', !portalCanViewFinance());
+      }
+
+      const styleMeta = PORTAL_ROLE_STYLES[currentPortalUser.role] || PORTAL_ROLE_STYLES.management;
+      const iconEl = document.getElementById('headerRoleIcon');
+      const titleEl = document.getElementById('headerPortalTitle');
+      const subEl = document.getElementById('headerUserSubtitle');
+      if (iconEl) iconEl.innerText = styleMeta.icon;
+      if (titleEl) {
+        titleEl.innerText = currentPortalUser.role === 'owner'
+          ? 'Portal Owner'
+          : (currentPortalUser.role === 'mitra' ? 'Portal Mitra Lapak' : 'Portal Management Ops');
+      }
+      if (subEl) {
+        subEl.innerText = `${currentPortalUser.full_name} • ${styleMeta.badge}`;
+      }
+
+      let visibleTabCount = 0;
+      OWNER_TABS.forEach(tab => {
+        const btn = document.querySelector(`[data-owner-tab="${tab}"]`);
+        const isAllowed = portalHasTab(tab);
+        if (btn) btn.classList.toggle('hidden', !isAllowed);
+        if (isAllowed) visibleTabCount += 1;
+      });
+      const tabGridMap = {
+        1: 'md:grid-cols-1', 2: 'md:grid-cols-2', 3: 'md:grid-cols-3',
+        4: 'md:grid-cols-4', 5: 'md:grid-cols-5', 6: 'md:grid-cols-6', 7: 'md:grid-cols-7'
+      };
+      const tabBar = document.getElementById('ownerTabBar');
+      if (tabBar) {
+        tabBar.className = `flex md:grid ${tabGridMap[visibleTabCount] || 'md:grid-cols-7'} gap-1 overflow-x-auto no-scrollbar`;
+      }
+
+      const noticeBanner = document.getElementById('portalScopeNoticeBanner');
+      const noticeText = document.getElementById('portalScopeNoticeText');
+      if (noticeBanner && noticeText) {
+        if (currentPortalUser.role === 'owner') {
+          noticeBanner.classList.add('hidden');
+        } else {
+          const chips = [
+            `<span class="font-bold text-slate-100">${styleMeta.icon} ${escapeHtml(currentPortalUser.full_name)}</span>`,
+            `<span class="px-2 py-0.5 rounded-md border text-[10px] font-semibold ${styleMeta.cls}">${styleMeta.badge}</span>`,
+            `<span class="text-slate-400">Cabang: <b class="text-sky-300">${currentPortalUser.branch_scope === 'selected' ? `${(currentPortalUser.allowed_branches || []).length} Lapak Terpilih` : 'Semua Lapak'}</b></span>`,
+            portalCanEdit()
+              ? `<span class="text-emerald-400 font-semibold">• Akses Edit Aktif</span>`
+              : `<span class="text-amber-300 font-semibold">• Mode Lihat Saja (Read-Only)</span>`,
+            portalCanViewFinance()
+              ? ''
+              : `<span class="text-slate-400">• Profit/Gaji Disembunyikan</span>`
+          ].filter(Boolean);
+          noticeText.innerHTML = chips.join(' ');
+          noticeBanner.classList.remove('hidden');
+        }
+      }
+    }
+
+    function enterAuthorizedPortal() {
+      const overlay = document.getElementById('portalLoginOverlay');
+      const shell = document.getElementById('ownerAppShell');
+      if (overlay) overlay.classList.add('hidden');
+      if (shell) shell.classList.remove('hidden');
+
+      applyPortalPermissionsUi();
+      const initialHashTab = (window.location.hash || '').replace('#', '').toLowerCase();
+      const targetTab = (OWNER_TABS.includes(initialHashTab) && portalHasTab(initialHashTab))
+        ? initialHashTab
+        : (OWNER_TABS.find(t => portalHasTab(t)) || 'profile');
+      switchOwnerTab(targetTab);
+      fetchAllData();
+    }
+
+    function resolveBranchNamesSummary(acc) {
+      if (!acc || acc.branch_scope !== 'selected') return 'Semua Lapak';
+      const ids = acc.allowed_branches || [];
+      if (ids.length === 0) return 'Belum pilih lapak';
+      const branches = (cachedSummary && cachedSummary.branches) || [];
+      const mapById = new Map(branches.map(b => [b.branch_id, shortBranchLabel(b.branch_name)]));
+      return ids.map(id => mapById.get(id) || id).join(', ');
+    }
+
+    function renderProfileTab() {
+      if (!currentPortalUser) return;
+      const meta = PORTAL_ROLE_STYLES[currentPortalUser.role] || PORTAL_ROLE_STYLES.management;
+      const avatarEl = document.getElementById('profileAccountAvatar');
+      const nameEl = document.getElementById('profileFullName');
+      const roleEl = document.getElementById('profileRoleBadge');
+      const userEl = document.getElementById('profileUsernameDisplay');
+      const scopeEl = document.getElementById('profileBranchScopeDisplay');
+      const chipsEl = document.getElementById('profilePermissionChips');
+      const nameInp = document.getElementById('ownProfileNameInput');
+      const userWrap = document.getElementById('ownProfileUsernameWrap');
+      const userInp = document.getElementById('ownProfileUsernameInput');
+      const managerCard = document.getElementById('ownerAccountManagerCard');
+
+      if (avatarEl) avatarEl.innerText = meta.icon;
+      if (nameEl) nameEl.innerText = currentPortalUser.full_name || currentPortalUser.username;
+      if (roleEl) {
+        roleEl.innerText = meta.badge;
+        roleEl.className = `text-[10px] font-bold px-2 py-0.5 rounded-full border ${meta.cls}`;
+      }
+      if (userEl) userEl.innerText = `@${currentPortalUser.username}`;
+      if (scopeEl) scopeEl.innerText = resolveBranchNamesSummary(currentPortalUser);
+      if (nameInp) nameInp.value = currentPortalUser.full_name || '';
+      if (userWrap) userWrap.classList.toggle('hidden', currentPortalUser.role !== 'owner');
+      if (userInp) userInp.value = currentPortalUser.username || '';
+      if (managerCard) managerCard.classList.toggle('hidden', currentPortalUser.role !== 'owner');
+
+      if (chipsEl) {
+        const tabs = (currentPortalUser.permissions && currentPortalUser.permissions.tabs) || [];
+        const tabBadges = tabs.map(t => `<span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300"><i class="fa-solid fa-check text-emerald-400 mr-1"></i>${escapeHtml(PORTAL_TAB_LABELS[t] || t)}</span>`);
+        const capBadges = [
+          `<span class="px-2 py-0.5 rounded-lg border ${portalCanEdit() ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}">${portalCanEdit() ? 'Boleh Edit Data' : 'Lihat Saja (Read-Only)'}</span>`,
+          `<span class="px-2 py-0.5 rounded-lg border ${portalCanViewFinance() ? 'bg-sky-500/10 border-sky-500/30 text-sky-300' : 'bg-slate-800 border-slate-700 text-slate-400'}">${portalCanViewFinance() ? 'Akses Profit & HPP Penuh' : 'Profit & Gaji Disembunyikan'}</span>`
+        ];
+        chipsEl.innerHTML = [...tabBadges, ...capBadges].join('');
+      }
+    }
+
+    async function submitOwnProfileUpdate(event) {
+      event.preventDefault();
+      if (!currentPortalUser) return;
+      const full_name = (document.getElementById('ownProfileNameInput')?.value || '').trim();
+      const username = currentPortalUser.role === 'owner'
+        ? (document.getElementById('ownProfileUsernameInput')?.value || '').trim()
+        : undefined;
+      const current_password = document.getElementById('ownCurrentPasswordInput')?.value || '';
+      const new_password = document.getElementById('ownNewPasswordInput')?.value || '';
+      const btn = document.getElementById('btnSaveOwnProfile');
+
+      if (new_password && new_password.trim().length > 0 && !current_password) {
+        alert('❌ Masukkan Password Saat Ini terlebih dahulu untuk mengganti password.');
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
+      try {
+        const res = await fetch('/api/portal/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ full_name, username, current_password, new_password })
+        }).then(r => r.json());
+
+        if (res.success && res.data) {
+          currentPortalUser = res.data;
+          document.getElementById('ownCurrentPasswordInput').value = '';
+          document.getElementById('ownNewPasswordInput').value = '';
+          applyPortalPermissionsUi();
+          renderProfileTab();
+          if (currentPortalUser.role === 'owner') fetchPortalAccounts();
+          alert('✅ ' + res.message);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal memperbarui profil'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i><span>Simpan Profil Saya</span>`;
+        }
+      }
+    }
+
+    async function fetchPortalAccounts() {
+      if (!currentPortalUser || currentPortalUser.role !== 'owner') return;
+      try {
+        const res = await fetch('/api/super-admin/portal-accounts').then(r => r.json());
+        if (res.success && Array.isArray(res.data)) {
+          cachedPortalAccounts = res.data;
+          renderPortalAccountsList();
+        }
+      } catch (err) {
+        console.error('Gagal mengambil daftar akun portal:', err);
+      }
+    }
+
+    function renderPortalAccountsList() {
+      const container = document.getElementById('portalAccountsListContainer');
+      if (!container) return;
+
+      const list = cachedPortalAccounts || [];
+      const nonOwner = list.filter(a => a.role !== 'owner');
+      const activeCount = list.filter(a => a.is_active !== false).length;
+      const mitraCount = list.filter(a => a.role === 'mitra').length;
+      const mgmtCount = list.filter(a => a.role === 'management').length;
+
+      const setNum = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+      setNum('statAccTotal', list.length);
+      setNum('statAccActive', activeCount);
+      setNum('statAccMitra', mitraCount);
+      setNum('statAccManagement', mgmtCount);
+
+      if (nonOwner.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 bg-slate-950/50 rounded-xl border border-dashed border-slate-800 space-y-2">
+            <p class="text-xs text-slate-400">Belum ada akun Mitra atau Management Operasional yang dibuat.</p>
+            <button type="button" onclick="openPortalAccountModal('create')" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-[11px] font-bold transition">
+              + Buatkan Akun Pertama
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = nonOwner.map(acc => {
+        const meta = PORTAL_ROLE_STYLES[acc.role] || PORTAL_ROLE_STYLES.management;
+        const safeId = escapeJsArg(acc.id);
+        const safeName = escapeJsArg(acc.full_name || acc.username);
+        const isActive = acc.is_active !== false;
+        const perms = acc.permissions || {};
+        const visibleTabs = (perms.tabs || []).filter(t => t !== 'profile');
+
+        return `
+          <div class="bg-slate-950/70 border ${isActive ? 'border-slate-800' : 'border-rose-500/30 opacity-75'} rounded-xl p-3 space-y-2">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-sm">${meta.icon}</span>
+                  <span class="font-bold text-xs text-slate-100">${escapeHtml(acc.full_name)}</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-amber-300">@${escapeHtml(acc.username)}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.2 rounded-full border ${meta.cls}">${meta.badge}</span>
+                  <span class="text-[10px] font-bold px-2 py-0.2 rounded-full border ${isActive ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border-rose-500/30'}">${isActive ? 'Aktif' : 'Nonaktif'}</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                  Lapak: <b class="text-sky-300">${escapeHtml(resolveBranchNamesSummary(acc))}</b>
+                  <span class="mx-1 text-slate-600">•</span>
+                  <span class="${perms.can_edit ? 'text-emerald-400' : 'text-amber-300'} font-semibold">${perms.can_edit ? 'Bisa Edit' : 'Lihat Saja'}</span>
+                  <span class="mx-1 text-slate-600">•</span>
+                  <span class="${perms.can_view_finance ? 'text-sky-300' : 'text-slate-500'}">${perms.can_view_finance ? 'Lihat Profit/HPP' : 'Tanpa Profit/Gaji'}</span>
+                </p>
+                ${acc.notes ? `<p class="text-[10px] text-slate-500 italic mt-0.5">"${escapeHtml(acc.notes)}"</p>` : ''}
+              </div>
+
+              <div class="text-right text-[10px] text-slate-500 shrink-0">
+                ${acc.last_login_at ? `Login: ${formatTimeAgo(acc.last_login_at)}` : 'Belum pernah login'}
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/70">
+              <div class="flex flex-wrap gap-1 text-[10px]">
+                ${visibleTabs.map(t => `<span class="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">${escapeHtml(PORTAL_TAB_LABELS[t] || t)}</span>`).join('')}
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                <button type="button" onclick="openPortalAccountModal('edit', '${safeId}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
+                  <i class="fa-solid fa-pen-to-square mr-1"></i>Edit Izin
+                </button>
+                <button type="button" onclick="quickResetPortalPassword('${safeId}', '${safeName}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-sky-500/20 text-sky-300 border border-slate-700 hover:border-sky-500/40 text-[10px] font-semibold transition">
+                  <i class="fa-solid fa-key mr-1"></i>Ganti Sandi
+                </button>
+                <button type="button" onclick="togglePortalAccountActive('${safeId}', ${!isActive})" class="px-2.5 py-1 rounded-lg bg-slate-900 ${isActive ? 'hover:bg-amber-500/20 text-amber-300' : 'hover:bg-emerald-500/20 text-emerald-400'} border border-slate-700 text-[10px] font-semibold transition">
+                  <i class="fa-solid ${isActive ? 'fa-ban' : 'fa-circle-check'} mr-1"></i>${isActive ? 'Bekukan' : 'Aktifkan'}
+                </button>
+                <button type="button" onclick="deletePortalAccount('${safeId}', '${safeName}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-800 text-[10px] font-semibold transition" title="Hapus Akun">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPortalAccBranchChecklist(selectedIds = []) {
+      const wrap = document.getElementById('portalAccBranchChecklistWrap');
+      if (!wrap) return;
+      const branches = (cachedSummary && cachedSummary.branches) || [];
+      const chosen = new Set(selectedIds || []);
+      if (branches.length === 0) {
+        wrap.innerHTML = `<span class="text-[10px] text-slate-500">Daftar cabang belum tersedia.</span>`;
+        return;
+      }
+      wrap.innerHTML = branches.map(b => `
+        <label class="flex items-center gap-1.5 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-800 text-[11px] cursor-pointer">
+          <input type="checkbox" name="portalAccBranchItem" value="${escapeHtml(b.branch_id)}" ${chosen.has(b.branch_id) ? 'checked' : ''} class="accent-sky-500">
+          <span class="truncate text-slate-200">${escapeHtml(shortBranchLabel(b.branch_name))}</span>
+        </label>
+      `).join('');
+    }
+
+    function onPortalAccBranchScopeChange() {
+      const checked = document.querySelector('input[name="portalAccBranchScope"]:checked');
+      const scope = checked ? checked.value : 'selected';
+      const wrap = document.getElementById('portalAccBranchChecklistWrap');
+      if (wrap) wrap.classList.toggle('hidden', scope === 'all');
+    }
+
+    function selectPortalAccountRole(role, applyPreset = true) {
+      const targetRole = role === 'management' ? 'management' : 'mitra';
+      const roleInput = document.getElementById('portalAccRoleValue');
+      if (roleInput) roleInput.value = targetRole;
+
+      const btnMitra = document.getElementById('roleBtnMitra');
+      const btnMgmt = document.getElementById('roleBtnManagement');
+      if (btnMitra) {
+        btnMitra.className = targetRole === 'mitra'
+          ? 'p-2.5 rounded-xl border border-sky-500 bg-sky-500/15 text-left transition'
+          : 'p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-left opacity-75 hover:opacity-100 transition';
+      }
+      if (btnMgmt) {
+        btnMgmt.className = targetRole === 'management'
+          ? 'p-2.5 rounded-xl border border-amber-500 bg-amber-500/15 text-left transition'
+          : 'p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-left opacity-75 hover:opacity-100 transition';
+      }
+
+      if (applyPreset) {
+        const scopeVal = targetRole === 'mitra' ? 'selected' : 'all';
+        document.querySelectorAll('input[name="portalAccBranchScope"]').forEach(r => { r.checked = (r.value === scopeVal); });
+        onPortalAccBranchScopeChange();
+
+        const presetTabs = targetRole === 'mitra'
+          ? ['omzet', 'lapak', 'statistik']
+          : ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik'];
+        document.querySelectorAll('input[name="portalAccTab"]').forEach(cb => {
+          cb.checked = presetTabs.includes(cb.value);
+        });
+
+        const canEditEl = document.getElementById('portalAccCanEdit');
+        const canFinEl = document.getElementById('portalAccCanFinance');
+        if (canEditEl) canEditEl.checked = (targetRole === 'management');
+        if (canFinEl) canFinEl.checked = (targetRole === 'mitra');
+      }
+    }
+
+    function openPortalAccountModal(mode, accountId = '') {
+      const modal = document.getElementById('portalAccountModal');
+      if (!modal) return;
+      const isEdit = mode === 'edit' && Boolean(accountId);
+      const acc = isEdit ? cachedPortalAccounts.find(a => a.id === accountId) : null;
+
+      document.getElementById('portalAccFormId').value = isEdit && acc ? acc.id : '';
+      document.getElementById('portalAccModalTitle').innerText = isEdit ? 'Edit Akun Akses Portal' : 'Buat Akun Akses Baru';
+      document.getElementById('portalAccModalSub').innerText = isEdit
+        ? `Sesuaikan izin & cabang untuk @${acc ? acc.username : ''}`
+        : 'Berikan ID & Password kepada Mitra atau tim Management Operasional';
+      document.getElementById('portalAccPassHint').innerText = isEdit ? '(kosongkan jika tidak ganti)' : '(wajib min. 6 karakter)';
+      document.getElementById('portalAccPassword').value = '';
+      document.getElementById('portalAccPassword').required = !isEdit;
+
+      if (isEdit && acc) {
+        document.getElementById('portalAccFullName').value = acc.full_name || '';
+        document.getElementById('portalAccUsername').value = acc.username || '';
+        document.getElementById('portalAccNotes').value = acc.notes || '';
+        selectPortalAccountRole(acc.role, false);
+        const scopeVal = acc.branch_scope === 'all' ? 'all' : 'selected';
+        document.querySelectorAll('input[name="portalAccBranchScope"]').forEach(r => { r.checked = (r.value === scopeVal); });
+        renderPortalAccBranchChecklist(acc.allowed_branches || []);
+        onPortalAccBranchScopeChange();
+
+        const accTabs = (acc.permissions && acc.permissions.tabs) || [];
+        document.querySelectorAll('input[name="portalAccTab"]').forEach(cb => {
+          cb.checked = accTabs.includes(cb.value);
+        });
+        document.getElementById('portalAccCanEdit').checked = Boolean(acc.permissions && acc.permissions.can_edit);
+        document.getElementById('portalAccCanFinance').checked = Boolean(acc.permissions && acc.permissions.can_view_finance);
+        document.getElementById('portalAccIsActive').checked = acc.is_active !== false;
+      } else {
+        document.getElementById('portalAccFullName').value = '';
+        document.getElementById('portalAccUsername').value = '';
+        document.getElementById('portalAccNotes').value = '';
+        const branches = (cachedSummary && cachedSummary.branches) || [];
+        renderPortalAccBranchChecklist(branches.length === 1 ? [branches[0].branch_id] : []);
+        selectPortalAccountRole('mitra', true);
+        document.getElementById('portalAccIsActive').checked = true;
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closePortalAccountModal() {
+      const modal = document.getElementById('portalAccountModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function submitPortalAccountModal(event) {
+      event.preventDefault();
+      const id = document.getElementById('portalAccFormId').value.trim();
+      const isEdit = Boolean(id);
+      const role = document.getElementById('portalAccRoleValue').value;
+      const full_name = document.getElementById('portalAccFullName').value.trim();
+      const username = document.getElementById('portalAccUsername').value.trim();
+      const password = document.getElementById('portalAccPassword').value;
+      const notes = document.getElementById('portalAccNotes').value.trim();
+      const scopeEl = document.querySelector('input[name="portalAccBranchScope"]:checked');
+      const branch_scope = scopeEl ? scopeEl.value : 'selected';
+      const allowed_branches = Array.from(document.querySelectorAll('input[name="portalAccBranchItem"]:checked')).map(cb => cb.value);
+      const tabs = Array.from(document.querySelectorAll('input[name="portalAccTab"]:checked')).map(cb => cb.value);
+      const can_edit = document.getElementById('portalAccCanEdit').checked;
+      const can_view_finance = document.getElementById('portalAccCanFinance').checked;
+      const is_active = document.getElementById('portalAccIsActive').checked;
+
+      if (branch_scope === 'selected' && allowed_branches.length === 0) {
+        alert('❌ Pilih minimal 1 lapak cabang atau pilih "Semua Lapak".');
+        return;
+      }
+
+      const payload = {
+        role,
+        full_name,
+        username,
+        notes,
+        branch_scope,
+        allowed_branches,
+        is_active,
+        permissions: { tabs, can_edit, can_view_finance }
+      };
+      if (password && password.trim() !== '') {
+        payload.password = password.trim();
+      }
+
+      const btn = document.getElementById('btnSavePortalAcc');
+      if (btn) { btn.disabled = true; btn.innerText = 'Menyimpan...'; }
+      try {
+        const url = isEdit ? `/api/super-admin/portal-accounts/${encodeURIComponent(id)}` : '/api/super-admin/portal-accounts';
+        const res = await fetch(url, {
+          method: isEdit ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        if (res.success) {
+          closePortalAccountModal();
+          await fetchPortalAccounts();
+          alert('✅ ' + res.message);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyimpan akun'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      } finally {
+        if (btn) { btn.disabled = false; btn.innerText = 'Simpan Akun'; }
+      }
+    }
+
+    async function togglePortalAccountActive(id, nextActive) {
+      try {
+        const res = await fetch(`/api/super-admin/portal-accounts/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_active: Boolean(nextActive) })
+        }).then(r => r.json());
+        if (res.success) {
+          fetchPortalAccounts();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal mengubah status akun'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function quickResetPortalPassword(id, name) {
+      const nextPass = prompt(`Masukkan password baru untuk akun "${name}" (minimal 6 karakter):`);
+      if (nextPass === null) return;
+      if (nextPass.trim().length < 6) {
+        alert('❌ Password baru minimal 6 karakter.');
+        return;
+      }
+      try {
+        const res = await fetch(`/api/super-admin/portal-accounts/${encodeURIComponent(id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: nextPass.trim() })
+        }).then(r => r.json());
+        if (res.success) {
+          alert(`✅ Password akun "${name}" berhasil diatur ulang!`);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal mengubah password'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function deletePortalAccount(id, name) {
+      if (!confirm(`Hapus permanen akun "${name}"? Pengguna ini langsung tidak dapat login lagi.`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/portal-accounts/${encodeURIComponent(id)}`, { method: 'DELETE' }).then(r => r.json());
+        if (res.success) {
+          fetchPortalAccounts();
+          alert('✅ ' + res.message);
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menghapus akun'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function bootstrapPortalSession() {
+      const token = getPortalToken();
+      if (!token) {
+        showPortalLoginScreen();
+        return;
+      }
+      try {
+        const res = await fetch('/api/portal/me').then(r => r.json());
+        if (res.success && res.data) {
+          currentPortalUser = res.data;
+          enterAuthorizedPortal();
+        } else {
+          setPortalToken('');
+          showPortalLoginScreen();
+        }
+      } catch (err) {
+        showPortalLoginScreen('Tidak dapat memverifikasi sesi. Silakan login kembali.');
+      }
+    }
+
+    bootstrapPortalSession();
   </script>
 </body>
 </html>
