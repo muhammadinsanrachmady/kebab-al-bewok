@@ -58,6 +58,9 @@
     #ownerAppShell.portal-mitra .portal-no-mitra {
       display: none !important;
     }
+    #ownerAppShell:not(.portal-mitra) .portal-mitra-only {
+      display: none !important;
+    }
     #ownerAppShell.portal-no-finance .portal-finance-only {
       display: none !important;
     }
@@ -175,6 +178,7 @@
           <i class="fa-solid fa-boxes-stacked text-[11px]"></i>
           <span>Gudang</span>
           <span id="badgeGudangAlert" class="hidden bg-rose-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
+          <span id="badgeGudangMitraInbox" class="portal-no-mitra hidden bg-sky-500 text-slate-950 text-[9px] font-extrabold px-1.5 rounded-full leading-tight" title="Pesanan PO Mitra menunggu ACC Pusat">0</span>
         </button>
 
         <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
@@ -770,6 +774,20 @@
     <!-- =================================================================== -->
     <section id="tabView-gudang" class="owner-tab-view hidden space-y-3.5">
 
+      <!-- BANNER KHUSUS GUDANG MITRA (1 MITRA = 1 GUDANG, RESTOCK WAJIB PO KE PUSAT) -->
+      <div id="mitraWarehouseBanner" class="portal-mitra-only bg-sky-500/10 border border-sky-500/30 rounded-2xl px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+        <div class="flex items-center gap-2 min-w-0">
+          <i class="fa-solid fa-warehouse text-sky-400 text-sm shrink-0"></i>
+          <div class="min-w-0">
+            <span id="mitraWarehouseBannerTitle" class="font-bold text-sky-300 block truncate">Gudang Pribadi Mitra (Terpisah dari Pusat)</span>
+            <p class="text-[10px] text-slate-300">Stok bahan khusus milik cabang Anda. Sesuai kontrak kemitraan, penambahan stok hanya melalui <b class="text-amber-300">Pesan PO ke Pusat</b> (tidak dapat input supplier luar).</p>
+          </div>
+        </div>
+        <button type="button" onclick="openWarehousePoModal()" class="portal-edit-only px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[11px] shrink-0 transition">
+          <i class="fa-solid fa-paper-plane mr-1"></i>Pesan Bahan ke Pusat
+        </button>
+      </div>
+
       <!-- 4 KPI RINGKAS GUDANG & HPP -->
       <div id="whKpiGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         <div class="bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
@@ -831,17 +849,17 @@
             <i class="fa-solid fa-box-open"></i>
             <span>Terima Supplier</span>
           </button>
-          <button type="button" onclick="openWarehouseTxModal('branch_transfer')" class="portal-no-mitra px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500 text-sky-400 hover:text-slate-950 border border-sky-500/30 text-[11px] font-bold flex items-center gap-1 transition">
+          <button type="button" onclick="openWarehouseTxModal('branch_transfer')" class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500 text-sky-400 hover:text-slate-950 border border-sky-500/30 text-[11px] font-bold flex items-center gap-1 transition">
             <i class="fa-solid fa-truck-arrow-right"></i>
             <span>Kirim ke Lapak</span>
           </button>
-          <button type="button" onclick="openWarehouseTxModal('waste')" class="portal-no-mitra px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 text-[11px] font-semibold flex items-center gap-1 transition">
+          <button type="button" onclick="openWarehouseTxModal('waste')" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 text-[11px] font-semibold flex items-center gap-1 transition">
             <i class="fa-solid fa-trash-can"></i>
             <span>Waste</span>
           </button>
           <button type="button" onclick="openWarehousePoModal()" id="btnWhOpenPo" class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 transition">
             <i class="fa-solid fa-file-circle-plus"></i>
-            <span>Buat PO</span>
+            <span id="btnWhOpenPoLabel">Buat PO</span>
           </button>
         </div>
       </div>
@@ -857,8 +875,12 @@
               HPP &amp; Evaluasi Cabang
             </button>
             <button type="button" data-wh-subtab="po" onclick="setWarehouseSubtab('po')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
-              <span>PO &amp; Log Mutasi</span>
+              <span id="subtabLabelWhPo">PO &amp; Log Mutasi</span>
               <span id="subtabBadgeWhPo" class="hidden bg-amber-500/20 text-amber-300 text-[9px] font-bold px-1.5 rounded-full">0</span>
+            </button>
+            <button type="button" data-wh-subtab="mitra_inbox" onclick="setWarehouseSubtab('mitra_inbox')" class="portal-no-mitra px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+              <span>Pesanan Mitra</span>
+              <span id="subtabBadgeWhMitraInbox" class="hidden bg-rose-500 text-white text-[9px] font-bold px-1.5 rounded-full">0</span>
             </button>
           </div>
 
@@ -1001,8 +1023,8 @@
         <div id="whPanel-po" class="hidden space-y-3.5">
           <div class="space-y-2">
             <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold text-slate-200"><i class="fa-solid fa-clipboard-list text-amber-400 mr-1.5"></i>Daftar Purchase Order (PO Supplier)</h3>
-              <button type="button" onclick="openWarehousePoModal()" class="text-[10px] font-bold text-amber-400 hover:underline">+ Buat PO Baru</button>
+              <h3 id="whPoSectionTitle" class="text-xs font-bold text-slate-200"><i class="fa-solid fa-clipboard-list text-amber-400 mr-1.5"></i>Daftar Purchase Order (PO Supplier)</h3>
+              <button type="button" id="whPoSectionAddBtn" onclick="openWarehousePoModal()" class="portal-edit-only text-[10px] font-bold text-amber-400 hover:underline">+ Buat PO Baru</button>
             </div>
             <div id="whPoListContainer" class="space-y-2">
               <!-- Rendered via JS -->
@@ -1014,6 +1036,20 @@
             <div id="whLedgerContainer" class="space-y-1.5">
               <!-- Rendered via JS -->
             </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 4: INBOX PESANAN PO BAHAN DARI MITRA (KHUSUS PUSAT) -->
+        <div id="whPanel-mitra_inbox" class="hidden space-y-2.5 portal-no-mitra">
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950/70 border border-slate-800 rounded-xl px-3 py-2">
+            <div class="text-[11px] text-slate-300">
+              <span class="font-bold text-sky-300">Inbox Pesanan PO Bahan dari Mitra</span>
+              <span class="text-slate-400 block text-[10px]">Klik <b class="text-emerald-400">ACC &amp; Kirim dari Pusat</b> untuk memotong stok Gudang Pusat &amp; memindahkannya otomatis ke Gudang Mitra.</span>
+            </div>
+            <span id="whMitraInboxSummaryPill" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">0 Menunggu</span>
+          </div>
+          <div id="whMitraInboxList" class="space-y-2.5">
+            <!-- Rendered via JS -->
           </div>
         </div>
       </div>
@@ -1694,7 +1730,7 @@
 
       <form onsubmit="submitWarehouseItemEdit(event)" class="space-y-2.5 text-xs">
         <input type="hidden" id="whEditItemId">
-        <div>
+        <div id="whEditUnitCostWrap">
           <label class="text-[11px] font-semibold text-slate-300 block mb-1">Harga Beli Modal / Satuan (Rp)</label>
           <input type="number" id="whEditUnitCost" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
         </div>
@@ -1702,7 +1738,7 @@
           <label class="text-[11px] font-semibold text-slate-300 block mb-1">Safety Stock Minimum</label>
           <input type="number" id="whEditSafetyStock" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
         </div>
-        <div>
+        <div id="whEditCurrentStockWrap">
           <label class="text-[11px] font-semibold text-slate-300 block mb-1">Stok Fisik Gudang Sekarang (Koreksi Opname)</label>
           <input type="number" id="whEditCurrentStock" required min="0" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
         </div>
@@ -1719,8 +1755,8 @@
     <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl p-4 space-y-3 max-h-[92vh] flex flex-col shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 shrink-0">
         <div>
-          <h3 class="text-sm font-extrabold text-amber-400">Buat Purchase Order (PO Supplier)</h3>
-          <p class="text-[11px] text-slate-400">Otomatis mengisi rekomendasi order untuk bahan berstatus 🚨 PERLU ORDER</p>
+          <h3 id="whPoModalTitle" class="text-sm font-extrabold text-amber-400">Buat Purchase Order (PO Supplier)</h3>
+          <p id="whPoModalSub" class="text-[11px] text-slate-400">Otomatis mengisi rekomendasi order untuk bahan berstatus 🚨 PERLU ORDER</p>
         </div>
         <button type="button" onclick="closeWarehousePoModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
           <i class="fa-solid fa-xmark"></i>
@@ -1729,7 +1765,7 @@
 
       <form onsubmit="submitWarehousePo(event)" class="flex flex-col flex-1 min-h-0 space-y-2.5 text-xs">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 shrink-0">
-          <div>
+          <div id="whPoSupplierWrap">
             <label class="text-[10px] font-semibold text-slate-400 block mb-1">Supplier Tujuan</label>
             <input type="text" id="whPoSupplier" value="Supplier Pusat / Pasar Induk" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none focus:border-amber-500">
           </div>
@@ -1747,7 +1783,7 @@
           <span class="text-xs text-slate-300">Estimasi PO: <b id="whPoTotalCost" class="text-amber-400 tabular-nums">Rp 0</b></span>
           <div class="flex items-center gap-2">
             <button type="button" onclick="closeWarehousePoModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Batal</button>
-            <button type="submit" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">Terbitkan PO</button>
+            <button type="submit" id="whPoSubmitBtn" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">Terbitkan PO</button>
           </div>
         </div>
       </form>
@@ -2178,6 +2214,9 @@
           }
           if (typeof cachedSummary.warehouse_reorder_alerts === 'number') {
             updateWarehouseAlertBadge(cachedSummary.warehouse_reorder_alerts);
+          }
+          if (typeof cachedSummary.warehouse_mitra_orders_pending === 'number') {
+            updateWarehouseMitraInboxBadge(cachedSummary.warehouse_mitra_orders_pending);
           }
         }
       } catch (err) {
@@ -4120,6 +4159,33 @@
       }
     }
 
+    function updateWarehouseMitraInboxBadge(count) {
+      const navBadge = document.getElementById('badgeGudangMitraInbox');
+      if (navBadge) {
+        navBadge.innerText = count;
+        navBadge.classList.toggle('hidden', count <= 0);
+      }
+      const subBadge = document.getElementById('subtabBadgeWhMitraInbox');
+      if (subBadge) {
+        subBadge.innerText = count;
+        subBadge.classList.toggle('hidden', count <= 0);
+      }
+      const pill = document.getElementById('whMitraInboxSummaryPill');
+      if (pill) {
+        pill.innerText = `${count} Menunggu ACC`;
+        pill.className = count > 0
+          ? 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 border border-rose-500/35'
+          : 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700';
+      }
+    }
+
+    function isMitraWarehouseMode() {
+      return Boolean(
+        (currentPortalUser && currentPortalUser.role === 'mitra') ||
+        (cachedWarehouseData && cachedWarehouseData.warehouse_mode === 'mitra')
+      );
+    }
+
     function getWarehouseDateQuery() {
       const today = getWibTodayISO();
       if (currentWhPeriod === 'today') return `?start_date=${today}&end_date=${today}`;
@@ -4140,16 +4206,19 @@
     }
 
     function setWarehouseSubtab(subtab) {
-      const allowed = ['stock', 'hpp', 'po'];
-      currentWhSubtab = allowed.includes(subtab) ? subtab : 'stock';
-      allowed.forEach(key => {
+      const isMitra = isMitraWarehouseMode();
+      const allowed = isMitra ? ['stock', 'hpp', 'po'] : ['stock', 'hpp', 'po', 'mitra_inbox'];
+      const fallback = (isMitra && subtab === 'mitra_inbox') ? 'po' : 'stock';
+      currentWhSubtab = allowed.includes(subtab) ? subtab : fallback;
+      ['stock', 'hpp', 'po', 'mitra_inbox'].forEach(key => {
         const btn = document.querySelector(`[data-wh-subtab="${key}"]`);
         const panel = document.getElementById(`whPanel-${key}`);
-        const isActive = key === currentWhSubtab;
+        const isActive = key === currentWhSubtab && allowed.includes(key);
         if (btn) {
           btn.className = isActive
             ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition'
             : 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition';
+          if (key === 'mitra_inbox') btn.classList.add('portal-no-mitra');
         }
         if (panel) panel.classList.toggle('hidden', !isActive);
       });
@@ -4192,6 +4261,7 @@
       renderWarehouseStockTable();
       renderWarehouseEvalSelectAndView();
       renderWarehousePoAndLedger();
+      renderWarehouseMitraInbox();
     }
 
     function renderWarehouseKpis() {
@@ -4200,8 +4270,28 @@
       const reorderCount = Number(s.reorder_count) || 0;
       const warnCount = Number(s.warning_count) || 0;
       const pendingPo = Number(s.pending_po_count) || 0;
+      const mitraPending = Number(s.mitra_inbox_pending) || 0;
+      const isMitra = isMitraWarehouseMode();
 
       updateWarehouseAlertBadge(reorderCount);
+      if (!isMitra) updateWarehouseMitraInboxBadge(mitraPending);
+
+      const bannerTitle = document.getElementById('mitraWarehouseBannerTitle');
+      if (bannerTitle && cachedWarehouseData.warehouse_label) {
+        bannerTitle.innerText = `${cachedWarehouseData.warehouse_label} (1 Mitra = 1 Gudang Terpisah)`;
+      }
+      const btnPoLbl = document.getElementById('btnWhOpenPoLabel');
+      if (btnPoLbl) btnPoLbl.innerText = isMitra ? 'Pesan PO ke Pusat' : 'Buat PO';
+      const subtabPoLbl = document.getElementById('subtabLabelWhPo');
+      if (subtabPoLbl) subtabPoLbl.innerText = isMitra ? 'PO ke Pusat & Log' : 'PO & Log Mutasi';
+      const poSecTitle = document.getElementById('whPoSectionTitle');
+      if (poSecTitle) {
+        poSecTitle.innerHTML = isMitra
+          ? '<i class="fa-solid fa-paper-plane text-sky-400 mr-1.5"></i>Daftar Pesanan PO ke Gudang Pusat'
+          : '<i class="fa-solid fa-clipboard-list text-amber-400 mr-1.5"></i>Daftar Purchase Order (PO Supplier)';
+      }
+      const poSecBtn = document.getElementById('whPoSectionAddBtn');
+      if (poSecBtn) poSecBtn.innerText = isMitra ? '+ Pesan PO ke Pusat' : '+ Buat PO Baru';
 
       const elAsset = document.getElementById('kpiWhAssetValue');
       const elAssetSub = document.getElementById('kpiWhAssetSub');
@@ -4216,9 +4306,17 @@
 
       const hideFin = Boolean(cachedWarehouseData.finance_restricted);
       if (elAsset) elAsset.innerText = hideFin ? 'Terbatas' : formatRp(s.total_asset_value || 0);
-      if (elAssetSub) elAssetSub.innerText = hideFin ? `${items.length} item • Akses Stok` : `${items.length} item • Masuk: ${formatRp(s.total_supplier_in_value || 0)}`;
+      if (elAssetSub) {
+        elAssetSub.innerText = hideFin
+          ? `${items.length} item • Akses Stok`
+          : `${items.length} item • ${isMitra ? 'Masuk Pusat' : 'Masuk'}: ${formatRp(s.total_supplier_in_value || 0)}`;
+      }
       const stockBtn = document.getElementById('subtabBtnWhStock');
-      if (stockBtn) stockBtn.innerText = `Mutasi Stok Pusat (${items.length} Item)`;
+      if (stockBtn) {
+        stockBtn.innerText = isMitra
+          ? `Gudang Mitra (${items.length} Item)`
+          : `Mutasi Stok Pusat (${items.length} Item)`;
+      }
 
       if (elReorder) {
         elReorder.innerText = reorderCount > 0 ? `${reorderCount} Perlu PO` : 'Semua Aman';
@@ -4227,7 +4325,7 @@
           : 'text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums';
       }
       if (elReorderSub) {
-        elReorderSub.innerText = `${warnCount} mendekati batas • ${pendingPo} PO aktif`;
+        elReorderSub.innerText = `${warnCount} mendekati batas • ${pendingPo} ${isMitra ? 'PO ke Pusat' : 'PO aktif'}`;
       }
       if (elReorderCard) {
         elReorderCard.className = reorderCount > 0
@@ -4237,7 +4335,9 @@
 
       if (elTransfer) elTransfer.innerText = hideFin ? 'Terbatas' : formatRp(s.total_transfer_value || 0);
       if (elTransferSub) {
-        elTransferSub.innerText = hideFin ? 'Fokus jumlah fisik/unit' : `Kembali: ${formatRp(s.total_returned_value || 0)} • Terpakai: ${formatRp(s.total_used_value || 0)}`;
+        elTransferSub.innerText = hideFin
+          ? 'Fokus jumlah fisik/unit'
+          : `Kembali: ${formatRp(s.total_returned_value || 0)} • Terpakai: ${formatRp(s.total_used_value || 0)}`;
       }
 
       if (elFoodCost) {
@@ -4335,6 +4435,7 @@
             <td class="py-2 px-2 text-right tabular-nums">
               <span class="${it.total_transfer_out > 0 ? 'text-sky-400 font-semibold' : 'text-slate-500'}">${Number(it.total_transfer_out).toLocaleString('id-ID')}</span>
               ${branchBreakdown ? `<span class="block text-[9px] text-slate-500 whitespace-nowrap">${escapeHtml(branchBreakdown)}</span>` : ''}
+              ${Number(it.mitra_out) > 0 ? `<span class="block text-[9px] text-purple-300 whitespace-nowrap">PO Mitra: ${Number(it.mitra_out).toLocaleString('id-ID')}</span>` : ''}
             </td>
             <td class="py-2 px-2 text-right tabular-nums">
               <span class="${returnedCount > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500'}">${returnedCount.toLocaleString('id-ID')}</span>
@@ -4353,7 +4454,7 @@
             <td class="py-2 px-2 text-right tabular-nums text-slate-300 whitespace-nowrap">${hideFin ? '•••' : formatRp(it.unit_cost)}</td>
             <td class="py-2 px-2 text-right font-bold text-amber-400 tabular-nums whitespace-nowrap">${hideFin ? '•••' : formatRp(it.asset_value)}</td>
             <td class="py-2 px-2 text-right whitespace-nowrap">
-              <button type="button" onclick="openWarehouseItemModal('${safeId}')" class="portal-edit-only portal-no-mitra px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
+              <button type="button" onclick="openWarehouseItemModal('${safeId}')" class="portal-edit-only px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 border border-slate-700 text-[10px] font-semibold transition">
                 Edit
               </button>
             </td>
@@ -4541,54 +4642,103 @@
       const ledgerContainer = document.getElementById('whLedgerContainer');
       if (!cachedWarehouseData) return;
 
-      const pos = cachedWarehouseData.purchase_orders || [];
+      const isMitra = isMitraWarehouseMode();
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
+
       if (poContainer) {
-        if (pos.length === 0) {
-          poContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada Purchase Order ke supplier. Klik "Buat PO" saat ada stok 🚨 PERLU ORDER.</div>`;
-        } else {
-          const poStatusCls = {
-            ordered: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-            received: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-            cancelled: 'bg-slate-800 text-slate-400 border-slate-700'
-          };
-          const poStatusLbl = { ordered: 'Dipesan (Aktif)', received: 'Diterima di Gudang', cancelled: 'Dibatalkan' };
-          poContainer.innerHTML = pos.map(po => {
-            const safeId = escapeJsArg(po.id);
-            const summaryItems = (po.items || []).map(it => `${it.name} (${formatQtyUnit(it.qty, it.unit)})`).join(', ');
-            return `
-              <div class="bg-slate-950/75 border ${po.status === 'ordered' ? 'border-amber-500/35' : 'border-slate-800'} rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2">
-                <div class="min-w-0 flex-1 space-y-0.5">
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="text-xs font-extrabold text-slate-100">${escapeHtml(po.id)}</span>
-                    <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${poStatusCls[po.status] || poStatusCls.ordered}">${poStatusLbl[po.status] || po.status}</span>
-                    <span class="text-[10px] text-slate-400">• ${escapeHtml(po.supplier_name)}</span>
+        if (isMitra) {
+          const mOrders = cachedWarehouseData.mitra_orders || [];
+          if (mOrders.length === 0) {
+            poContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada pesanan PO ke Gudang Pusat. Klik "Pesan PO ke Pusat" saat stok menipis atau sebelum buka lapak.</div>`;
+          } else {
+            const stCls = {
+              pending_pusat: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+              approved_shipped: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+              rejected: 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+            };
+            const stLbl = {
+              pending_pusat: 'Menunggu ACC Pusat',
+              approved_shipped: 'Dikirim Pusat (Sudah Masuk Gudang)',
+              rejected: 'Ditolak Pusat'
+            };
+            poContainer.innerHTML = mOrders.map(ord => {
+              const safeId = escapeJsArg(ord.id);
+              const summaryItems = (ord.items || []).map(it => `${it.name} (${formatQtyUnit(it.qty, it.unit)})`).join(', ');
+              return `
+                <div class="bg-slate-950/75 border ${ord.status === 'pending_pusat' ? 'border-amber-500/35' : 'border-slate-800'} rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2">
+                  <div class="min-w-0 flex-1 space-y-0.5">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-xs font-extrabold text-slate-100">${escapeHtml(ord.id)}</span>
+                      <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${stCls[ord.status] || stCls.pending_pusat}">${stLbl[ord.status] || ord.status}</span>
+                      <span class="text-[10px] text-slate-500">• ${escapeHtml(formatTimeAgo(ord.created_at))}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 truncate">${escapeHtml(summaryItems)}</p>
+                    <p class="text-[11px] font-bold text-amber-400 tabular-nums">${hideFin ? 'Nilai tersembunyi' : `Total Order: ${formatRp(ord.total_estimated_cost || 0)}`}${ord.note ? ` <span class="text-slate-500 font-normal">• "${escapeHtml(ord.note)}"</span>` : ''}</p>
+                    ${ord.status === 'rejected' && ord.rejected_reason ? `<p class="text-[10px] text-rose-300">Alasan Pusat: ${escapeHtml(ord.rejected_reason)}</p>` : ''}
+                    ${ord.status === 'approved_shipped' && ord.approval_note ? `<p class="text-[10px] text-emerald-300">Catatan Pusat: ${escapeHtml(ord.approval_note)}</p>` : ''}
                   </div>
-                  <p class="text-[10px] text-slate-400 truncate">${escapeHtml(summaryItems)}</p>
-                  <p class="text-[11px] font-bold text-amber-400 tabular-nums">Estimasi: ${formatRp(po.total_estimated_cost)}${po.note ? ` <span class="text-slate-500 font-normal">• ${escapeHtml(po.note)}</span>` : ''}</p>
+                  <div class="shrink-0">
+                    ${ord.status === 'approved_shipped' && !ord.receipt_confirmed_at ? `
+                      <button type="button" onclick="confirmMitraOrderReceipt('${safeId}')" class="portal-edit-only px-2.5 py-1 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-[10px] font-extrabold transition">
+                        <i class="fa-solid fa-box-check mr-1"></i>Konfirmasi Terima
+                      </button>
+                    ` : `<span class="text-[10px] text-slate-500">${ord.receipt_confirmed_at ? '✅ Diterima' : escapeHtml(formatTimeAgo(ord.approved_at || ord.rejected_at || ord.created_at))}</span>`}
+                  </div>
                 </div>
-                <div class="portal-edit-only portal-no-mitra flex items-center gap-1.5 shrink-0">
-                  ${po.status === 'ordered' ? `
-                    <button type="button" onclick="receiveWarehousePo('${safeId}')" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-extrabold transition">
-                      <i class="fa-solid fa-check mr-1"></i>Terima Barang
-                    </button>
-                    <button type="button" onclick="cancelWarehousePo('${safeId}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700 text-[10px] font-semibold transition">
-                      Batal
-                    </button>
-                  ` : `<span class="text-[10px] text-slate-500">${escapeHtml(formatTimeAgo(po.received_at || po.cancelled_at || po.created_at))}</span>`}
+              `;
+            }).join('');
+          }
+        } else {
+          const pos = cachedWarehouseData.purchase_orders || [];
+          if (pos.length === 0) {
+            poContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada Purchase Order ke supplier. Klik "Buat PO" saat ada stok 🚨 PERLU ORDER.</div>`;
+          } else {
+            const poStatusCls = {
+              ordered: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+              received: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+              cancelled: 'bg-slate-800 text-slate-400 border-slate-700'
+            };
+            const poStatusLbl = { ordered: 'Dipesan (Aktif)', received: 'Diterima di Gudang', cancelled: 'Dibatalkan' };
+            poContainer.innerHTML = pos.map(po => {
+              const safeId = escapeJsArg(po.id);
+              const summaryItems = (po.items || []).map(it => `${it.name} (${formatQtyUnit(it.qty, it.unit)})`).join(', ');
+              return `
+                <div class="bg-slate-950/75 border ${po.status === 'ordered' ? 'border-amber-500/35' : 'border-slate-800'} rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2">
+                  <div class="min-w-0 flex-1 space-y-0.5">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-xs font-extrabold text-slate-100">${escapeHtml(po.id)}</span>
+                      <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${poStatusCls[po.status] || poStatusCls.ordered}">${poStatusLbl[po.status] || po.status}</span>
+                      <span class="text-[10px] text-slate-400">• ${escapeHtml(po.supplier_name)}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 truncate">${escapeHtml(summaryItems)}</p>
+                    <p class="text-[11px] font-bold text-amber-400 tabular-nums">${hideFin ? 'Estimasi: Terbatas' : `Estimasi: ${formatRp(po.total_estimated_cost || 0)}`}${po.note ? ` <span class="text-slate-500 font-normal">• ${escapeHtml(po.note)}</span>` : ''}</p>
+                  </div>
+                  <div class="portal-edit-only portal-no-mitra flex items-center gap-1.5 shrink-0">
+                    ${po.status === 'ordered' ? `
+                      <button type="button" onclick="receiveWarehousePo('${safeId}')" class="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-extrabold transition">
+                        <i class="fa-solid fa-check mr-1"></i>Terima Barang
+                      </button>
+                      <button type="button" onclick="cancelWarehousePo('${safeId}')" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 border border-slate-700 text-[10px] font-semibold transition">
+                        Batal
+                      </button>
+                    ` : `<span class="text-[10px] text-slate-500">${escapeHtml(formatTimeAgo(po.received_at || po.cancelled_at || po.created_at))}</span>`}
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join('');
+              `;
+            }).join('');
+          }
         }
       }
 
       const ledger = cachedWarehouseData.ledger || [];
       if (ledgerContainer) {
         if (ledger.length === 0) {
-          ledgerContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada riwayat mutasi gudang (masuk supplier, distribusi lapak, atau waste).</div>`;
+          ledgerContainer.innerHTML = `<div class="text-center py-5 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada riwayat mutasi gudang (masuk, distribusi lapak, atau waste).</div>`;
         } else {
           const txTypeMeta = {
             supplier_in: { label: 'Masuk Supplier', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+            pusat_in: { label: 'Masuk dari Pusat', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
+            mitra_dispatch: { label: 'Kirim PO Mitra', cls: 'bg-purple-500/15 text-purple-300 border-purple-500/30' },
             branch_transfer: { label: 'Kirim ke Lapak', cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
             branch_return: { label: 'Dikembalikan Lapak', cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35' },
             waste: { label: 'Rusak / Waste', cls: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
@@ -4598,7 +4748,7 @@
             const tm = txTypeMeta[tx.type] || txTypeMeta.adjustment;
             const targetDesc = (tx.type === 'branch_transfer' || tx.type === 'branch_return')
               ? shortBranchLabel(tx.branch_name || tx.branch_id)
-              : (tx.supplier_name || tx.reference_no || '-');
+              : (tx.type === 'mitra_dispatch' ? `Mitra: ${tx.mitra_name || tx.supplier_name}` : (tx.supplier_name || tx.reference_no || '-'));
             const itemsSummary = (tx.items || []).map(it => `${it.name} (${it.qty > 0 ? '+' : ''}${it.qty} ${it.unit})`).join(', ');
             return `
               <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
@@ -4611,11 +4761,161 @@
                   <p class="text-[10px] text-slate-400 truncate">${escapeHtml(itemsSummary)}</p>
                   ${tx.note ? `<p class="text-[10px] text-slate-500 italic truncate">"${escapeHtml(tx.note)}"</p>` : ''}
                 </div>
-                <span class="font-bold text-amber-400 tabular-nums shrink-0">${formatRp(tx.total_value || 0)}</span>
+                <span class="font-bold text-amber-400 tabular-nums shrink-0">${hideFin ? '•••' : formatRp(tx.total_value || 0)}</span>
               </div>
             `;
           }).join('');
         }
+      }
+    }
+
+    function renderWarehouseMitraInbox() {
+      const container = document.getElementById('whMitraInboxList');
+      if (!container || !cachedWarehouseData || isMitraWarehouseMode()) return;
+
+      const orders = cachedWarehouseData.mitra_orders || [];
+      const hideFin = Boolean(cachedWarehouseData.finance_restricted);
+      if (orders.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 bg-slate-950/40 rounded-xl border border-dashed border-slate-800 text-[11px] text-slate-500">Belum ada pesanan PO masuk dari Mitra. Jika Mitra mengajukan permintaan bahan, pesanan akan muncul di sini.</div>`;
+        return;
+      }
+
+      const stCls = {
+        pending_pusat: 'bg-rose-500/15 text-rose-300 border-rose-500/35',
+        approved_shipped: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        rejected: 'bg-slate-800 text-slate-400 border-slate-700'
+      };
+      const stLbl = {
+        pending_pusat: 'Menunggu ACC Pusat',
+        approved_shipped: 'Disetujui & Dikirim',
+        rejected: 'Ditolak'
+      };
+
+      container.innerHTML = orders.map(ord => {
+        const safeId = escapeJsArg(ord.id);
+        const isPending = ord.status === 'pending_pusat';
+        const branchInfo = Array.isArray(ord.branch_names) && ord.branch_names.length > 0
+          ? ord.branch_names.map(shortBranchLabel).join(', ')
+          : 'Cabang Mitra';
+
+        let hasShortage = false;
+        const itemRows = (ord.items || []).map(it => {
+          const centralStock = Number(it.central_current_stock ?? 0);
+          const qty = Number(it.qty) || 0;
+          const lacking = isPending && centralStock < qty;
+          if (lacking) hasShortage = true;
+          return `
+            <div class="flex items-center justify-between gap-2 text-[10px] py-1 border-b border-slate-800/60 last:border-b-0">
+              <span class="text-slate-200 font-semibold truncate">${escapeHtml(it.name)}</span>
+              <div class="flex items-center gap-2 shrink-0 tabular-nums">
+                <span class="font-bold text-amber-300">${qty.toLocaleString('id-ID')} ${escapeHtml(it.unit)}</span>
+                ${isPending ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold ${lacking ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-slate-800 text-slate-400'}">Stok Pusat: ${centralStock.toLocaleString('id-ID')}${lacking ? ' (KURANG!)' : ''}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-slate-950/80 border ${isPending ? 'border-amber-500/40' : 'border-slate-800'} rounded-xl p-3 space-y-2">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="text-xs font-extrabold text-slate-100">${escapeHtml(ord.id)}</span>
+                  <span class="px-1.5 py-0.5 rounded border text-[9px] font-bold ${stCls[ord.status] || stCls.pending_pusat}">${stLbl[ord.status] || ord.status}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/25 text-[9px] font-bold">${escapeHtml(ord.mitra_name || ord.mitra_username)}</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-0.5">Cabang: <b class="text-slate-300">${escapeHtml(branchInfo)}</b> • ${escapeHtml(formatTimeAgo(ord.created_at))}</p>
+                ${ord.note ? `<p class="text-[10px] text-amber-300/90 italic mt-0.5">"${escapeHtml(ord.note)}"</p>` : ''}
+              </div>
+              <div class="text-right shrink-0">
+                <span class="text-[10px] text-slate-500 block">Estimasi Nilai</span>
+                <span class="text-xs font-extrabold text-amber-400 tabular-nums">${hideFin ? '•••' : formatRp(ord.total_estimated_cost || 0)}</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-800 rounded-lg px-2.5 py-1.5">
+              ${itemRows}
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <div class="text-[10px] text-slate-400">
+                ${ord.status === 'approved_shipped'
+                  ? `✅ Dikirim oleh <b>${escapeHtml(ord.approved_by || 'Pusat')}</b> (${escapeHtml(formatTimeAgo(ord.approved_at))})${ord.receipt_confirmed_at ? ' • Dikonfirmasi Mitra' : ''}`
+                  : (ord.status === 'rejected'
+                    ? `❌ Ditolak oleh <b>${escapeHtml(ord.rejected_by || 'Pusat')}</b>: ${escapeHtml(ord.rejected_reason || '-')}`
+                    : (hasShortage ? '<span class="text-rose-400 font-semibold">⚠️ Beberapa bahan di Gudang Pusat belum mencukupi qty pesanan!</span>' : '<span class="text-emerald-400">✓ Stok Gudang Pusat mencukupi untuk dikirim</span>'))}
+              </div>
+              ${isPending ? `
+                <div class="portal-edit-only flex items-center gap-1.5">
+                  <button type="button" onclick="rejectMitraOrder('${safeId}')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-slate-700 text-[10px] font-semibold transition">
+                    Tolak
+                  </button>
+                  <button type="button" onclick="approveMitraOrder('${safeId}')" class="px-3 py-1 rounded-lg ${hasShortage ? 'bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'} text-[10px] font-extrabold transition" ${hasShortage ? 'disabled title="Stok Pusat belum mencukupi"' : ''}>
+                    <i class="fa-solid fa-truck-fast mr-1"></i>ACC &amp; Kirim dari Pusat
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveMitraOrder(orderId) {
+      if (!confirm(`Setujui & kirim ${orderId} sekarang?\n\nStok Gudang Pusat akan berkurang dan langsung masuk ke Gudang Mitra tersebut.`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/mitra-orders/${encodeURIComponent(orderId)}/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchWarehouseData();
+          fetchSummary();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menyetujui pesanan Mitra'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function rejectMitraOrder(orderId) {
+      const reason = prompt(`Alasan menolak pesanan ${orderId} (opsional):`, 'Stok pusat sedang dialokasikan / silakan revisi qty');
+      if (reason === null) return;
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/mitra-orders/${encodeURIComponent(orderId)}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchWarehouseData();
+          fetchSummary();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal menolak pesanan'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function confirmMitraOrderReceipt(orderId) {
+      if (!confirm(`Konfirmasi barang fisik ${orderId} sudah diterima di Gudang Mitra?`)) return;
+      try {
+        const res = await fetch(`/api/super-admin/warehouse/mitra-orders/${encodeURIComponent(orderId)}/confirm-receipt`, {
+          method: 'POST'
+        }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchWarehouseData();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal konfirmasi penerimaan'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
       }
     }
 
@@ -4774,12 +5074,21 @@
       if (!cachedWarehouseData) return;
       const it = (cachedWarehouseData.items || []).find(item => item.id === itemId);
       if (!it) return;
+      const isMitra = isMitraWarehouseMode();
       document.getElementById('whEditItemId').value = it.id;
       document.getElementById('whEditItemTitle').innerText = it.name;
       document.getElementById('whEditItemSub').innerText = `${it.category} • Satuan: ${it.unit}`;
-      document.getElementById('whEditUnitCost').value = it.unit_cost;
+      document.getElementById('whEditUnitCost').value = it.unit_cost ?? 0;
       document.getElementById('whEditSafetyStock').value = it.safety_stock;
       document.getElementById('whEditCurrentStock').value = it.current_stock;
+
+      const costWrap = document.getElementById('whEditUnitCostWrap');
+      const stockWrap = document.getElementById('whEditCurrentStockWrap');
+      if (costWrap) costWrap.classList.toggle('hidden', isMitra);
+      if (stockWrap) stockWrap.classList.toggle('hidden', isMitra);
+      document.getElementById('whEditUnitCost').required = !isMitra;
+      document.getElementById('whEditCurrentStock').required = !isMitra;
+
       document.getElementById('whItemEditModal').classList.remove('hidden');
     }
 
@@ -4791,15 +5100,21 @@
     async function submitWarehouseItemEdit(e) {
       e.preventDefault();
       const id = document.getElementById('whEditItemId').value;
-      const unit_cost = Number(document.getElementById('whEditUnitCost').value);
+      const isMitra = isMitraWarehouseMode();
       const safety_stock = Number(document.getElementById('whEditSafetyStock').value);
-      const current_stock = Number(document.getElementById('whEditCurrentStock').value);
+      const payload = isMitra
+        ? { safety_stock }
+        : {
+            unit_cost: Number(document.getElementById('whEditUnitCost').value),
+            safety_stock,
+            current_stock: Number(document.getElementById('whEditCurrentStock').value)
+          };
 
       try {
         const res = await fetch(`/api/super-admin/warehouse/items/${encodeURIComponent(id)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ unit_cost, safety_stock, current_stock })
+          body: JSON.stringify(payload)
         }).then(r => r.json());
         if (res.success) {
           alert('✅ ' + res.message);
@@ -4821,6 +5136,29 @@
           whPoDraftQty.set(it.id, it.suggested_po_qty);
         }
       });
+
+      const isMitra = isMitraWarehouseMode();
+      const titleEl = document.getElementById('whPoModalTitle');
+      const subEl = document.getElementById('whPoModalSub');
+      const supWrap = document.getElementById('whPoSupplierWrap');
+      const supInp = document.getElementById('whPoSupplier');
+      const noteInp = document.getElementById('whPoNote');
+      const submitBtn = document.getElementById('whPoSubmitBtn');
+
+      if (titleEl) titleEl.innerText = isMitra ? 'Pesan Bahan Baku ke Gudang Pusat (PO)' : 'Buat Purchase Order (PO Supplier)';
+      if (subEl) {
+        subEl.innerText = isMitra
+          ? 'Pesanan akan masuk ke Inbox Pusat. Stok Gudang Mitra otomatis terisi setelah disetujui & dikirim Pusat.'
+          : 'Otomatis mengisi rekomendasi order untuk bahan berstatus 🚨 PERLU ORDER';
+      }
+      if (supWrap) supWrap.classList.toggle('hidden', isMitra);
+      if (supInp) supInp.required = !isMitra;
+      if (noteInp) {
+        noteInp.value = '';
+        noteInp.placeholder = isMitra ? 'Contoh: Restock mingguan cabang Mitra' : 'Contoh: Restock mingguan buffer 3 hari';
+      }
+      if (submitBtn) submitBtn.innerText = isMitra ? 'Kirim Pesanan ke Pusat' : 'Terbitkan PO';
+
       renderWhPoItemsList();
       updateWhPoTotalEstimate();
       document.getElementById('whPoModal').classList.remove('hidden');
@@ -4874,6 +5212,7 @@
 
     async function submitWarehousePo(e) {
       e.preventDefault();
+      const isMitra = isMitraWarehouseMode();
       const supplier_name = document.getElementById('whPoSupplier').value.trim();
       const note = document.getElementById('whPoNote').value.trim();
       const items = [];
@@ -4885,11 +5224,16 @@
         return;
       }
 
+      const endpoint = isMitra
+        ? '/api/super-admin/warehouse/mitra-orders'
+        : '/api/super-admin/warehouse/purchase-orders';
+      const bodyPayload = isMitra ? { note, items } : { supplier_name, note, items };
+
       try {
-        const res = await fetch('/api/super-admin/warehouse/purchase-orders', {
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ supplier_name, note, items })
+          body: JSON.stringify(bodyPayload)
         }).then(r => r.json());
         if (res.success) {
           alert('✅ ' + res.message);
@@ -4897,7 +5241,7 @@
           setWarehouseSubtab('po');
           fetchWarehouseData();
         } else {
-          alert('❌ ' + (res.message || 'Gagal menerbitkan PO'));
+          alert('❌ ' + (res.message || 'Gagal mengirim PO'));
         }
       } catch (err) {
         alert('❌ Gagal menghubungi server');

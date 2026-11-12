@@ -110,6 +110,7 @@ const STOCK_OPENING_FILE = path.join(DATA_DIR, 'stock_opening.json');
 const WALLETS_FILE = path.join(DATA_DIR, 'wallets.json');
 const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 const WAREHOUSE_FILE = path.join(DATA_DIR, 'warehouse.json');
+const MITRA_WAREHOUSES_FILE = path.join(DATA_DIR, 'mitra_warehouses.json');
 const PORTAL_ACCOUNTS_FILE = path.join(DATA_DIR, 'portal_accounts.json');
 
 const PORTAL_TAB_KEYS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
@@ -358,11 +359,16 @@ function enforceSuperAdminRbac(req, res, next) {
   }
 
   if (isWriteMethod && req.portalUser.role === 'mitra' && String(req.path || '').startsWith('/warehouse')) {
-    const isPoCreate = req.path === '/warehouse/purchase-orders' && req.method === 'POST';
-    if (!isPoCreate) {
+    const reqPath = String(req.path || '');
+    const isAllowedMitraWrite =
+      (reqPath === '/warehouse/mitra-orders' && req.method === 'POST') ||
+      (/^\/warehouse\/mitra-orders\/[^/]+\/confirm-receipt$/.test(reqPath) && req.method === 'POST') ||
+      (reqPath === '/warehouse/transaction' && req.method === 'POST') ||
+      (/^\/warehouse\/items\/[^/]+$/.test(reqPath) && req.method === 'PATCH');
+    if (!isAllowedMitraWrite) {
       return res.status(403).json({
         success: false,
-        message: 'Akun Mitra hanya dapat memantau stok & mengajukan PO tanpa mengubah stok fisik Gudang Pusat.'
+        message: 'Akun Mitra hanya dapat mengajukan PO ke Pusat, mengirim dari gudang Mitra ke lapaknya sendiri, mencatat waste, atau mengatur batas safety stock.'
       });
     }
   }
@@ -445,6 +451,32 @@ function createDefaultWarehouseData() {
   };
 }
 
+function syncWarehouseItemCatalog(wh, { zeroStock = false, centralItemsMap = null } = {}) {
+  if (!Array.isArray(wh.items)) wh.items = [];
+  const existingIds = new Set(wh.items.map(it => it.id));
+  let changed = false;
+  const defaultNoMap = new Map(DEFAULT_WAREHOUSE_ITEMS.map(d => [d.id, d.no]));
+  DEFAULT_WAREHOUSE_ITEMS.forEach(def => {
+    if (!existingIds.has(def.id)) {
+      const centralRef = centralItemsMap ? centralItemsMap.get(def.id) : null;
+      wh.items.push({
+        ...def,
+        current_stock: zeroStock ? 0 : def.current_stock,
+        unit_cost: centralRef ? (Number(centralRef.unit_cost) || def.unit_cost) : def.unit_cost,
+        updated_at: null
+      });
+      changed = true;
+    }
+  });
+  if (changed) {
+    wh.items.forEach(it => {
+      if (defaultNoMap.has(it.id)) it.no = defaultNoMap.get(it.id);
+    });
+    wh.items.sort((a, b) => (Number(a.no) || 999) - (Number(b.no) || 999));
+  }
+  return changed;
+}
+
 function getOrInitWarehouse() {
   const wh = readJSON(WAREHOUSE_FILE, createDefaultWarehouseData());
   if (!wh || !Array.isArray(wh.items) || wh.items.length === 0) {
@@ -457,28 +489,143 @@ function getOrInitWarehouse() {
   if (!Array.isArray(wh.purchase_orders)) wh.purchase_orders = [];
 
   // Pastikan item default baru ikut ditambahkan ke warehouse.json tanpa menimpa stok berjalan
-  const existingIds = new Set(wh.items.map(it => it.id));
-  let changed = false;
-  const defaultNoMap = new Map(DEFAULT_WAREHOUSE_ITEMS.map(d => [d.id, d.no]));
-  DEFAULT_WAREHOUSE_ITEMS.forEach(def => {
-    if (!existingIds.has(def.id)) {
-      wh.items.push({ ...def, updated_at: null });
-      changed = true;
-    }
-  });
-  if (changed) {
-    wh.items.forEach(it => {
-      if (defaultNoMap.has(it.id)) it.no = defaultNoMap.get(it.id);
-    });
-    wh.items.sort((a, b) => (Number(a.no) || 999) - (Number(b.no) || 999));
+  if (syncWarehouseItemCatalog(wh, { zeroStock: false })) {
     writeJSON(WAREHOUSE_FILE, wh);
   }
   return wh;
 }
 
-function getWarehouseReorderCount() {
+function getOrInitMitraStore() {
+  const store = readJSON(MITRA_WAREHOUSES_FILE, { warehouses: {}, orders: [] });
+  if (!store || typeof store !== 'object') {
+    const fresh = { warehouses: {}, orders: [] };
+    writeJSON(MITRA_WAREHOUSES_FILE, fresh);
+    return fresh;
+  }
+  let changed = false;
+  if (!store.warehouses || typeof store.warehouses !== 'object' || Array.isArray(store.warehouses)) {
+    store.warehouses = {};
+    changed = true;
+  }
+  if (!Array.isArray(store.orders)) {
+    store.orders = [];
+    changed = true;
+  }
+  if (changed) writeJSON(MITRA_WAREHOUSES_FILE, store);
+  return store;
+}
+
+function findMitraAccountForBranch(branchId) {
+  if (!branchId) return null;
+  const store = getOrInitPortalAccounts();
+  const acc = (store.accounts || []).find(a =>
+    a.role === 'mitra' &&
+    a.is_active !== false &&
+    a.branch_scope === 'selected' &&
+    Array.isArray(a.allowed_branches) &&
+    a.allowed_branches.includes(branchId)
+  );
+  return acc ? sanitizePortalAccount(acc) : null;
+}
+
+function getOrInitMitraWarehouse(mitraAccountOrId, existingStore = null) {
+  const mitraId = typeof mitraAccountOrId === 'string'
+    ? mitraAccountOrId
+    : (mitraAccountOrId && mitraAccountOrId.id);
+  const mitraName = typeof mitraAccountOrId === 'object' && mitraAccountOrId
+    ? (mitraAccountOrId.display_name || mitraAccountOrId.full_name || mitraAccountOrId.username || mitraId)
+    : mitraId;
+
+  const store = existingStore || getOrInitMitraStore();
+  const central = getOrInitWarehouse();
+  const centralItemsMap = new Map(central.items.map(it => [it.id, it]));
+  let changed = false;
+
+  if (!store.warehouses[mitraId]) {
+    store.warehouses[mitraId] = {
+      meta: {
+        warehouse_name: `Gudang Mitra — ${mitraName}`,
+        mitra_id: mitraId,
+        mitra_name: mitraName,
+        safety_days: 3,
+        target_food_cost_min: 35,
+        target_food_cost_max: 40
+      },
+      items: DEFAULT_WAREHOUSE_ITEMS.map(def => {
+        const centralRef = centralItemsMap.get(def.id);
+        return {
+          ...def,
+          current_stock: 0,
+          unit_cost: centralRef ? (Number(centralRef.unit_cost) || def.unit_cost) : def.unit_cost,
+          updated_at: null
+        };
+      }),
+      ledger: []
+    };
+    changed = true;
+  }
+
+  const wh = store.warehouses[mitraId];
+  if (!wh.meta) {
+    wh.meta = {
+      warehouse_name: `Gudang Mitra — ${mitraName}`,
+      mitra_id: mitraId,
+      mitra_name: mitraName,
+      safety_days: 3,
+      target_food_cost_min: 35,
+      target_food_cost_max: 40
+    };
+    changed = true;
+  } else if (mitraName && mitraName !== mitraId && wh.meta.mitra_name !== mitraName) {
+    wh.meta.mitra_name = mitraName;
+    wh.meta.warehouse_name = `Gudang Mitra — ${mitraName}`;
+    changed = true;
+  }
+  if (!Array.isArray(wh.ledger)) {
+    wh.ledger = [];
+    changed = true;
+  }
+  if (syncWarehouseItemCatalog(wh, { zeroStock: true, centralItemsMap })) {
+    changed = true;
+  }
+  if (changed) writeJSON(MITRA_WAREHOUSES_FILE, store);
+  return { store, wh };
+}
+
+function resolveWarehouseForBranch(branchId) {
+  const mitraAcc = findMitraAccountForBranch(branchId);
+  if (mitraAcc) {
+    const { store, wh } = getOrInitMitraWarehouse(mitraAcc);
+    return {
+      isMitra: true,
+      mitraAccount: mitraAcc,
+      store,
+      wh,
+      save: () => writeJSON(MITRA_WAREHOUSES_FILE, store)
+    };
+  }
+  const wh = getOrInitWarehouse();
+  return {
+    isMitra: false,
+    mitraAccount: null,
+    store: null,
+    wh,
+    save: () => writeJSON(WAREHOUSE_FILE, wh)
+  };
+}
+
+function getWarehouseReorderCount(portalUser = null) {
+  if (portalUser && portalUser.role === 'mitra') {
+    const { wh } = getOrInitMitraWarehouse(portalUser);
+    return wh.items.filter(it => (Number(it.current_stock) || 0) <= (Number(it.safety_stock) || 0)).length;
+  }
   const wh = getOrInitWarehouse();
   return wh.items.filter(it => (Number(it.current_stock) || 0) <= (Number(it.safety_stock) || 0)).length;
+}
+
+function getMitraInboxPendingCount() {
+  const store = getOrInitMitraStore();
+  return (store.orders || []).filter(o => o.status === 'pending_pusat').length;
 }
 
 function recordWarehouseTransaction(wh, payload) {
@@ -487,6 +634,8 @@ function recordWarehouseTransaction(wh, payload) {
     date,
     branch_id = '',
     branch_name = '',
+    mitra_id = '',
+    mitra_name = '',
     supplier_name = '',
     reference_no = '',
     pic_name = 'Admin Gudang',
@@ -494,7 +643,7 @@ function recordWarehouseTransaction(wh, payload) {
     items = []
   } = payload;
 
-  if (!['supplier_in', 'branch_transfer', 'branch_return', 'waste', 'adjustment'].includes(type)) {
+  if (!['supplier_in', 'pusat_in', 'branch_transfer', 'branch_return', 'mitra_dispatch', 'waste', 'adjustment'].includes(type)) {
     return { error: 'Tipe transaksi gudang tidak valid' };
   }
   if (!Array.isArray(items) || items.length === 0) {
@@ -503,8 +652,8 @@ function recordWarehouseTransaction(wh, payload) {
 
   const itemMap = new Map(wh.items.map(it => [it.id, it]));
   const normalizedRows = [];
-  const isOutgoing = type === 'branch_transfer' || type === 'waste';
-  const isIncoming = type === 'supplier_in' || type === 'branch_return';
+  const isOutgoing = type === 'branch_transfer' || type === 'waste' || type === 'mitra_dispatch';
+  const isIncoming = type === 'supplier_in' || type === 'pusat_in' || type === 'branch_return';
 
   for (const row of items) {
     const target = itemMap.get(row.item_id);
@@ -535,7 +684,7 @@ function recordWarehouseTransaction(wh, payload) {
     let nextStock = prevStock;
     if (isIncoming) {
       nextStock = prevStock + qty;
-      if (type === 'supplier_in') target.unit_cost = effectiveCost;
+      if ((type === 'supplier_in' || type === 'pusat_in') && effectiveCost > 0) target.unit_cost = effectiveCost;
     } else if (isOutgoing) {
       nextStock = prevStock - qty;
     } else if (type === 'adjustment') {
@@ -567,6 +716,8 @@ function recordWarehouseTransaction(wh, payload) {
     date: txDate,
     branch_id,
     branch_name,
+    mitra_id,
+    mitra_name,
     supplier_name,
     reference_no,
     pic_name,
@@ -593,7 +744,8 @@ function syncLinkedWarehouseEntry({
   stockItemsMap = null,
   countKey = 'opening_count'
 }) {
-  const wh = getOrInitWarehouse();
+  const whCtx = resolveWarehouseForBranch(branch_id);
+  const wh = whCtx.wh;
   const itemMap = new Map(wh.items.map(it => [it.id, it]));
 
   // 1. Balikkan efek transaksi tertaut sebelumnya agar edit/hapus tidak pernah menggandakan mutasi
@@ -669,13 +821,13 @@ function syncLinkedWarehouseEntry({
         created_at: nowIso
       };
       wh.ledger.unshift(entry);
-      writeJSON(WAREHOUSE_FILE, wh);
-      return { synced: true, itemCount: txItems.length, lowStockWarnings };
+      whCtx.save();
+      return { synced: true, itemCount: txItems.length, lowStockWarnings, warehouseType: whCtx.isMitra ? 'mitra' : 'pusat' };
     }
   }
 
-  writeJSON(WAREHOUSE_FILE, wh);
-  return { synced: true, itemCount: 0, lowStockWarnings: [] };
+  whCtx.save();
+  return { synced: true, itemCount: 0, lowStockWarnings: [], warehouseType: whCtx.isMitra ? 'mitra' : 'pusat' };
 }
 
 // Helper untuk membaca & menulis file JSON (dengan In-Memory Fallback untuk Serverless Cloud seperti Vercel/Render)
@@ -2489,6 +2641,8 @@ app.delete('/api/super-admin/stock-opname/:id', (req, res) => {
   syncLinkedWarehouseEntry({
     linkField: 'source_opname_id',
     linkId: removed.id,
+    branch_id: removed.branch_id,
+    branch_name: removed.branch_name || '',
     stockItemsMap: null
   });
 
@@ -3164,7 +3318,10 @@ app.get('/api/super-admin/summary', (req, res) => {
       customer_password_resets_pending: allowCostumer
         ? (wallets.password_reset_requests || []).filter(r => r.status === 'pending').length
         : 0,
-      warehouse_reorder_alerts: allowGudang ? getWarehouseReorderCount() : 0
+      warehouse_reorder_alerts: allowGudang ? getWarehouseReorderCount(req.portalUser) : 0,
+      warehouse_mitra_orders_pending: (allowGudang && (!req.portalUser || req.portalUser.role !== 'mitra'))
+        ? getMitraInboxPendingCount()
+        : 0
     }
   });
 });
@@ -3707,7 +3864,11 @@ function evaluateBranchSession(wh, branch, sessionDate, sortedOpnames, branchOpe
 // ============================================================================
 app.get('/api/super-admin/warehouse', (req, res) => {
   const { start_date, end_date } = req.query;
-  const wh = getOrInitWarehouse();
+  const isMitraUser = Boolean(req.portalUser && req.portalUser.role === 'mitra');
+  const warehouseMode = isMitraUser ? 'mitra' : 'pusat';
+  const mitraCtx = isMitraUser ? getOrInitMitraWarehouse(req.portalUser) : null;
+  const wh = isMitraUser ? mitraCtx.wh : getOrInitWarehouse();
+  const mitraStore = isMitraUser ? mitraCtx.store : getOrInitMitraStore();
   const branches = readJSON(BRANCHES_FILE) || [];
   const opnamesRaw = readJSON(STOCK_OPNAME_FILE) || [];
   const orders = readJSON(ORDERS_FILE) || [];
@@ -3721,6 +3882,7 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     itemAgg.set(it.id, {
       stock_in: 0,
       waste: 0,
+      mitra_out: 0,
       transfers_by_branch: {},
       total_transfer_out: 0,
       returns_by_branch: {},
@@ -3746,10 +3908,12 @@ app.get('/api/super-admin/warehouse', (req, res) => {
   let totalReturnedValue = 0;
   let totalSupplierInValue = 0;
   let totalWasteValue = 0;
+  let totalMitraOutValue = 0;
 
   periodLedger.forEach(tx => {
-    if (tx.type === 'supplier_in') totalSupplierInValue += Number(tx.total_value) || 0;
+    if (tx.type === 'supplier_in' || tx.type === 'pusat_in') totalSupplierInValue += Number(tx.total_value) || 0;
     if (tx.type === 'waste') totalWasteValue += Number(tx.total_value) || 0;
+    if (tx.type === 'mitra_dispatch') totalMitraOutValue += Number(tx.total_value) || 0;
     if (tx.type === 'branch_transfer' || tx.type === 'branch_return') {
       if (tx.type === 'branch_transfer') totalTransferValue += Number(tx.total_value) || 0;
       else totalReturnedValue += Number(tx.total_value) || 0;
@@ -3780,8 +3944,10 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       const agg = itemAgg.get(row.item_id);
       if (!agg) return;
       const qty = Number(row.qty) || 0;
-      if (tx.type === 'supplier_in') {
+      if (tx.type === 'supplier_in' || tx.type === 'pusat_in') {
         agg.stock_in += qty;
+      } else if (tx.type === 'mitra_dispatch') {
+        agg.mitra_out += qty;
       } else if (tx.type === 'waste') {
         agg.waste += qty;
       } else if (tx.type === 'branch_transfer') {
@@ -3807,8 +3973,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
   const items = wh.items.map(it => {
     const agg = itemAgg.get(it.id);
     const currentStock = Number(it.current_stock) || 0;
-    const totalOut = agg.total_transfer_out + agg.waste;
-    // Identitas mutasi: (Stok Awal + Masuk Supplier + Dikembalikan Lapak) - (Kirim Lapak + Waste) === Sisa Akhir
+    const totalOut = agg.total_transfer_out + agg.waste + agg.mitra_out;
+    // Identitas mutasi: (Stok Awal + Masuk + Dikembalikan Lapak) - (Kirim Lapak + Kirim PO Mitra + Waste) === Sisa Akhir
     const openingStock = Math.max(0, currentStock - agg.stock_in - agg.total_returned - agg.adj_delta + totalOut);
     const availableStock = openingStock + agg.stock_in;
     const totalUsed = Math.max(0, agg.total_transfer_out - agg.total_returned);
@@ -3832,6 +3998,7 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       available_stock: availableStock,
       transfers_by_branch: agg.transfers_by_branch,
       total_transfer_out: agg.total_transfer_out,
+      mitra_out: agg.mitra_out,
       returns_by_branch: agg.returns_by_branch,
       total_returned: agg.total_returned,
       total_used: totalUsed,
@@ -3868,8 +4035,15 @@ app.get('/api/super-admin/warehouse', (req, res) => {
 
   const enrichedOpnames = opnamesRaw.map(op => enrichOpnameRecord(op, orders));
   const openingsRaw = readJSON(STOCK_OPENING_FILE, []);
+  const evalWhCache = new Map();
 
   const branchEvaluations = visibleBranches.map(b => {
+    let branchWh = wh;
+    if (!isMitraUser) {
+      if (!evalWhCache.has(b.id)) evalWhCache.set(b.id, resolveWarehouseForBranch(b.id).wh);
+      branchWh = evalWhCache.get(b.id);
+    }
+
     const sortedOpnames = enrichedOpnames
       .filter(op => op.branch_id === b.id)
       .sort((a, z) => (a.business_date || '').localeCompare(z.business_date || ''));
@@ -3878,7 +4052,7 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     const dateSet = new Set();
     branchOpenings.forEach(o => { if (o.business_date) dateSet.add(o.business_date); });
     sortedOpnames.forEach(op => { if (op.business_date) dateSet.add(op.business_date); });
-    (wh.ledger || []).forEach(tx => {
+    (branchWh.ledger || []).forEach(tx => {
       if (tx.type === 'branch_transfer' && tx.branch_id === b.id) {
         const d = tx.date || getWibDateISO(tx.created_at);
         if (d) dateSet.add(d);
@@ -3891,8 +4065,8 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       : allDatesDesc;
     const sessionDates = filteredDatesDesc.length > 0 ? filteredDatesDesc : allDatesDesc;
 
-    const sessions = sessionDates.map(d => redactEval(evaluateBranchSession(wh, b, d, sortedOpnames, branchOpenings)));
-    const activeEval = sessions[0] || redactEval(evaluateBranchSession(wh, b, getWibDateISO(new Date()), sortedOpnames, branchOpenings));
+    const sessions = sessionDates.map(d => redactEval(evaluateBranchSession(branchWh, b, d, sortedOpnames, branchOpenings)));
+    const activeEval = sessions[0] || redactEval(evaluateBranchSession(branchWh, b, getWibDateISO(new Date()), sortedOpnames, branchOpenings));
 
     return {
       branch_id: b.id,
@@ -3911,12 +4085,40 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
     : null;
 
-  const purchaseOrders = [...(wh.purchase_orders || [])].sort(
-    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-  );
+  const purchaseOrders = isMitraUser
+    ? []
+    : [...(wh.purchase_orders || [])].sort(
+        (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      );
+
+  const allMitraOrders = [...(mitraStore.orders || [])]
+    .filter(o => !isMitraUser || o.mitra_id === req.portalUser.id)
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  const mitraInboxPending = isMitraUser
+    ? 0
+    : allMitraOrders.filter(o => o.status === 'pending_pusat').length;
+
+  const centralByItemId = isMitraUser
+    ? null
+    : new Map(getOrInitWarehouse().items.map(it => [it.id, Number(it.current_stock) || 0]));
+
+  const formattedMitraOrders = allMitraOrders.map(ord => {
+    const itemsWithStock = (ord.items || []).map(it => {
+      const centralStock = centralByItemId ? (centralByItemId.get(it.item_id) ?? 0) : null;
+      return allowFinance
+        ? { ...it, central_current_stock: centralStock }
+        : { ...it, unit_cost: null, subtotal: null, central_current_stock: centralStock };
+    });
+    return {
+      ...ord,
+      total_estimated_cost: allowFinance ? ord.total_estimated_cost : null,
+      items: itemsWithStock
+    };
+  });
+
   const recentLedger = [...(wh.ledger || [])]
     .filter(tx => {
-      if (!allowedSet) return true;
+      if (!allowedSet || isMitraUser) return true;
       if ((tx.type === 'branch_transfer' || tx.type === 'branch_return') && tx.branch_id) {
         return allowedSet.has(tx.branch_id);
       }
@@ -3971,6 +4173,10 @@ app.get('/api/super-admin/warehouse', (req, res) => {
   res.json({
     success: true,
     data: {
+      warehouse_mode: warehouseMode,
+      warehouse_label: isMitraUser
+        ? ((wh.meta && wh.meta.warehouse_name) || `Gudang Mitra — ${req.portalUser.display_name || req.portalUser.username}`)
+        : 'Gudang Pusat AL Bewok',
       meta: wh.meta,
       finance_restricted: !allowFinance,
       categories: WAREHOUSE_CATEGORIES,
@@ -3984,13 +4190,18 @@ app.get('/api/super-admin/warehouse', (req, res) => {
         total_used_value: allowFinance ? scopedUsedVal : null,
         total_supplier_in_value: allowFinance ? totalSupplierInValue : null,
         total_waste_value: allowFinance ? totalWasteValue : null,
+        total_mitra_out_value: allowFinance ? totalMitraOutValue : null,
         transfer_by_branch_totals: visibleTransferTotals,
-        pending_po_count: purchaseOrders.filter(po => po.status === 'ordered').length,
+        pending_po_count: isMitraUser
+          ? allMitraOrders.filter(o => o.status === 'pending_pusat').length
+          : purchaseOrders.filter(po => po.status === 'ordered').length,
+        mitra_inbox_pending: mitraInboxPending,
         avg_food_cost_ratio: avgFoodCostRatio
       },
       items: responseItems,
       branch_evaluations: branchEvaluations,
-      purchase_orders: allowFinance ? purchaseOrders : purchaseOrders.map(po => ({ ...po, total_cost: null })),
+      purchase_orders: allowFinance ? purchaseOrders : purchaseOrders.map(po => ({ ...po, total_cost: null, total_estimated_cost: null })),
+      mitra_orders: formattedMitraOrders,
       ledger: recentLedger.slice(0, 60)
     }
   });
@@ -3999,17 +4210,32 @@ app.get('/api/super-admin/warehouse', (req, res) => {
 // Catat Transaksi Mutasi Gudang (Masuk Supplier / Kirim Cabang / Rusak-Waste)
 app.post('/api/super-admin/warehouse/transaction', (req, res) => {
   const { type, date, branch_id, supplier_name, reference_no, pic_name, note, items } = req.body || {};
-  const wh = getOrInitWarehouse();
+  const isMitraUser = Boolean(req.portalUser && req.portalUser.role === 'mitra');
   const branches = readJSON(BRANCHES_FILE) || [];
   let branchName = '';
+
+  if (isMitraUser) {
+    if (type !== 'branch_transfer' && type !== 'waste') {
+      return res.status(403).json({
+        success: false,
+        message: 'Akun Mitra tidak dapat menginput barang masuk dari supplier luar atau penyesuaian stok manual. Ajukan PO ke Pusat untuk menambah stok Gudang Mitra.'
+      });
+    }
+  }
 
   if (type === 'branch_transfer') {
     const targetBranch = branches.find(b => b.id === branch_id);
     if (!targetBranch) {
       return res.status(400).json({ success: false, message: 'Pilih lapak tujuan distribusi terlebih dahulu.' });
     }
+    if (!isBranchAllowedForPortalUser(req.portalUser, branch_id)) {
+      return res.status(403).json({ success: false, message: 'Anda tidak diizinkan mendistribusikan bahan ke cabang lapak ini.' });
+    }
     branchName = targetBranch.name;
   }
+
+  const mitraCtx = isMitraUser ? getOrInitMitraWarehouse(req.portalUser) : null;
+  const wh = isMitraUser ? mitraCtx.wh : getOrInitWarehouse();
 
   const result = recordWarehouseTransaction(wh, {
     type,
@@ -4018,7 +4244,7 @@ app.post('/api/super-admin/warehouse/transaction', (req, res) => {
     branch_name: branchName,
     supplier_name,
     reference_no,
-    pic_name,
+    pic_name: pic_name || (req.portalUser ? (req.portalUser.display_name || req.portalUser.username) : 'Admin Gudang'),
     note,
     items
   });
@@ -4027,7 +4253,11 @@ app.post('/api/super-admin/warehouse/transaction', (req, res) => {
     return res.status(400).json({ success: false, message: result.error });
   }
 
-  writeJSON(WAREHOUSE_FILE, wh);
+  if (isMitraUser) {
+    writeJSON(MITRA_WAREHOUSES_FILE, mitraCtx.store);
+  } else {
+    writeJSON(WAREHOUSE_FILE, wh);
+  }
   const labelMap = {
     supplier_in: 'Penerimaan dari supplier',
     branch_transfer: `Distribusi ke ${branchName}`,
@@ -4045,10 +4275,26 @@ app.post('/api/super-admin/warehouse/transaction', (req, res) => {
 app.patch('/api/super-admin/warehouse/items/:id', (req, res) => {
   const { id } = req.params;
   const { unit_cost, safety_stock, current_stock, pic_name, note } = req.body || {};
-  const wh = getOrInitWarehouse();
+  const isMitraUser = Boolean(req.portalUser && req.portalUser.role === 'mitra');
+  const mitraCtx = isMitraUser ? getOrInitMitraWarehouse(req.portalUser) : null;
+  const wh = isMitraUser ? mitraCtx.wh : getOrInitWarehouse();
   const item = wh.items.find(it => it.id === id);
   if (!item) {
     return res.status(404).json({ success: false, message: 'Bahan baku tidak ditemukan' });
+  }
+
+  if (isMitraUser) {
+    // Mitra hanya boleh mengatur batas safety_stock di gudangnya sendiri (tidak boleh mengubah stok fisik/harga pusat)
+    if (safety_stock !== undefined && !Number.isNaN(Number(safety_stock)) && Number(safety_stock) >= 0) {
+      item.safety_stock = Number(safety_stock);
+    }
+    item.updated_at = new Date().toISOString();
+    writeJSON(MITRA_WAREHOUSES_FILE, mitraCtx.store);
+    return res.json({
+      success: true,
+      message: `Batas Safety Stock ${item.name} di Gudang Mitra diperbarui.`,
+      data: item
+    });
   }
 
   if (unit_cost !== undefined && !Number.isNaN(Number(unit_cost)) && Number(unit_cost) >= 0) {
@@ -4075,6 +4321,204 @@ app.patch('/api/super-admin/warehouse/items/:id', (req, res) => {
     success: true,
     message: `Pengaturan ${item.name} berhasil diperbarui.`,
     data: item
+  });
+});
+
+// Mitra Ajukan Pesanan PO Bahan Baku ke Gudang Pusat
+app.post('/api/super-admin/warehouse/mitra-orders', (req, res) => {
+  if (!req.portalUser || req.portalUser.role !== 'mitra') {
+    return res.status(403).json({
+      success: false,
+      message: 'Endpoint pengajuan PO Mitra khusus untuk akun Mitra.'
+    });
+  }
+  const { note, items } = req.body || {};
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ success: false, message: 'Pilih minimal 1 bahan baku untuk dipesan ke Pusat.' });
+  }
+
+  const central = getOrInitWarehouse();
+  const centralMap = new Map(central.items.map(it => [it.id, it]));
+  const mitraCtx = getOrInitMitraWarehouse(req.portalUser);
+  const store = mitraCtx.store;
+  const branches = readJSON(BRANCHES_FILE) || [];
+  const allowedBranches = filterAllowedBranches(req.portalUser, branches).map(b => b.name);
+
+  const poItems = [];
+  let totalCost = 0;
+  for (const row of items) {
+    const master = centralMap.get(row.item_id);
+    const qty = Number(row.qty) || 0;
+    if (!master || qty <= 0) continue;
+    const unitCost = Number(master.unit_cost) || 0;
+    const subtotal = qty * unitCost;
+    totalCost += subtotal;
+    poItems.push({
+      item_id: master.id,
+      name: master.name,
+      category: master.category,
+      unit: master.unit,
+      qty,
+      unit_cost: unitCost,
+      subtotal
+    });
+  }
+
+  if (poItems.length === 0) {
+    return res.status(400).json({ success: false, message: 'Tidak ada item pesanan dengan jumlah valid (> 0).' });
+  }
+
+  const nowIso = new Date().toISOString();
+  const seq = String((store.orders || []).length + 1).padStart(2, '0');
+  const order = {
+    id: `PO-MITRA-${getWibDateISO().replace(/-/g, '')}-${seq}`,
+    mitra_id: req.portalUser.id,
+    mitra_name: req.portalUser.display_name || req.portalUser.username,
+    mitra_username: req.portalUser.username,
+    branch_names: allowedBranches,
+    note: String(note || '').trim(),
+    items: poItems,
+    total_estimated_cost: totalCost,
+    status: 'pending_pusat',
+    created_at: nowIso
+  };
+
+  store.orders.unshift(order);
+  writeJSON(MITRA_WAREHOUSES_FILE, store);
+
+  res.json({
+    success: true,
+    message: `Pesanan ${order.id} berhasil dikirim ke Inbox Gudang Pusat!`,
+    data: order
+  });
+});
+
+// Owner / Management Setujui & Kirim Pesanan PO Mitra dari Gudang Pusat
+app.post('/api/super-admin/warehouse/mitra-orders/:id/approve', (req, res) => {
+  if (req.portalUser && req.portalUser.role === 'mitra') {
+    return res.status(403).json({ success: false, message: 'Hanya Owner atau Management Pusat yang dapat menyetujui & mengirim pesanan Mitra.' });
+  }
+  const { id } = req.params;
+  const { approval_note = '' } = req.body || {};
+  const store = getOrInitMitraStore();
+  const order = (store.orders || []).find(o => o.id === id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Pesanan PO Mitra tidak ditemukan.' });
+  }
+  if (order.status !== 'pending_pusat') {
+    return res.status(400).json({ success: false, message: `Pesanan ini berstatus "${order.status}" dan sudah diproses.` });
+  }
+
+  const centralWh = getOrInitWarehouse();
+  const { wh: mitraWh } = getOrInitMitraWarehouse(
+    { id: order.mitra_id, display_name: order.mitra_name, username: order.mitra_username },
+    store
+  );
+  const picName = (req.portalUser && (req.portalUser.display_name || req.portalUser.username)) || 'Owner / Management Pusat';
+  const noteText = String(approval_note || '').trim();
+
+  // 1. Keluarkan stok dari Gudang Pusat (validasi stok cukup dilakukan secara atomik di sini sebelum menambah ke Mitra)
+  const dispatchRes = recordWarehouseTransaction(centralWh, {
+    type: 'mitra_dispatch',
+    mitra_id: order.mitra_id,
+    mitra_name: order.mitra_name,
+    supplier_name: order.mitra_name,
+    reference_no: order.id,
+    pic_name: picName,
+    note: noteText || order.note || `Pengiriman PO Mitra ${order.id}`,
+    items: (order.items || []).map(it => ({ item_id: it.item_id, qty: it.qty }))
+  });
+  if (dispatchRes.error) {
+    return res.status(400).json({ success: false, message: dispatchRes.error });
+  }
+
+  // 2. Masukkan stok ke Gudang Mitra secara otomatis dengan harga modal Pusat terbaru
+  const centralCostMap = new Map(centralWh.items.map(it => [it.id, Number(it.unit_cost) || 0]));
+  const receiveRes = recordWarehouseTransaction(mitraWh, {
+    type: 'pusat_in',
+    supplier_name: 'Gudang Pusat AL Bewok',
+    reference_no: order.id,
+    pic_name: picName,
+    note: noteText || order.note || `Kiriman Pusat sesuai ${order.id}`,
+    items: (order.items || []).map(it => ({
+      item_id: it.item_id,
+      qty: it.qty,
+      unit_cost: centralCostMap.get(it.item_id) ?? it.unit_cost
+    }))
+  });
+  if (receiveRes.error) {
+    return res.status(400).json({ success: false, message: receiveRes.error });
+  }
+
+  const nowIso = new Date().toISOString();
+  order.status = 'approved_shipped';
+  order.approved_at = nowIso;
+  order.approved_by = picName;
+  order.approval_note = noteText;
+
+  writeJSON(WAREHOUSE_FILE, centralWh);
+  writeJSON(MITRA_WAREHOUSES_FILE, store);
+
+  res.json({
+    success: true,
+    message: `PO ${order.id} disetujui! Stok Gudang Pusat berkurang & langsung masuk ke Gudang ${order.mitra_name}.`,
+    data: order
+  });
+});
+
+// Owner / Management Tolak Pesanan PO Mitra
+app.post('/api/super-admin/warehouse/mitra-orders/:id/reject', (req, res) => {
+  if (req.portalUser && req.portalUser.role === 'mitra') {
+    return res.status(403).json({ success: false, message: 'Hanya Owner atau Management Pusat yang dapat menolak pesanan Mitra.' });
+  }
+  const { id } = req.params;
+  const { reason = '' } = req.body || {};
+  const store = getOrInitMitraStore();
+  const order = (store.orders || []).find(o => o.id === id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Pesanan PO Mitra tidak ditemukan.' });
+  }
+  if (order.status !== 'pending_pusat') {
+    return res.status(400).json({ success: false, message: `Pesanan ini berstatus "${order.status}" dan tidak dapat ditolak lagi.` });
+  }
+
+  const picName = (req.portalUser && (req.portalUser.display_name || req.portalUser.username)) || 'Owner / Management Pusat';
+  order.status = 'rejected';
+  order.rejected_at = new Date().toISOString();
+  order.rejected_by = picName;
+  order.rejected_reason = String(reason || '').trim() || 'Ditolak oleh Gudang Pusat';
+
+  writeJSON(MITRA_WAREHOUSES_FILE, store);
+  res.json({
+    success: true,
+    message: `Pesanan ${order.id} ditolak.`,
+    data: order
+  });
+});
+
+// Mitra Konfirmasi Penerimaan Barang dari Pusat (Opsional Audit Log)
+app.post('/api/super-admin/warehouse/mitra-orders/:id/confirm-receipt', (req, res) => {
+  const { id } = req.params;
+  const store = getOrInitMitraStore();
+  const order = (store.orders || []).find(o => o.id === id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Pesanan PO Mitra tidak ditemukan.' });
+  }
+  if (req.portalUser && req.portalUser.role === 'mitra' && order.mitra_id !== req.portalUser.id) {
+    return res.status(403).json({ success: false, message: 'Pesanan ini bukan milik akun Mitra Anda.' });
+  }
+  if (order.status !== 'approved_shipped') {
+    return res.status(400).json({ success: false, message: 'Hanya pesanan yang sudah dikirim Pusat yang bisa dikonfirmasi penerimaannya.' });
+  }
+
+  order.receipt_confirmed_at = new Date().toISOString();
+  order.receipt_confirmed_by = (req.portalUser && (req.portalUser.display_name || req.portalUser.username)) || order.mitra_name;
+  writeJSON(MITRA_WAREHOUSES_FILE, store);
+
+  res.json({
+    success: true,
+    message: `Penerimaan fisik ${order.id} telah dikonfirmasi.`,
+    data: order
   });
 });
 
@@ -4224,7 +4668,7 @@ app.get('/api/super-admin/stock-opening/prefill', (req, res) => {
   const openings = readJSON(STOCK_OPENING_FILE, []);
   const opnames = readJSON(STOCK_OPNAME_FILE, []);
   const orders = readJSON(ORDERS_FILE, []);
-  const wh = getOrInitWarehouse();
+  const wh = resolveWarehouseForBranch(branch.id).wh;
 
   const existingOpening = openings.find(
     o => o.branch_id === branch.id && o.business_date === targetDate
@@ -4379,6 +4823,8 @@ app.delete('/api/super-admin/stock-opening/:id', (req, res) => {
   syncLinkedWarehouseEntry({
     linkField: 'source_opening_id',
     linkId: removed.id,
+    branch_id: removed.branch_id,
+    branch_name: removed.branch_name || '',
     stockItemsMap: null
   });
 
@@ -4399,7 +4845,11 @@ app.get('/api/super-admin/statistics', (req, res) => {
   const opnamesRaw = (readJSON(STOCK_OPNAME_FILE, []) || []).filter(op => !allowedSet || allowedSet.has(op.branch_id));
   const openingsRaw = (readJSON(STOCK_OPENING_FILE, []) || []).filter(o => !allowedSet || allowedSet.has(o.branch_id));
   const wallets = readJSON(WALLETS_FILE, {});
-  const wh = getOrInitWarehouse();
+  const statWhCache = new Map();
+  const getBranchStatWarehouse = bId => {
+    if (!statWhCache.has(bId)) statWhCache.set(bId, resolveWarehouseForBranch(bId).wh);
+    return statWhCache.get(bId);
+  };
 
   const validOrders = ordersAll.filter(o =>
     o.status !== 'pending_payment' && o.status !== 'cancelled' && o.status !== 'rejected' &&
@@ -4448,7 +4898,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
       const dayOmzet = cl ? Math.max(clRev, dayOrdRev) : dayOrdRev;
       omzet += dayOmzet;
 
-      const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
+      const ev = evaluateBranchSession(getBranchStatWarehouse(b.id), b, d, bSortedOpnames, bOpenings);
       const dayHpp = ev.total_hpp || 0;
       if (dayHpp > 0) {
         hpp += dayHpp;
@@ -4572,7 +5022,7 @@ app.get('/api/super-admin/statistics', (req, res) => {
         0
       );
       const dayOmzet = cl ? Math.max(Number(cl.total_omzet) || 0, dayOrdRev) : dayOrdRev;
-      const ev = evaluateBranchSession(wh, b, d, bSortedOpnames, bOpenings);
+      const ev = evaluateBranchSession(getBranchStatWarehouse(b.id), b, d, bSortedOpnames, bOpenings);
       const dayHpp = ev.total_hpp || 0;
       const dayFin = computeBranchProfitMetrics({
         branch: b,
