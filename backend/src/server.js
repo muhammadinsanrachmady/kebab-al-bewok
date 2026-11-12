@@ -143,7 +143,7 @@ function normalizePortalPermissions(role, rawPerms = {}) {
   }
   const src = rawPerms && typeof rawPerms === 'object' ? rawPerms : {};
   const fallbackTabs = role === 'mitra'
-    ? ['omzet', 'lapak', 'statistik']
+    ? ['omzet', 'lapak', 'gudang', 'statistik']
     : ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik'];
   const rawTabs = Array.isArray(src.tabs) ? src.tabs : fallbackTabs;
   const tabSet = new Set(rawTabs.filter(t => PORTAL_TAB_KEYS.includes(t)));
@@ -354,6 +354,13 @@ function enforceSuperAdminRbac(req, res, next) {
     return res.status(403).json({
       success: false,
       message: 'Akun Anda dalam mode Lihat Saja (Read-Only) dan tidak dapat mengubah data.'
+    });
+  }
+
+  if (isWriteMethod && req.portalUser.role === 'mitra' && String(req.path || '').startsWith('/warehouse')) {
+    return res.status(403).json({
+      success: false,
+      message: 'Akun Mitra hanya dapat memantau Evaluasi Bahan & HPP cabangnya tanpa mengubah stok Gudang Pusat.'
     });
   }
 
@@ -3901,42 +3908,81 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
     : null;
 
-  const purchaseOrders = [...(wh.purchase_orders || [])].sort(
-    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-  );
-  const recentLedger = [...(wh.ledger || [])].sort(
-    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
-  );
+  const isMitra = Boolean(req.portalUser && req.portalUser.role === 'mitra');
+  const purchaseOrders = isMitra
+    ? []
+    : [...(wh.purchase_orders || [])].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  const recentLedger = [...(wh.ledger || [])]
+    .filter(tx => {
+      if (!isMitra) return true;
+      const isBranchTx = tx.type === 'branch_transfer' || tx.type === 'branch_return';
+      return isBranchTx && (!allowedSet || allowedSet.has(tx.branch_id));
+    })
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
-  const visibleTransferTotals = Array.from(branchTransferTotalsMap.values())
-    .filter(bt => !allowedSet || allowedSet.has(bt.branch_id))
+  const visibleTransferTotalsRaw = Array.from(branchTransferTotalsMap.values())
+    .filter(bt => !allowedSet || allowedSet.has(bt.branch_id));
+  const visibleTransferTotals = visibleTransferTotalsRaw
     .map(bt => allowFinance ? bt : { ...bt, total_value: null, returned_value: null });
 
-  const responseItems = allowFinance ? items : items.map(it => ({
-    ...it,
-    unit_cost: null,
-    asset_value: null,
-    used_value: null
-  }));
+  const scopedTransferVal = isMitra
+    ? visibleTransferTotalsRaw.reduce((s, b) => s + (Number(b.total_value) || 0), 0)
+    : totalTransferValue;
+  const scopedReturnedVal = isMitra
+    ? visibleTransferTotalsRaw.reduce((s, b) => s + (Number(b.returned_value) || 0), 0)
+    : totalReturnedValue;
+  const scopedUsedVal = isMitra
+    ? branchEvaluations.reduce((s, e) => s + ((e.sessions || []).reduce((ss, ses) => ss + (Number(ses.total_hpp) || 0), 0)), 0)
+    : items.reduce((s, it) => s + (it.used_value || 0), 0);
+
+  const responseItems = items.map(it => {
+    const base = allowFinance ? { ...it } : {
+      ...it,
+      unit_cost: null,
+      asset_value: null,
+      used_value: null
+    };
+    if (!isMitra) return base;
+    const filterMap = obj => {
+      if (!allowedSet) return obj || {};
+      const out = {};
+      Object.entries(obj || {}).forEach(([k, v]) => { if (allowedSet.has(k)) out[k] = v; });
+      return out;
+    };
+    return {
+      ...base,
+      opening_stock: 0,
+      stock_in: 0,
+      available_stock: 0,
+      waste: 0,
+      current_stock: 0,
+      safety_stock: 0,
+      asset_value: null,
+      suggested_po_qty: 0,
+      transfers_by_branch: filterMap(base.transfers_by_branch),
+      returns_by_branch: filterMap(base.returns_by_branch)
+    };
+  });
 
   res.json({
     success: true,
     data: {
       meta: wh.meta,
+      mitra_branch_view: isMitra,
       finance_restricted: !allowFinance,
       categories: WAREHOUSE_CATEGORIES,
       branches: visibleBranches.map(b => ({ id: b.id, name: b.name })),
       stats: {
-        total_asset_value: allowFinance ? items.reduce((s, it) => s + it.asset_value, 0) : null,
-        reorder_count: items.filter(it => it.status === 'REORDER').length,
-        warning_count: items.filter(it => it.status === 'WARNING').length,
-        total_transfer_value: allowFinance ? totalTransferValue : null,
-        total_returned_value: allowFinance ? totalReturnedValue : null,
-        total_used_value: allowFinance ? items.reduce((s, it) => s + (it.used_value || 0), 0) : null,
-        total_supplier_in_value: allowFinance ? totalSupplierInValue : null,
-        total_waste_value: allowFinance ? totalWasteValue : null,
+        total_asset_value: (allowFinance && !isMitra) ? items.reduce((s, it) => s + it.asset_value, 0) : null,
+        reorder_count: isMitra ? 0 : items.filter(it => it.status === 'REORDER').length,
+        warning_count: isMitra ? 0 : items.filter(it => it.status === 'WARNING').length,
+        total_transfer_value: allowFinance ? scopedTransferVal : null,
+        total_returned_value: allowFinance ? scopedReturnedVal : null,
+        total_used_value: allowFinance ? scopedUsedVal : null,
+        total_supplier_in_value: (allowFinance && !isMitra) ? totalSupplierInValue : null,
+        total_waste_value: (allowFinance && !isMitra) ? totalWasteValue : null,
         transfer_by_branch_totals: visibleTransferTotals,
-        pending_po_count: purchaseOrders.filter(po => po.status === 'ordered').length,
+        pending_po_count: isMitra ? 0 : purchaseOrders.filter(po => po.status === 'ordered').length,
         avg_food_cost_ratio: avgFoodCostRatio
       },
       items: responseItems,

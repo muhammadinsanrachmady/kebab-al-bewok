@@ -771,8 +771,8 @@
     <section id="tabView-gudang" class="owner-tab-view hidden space-y-3.5">
 
       <!-- 4 KPI RINGKAS GUDANG & HPP -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        <div class="bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
+      <div id="whKpiGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div class="portal-no-mitra bg-slate-900/75 border border-amber-500/20 rounded-2xl p-3 flex items-center justify-between gap-2">
           <div class="min-w-0">
             <span class="text-[11px] font-medium text-slate-400 block truncate">Valuasi Aset Gudang</span>
             <p id="kpiWhAssetValue" class="text-base md:text-lg font-extrabold text-amber-400 mt-0.5 tabular-nums truncate">Rp 0</p>
@@ -783,7 +783,7 @@
           </div>
         </div>
 
-        <button type="button" onclick="setWarehouseSubtab('stock'); toggleWarehouseReorderOnly(true);" id="kpiWhReorderCard" class="text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
+        <button type="button" onclick="setWarehouseSubtab('stock'); toggleWarehouseReorderOnly(true);" id="kpiWhReorderCard" class="portal-no-mitra text-left bg-slate-900/75 hover:bg-slate-900 border border-slate-800 rounded-2xl p-3 flex items-center justify-between gap-2 transition">
           <div class="min-w-0">
             <span class="text-[11px] font-medium text-slate-400 block truncate">Status Buffer Stock</span>
             <p id="kpiWhReorderCount" class="text-base md:text-lg font-extrabold text-emerald-400 mt-0.5 tabular-nums">0 Perlu PO</p>
@@ -826,7 +826,7 @@
           <button type="button" data-wh-period="all" onclick="setWarehousePeriod('all')" class="px-2.5 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">Semua</button>
         </div>
 
-        <div class="portal-edit-only flex flex-wrap items-center gap-1.5">
+        <div class="portal-edit-only portal-no-mitra flex flex-wrap items-center gap-1.5">
           <button type="button" onclick="openWarehouseTxModal('supplier_in')" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 text-[11px] font-bold flex items-center gap-1 transition">
             <i class="fa-solid fa-box-open"></i>
             <span>Terima Supplier</span>
@@ -850,13 +850,13 @@
       <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-3.5 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
           <div class="flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl overflow-x-auto no-scrollbar">
-            <button type="button" data-wh-subtab="stock" id="subtabBtnWhStock" onclick="setWarehouseSubtab('stock')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">
+            <button type="button" data-wh-subtab="stock" id="subtabBtnWhStock" onclick="setWarehouseSubtab('stock')" class="portal-no-mitra px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition">
               Mutasi Stok Pusat (25 Item)
             </button>
             <button type="button" data-wh-subtab="hpp" onclick="setWarehouseSubtab('hpp')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition">
               HPP &amp; Evaluasi Cabang
             </button>
-            <button type="button" data-wh-subtab="po" onclick="setWarehouseSubtab('po')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
+            <button type="button" data-wh-subtab="po" onclick="setWarehouseSubtab('po')" class="portal-no-mitra px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition">
               <span>PO &amp; Log Mutasi</span>
               <span id="subtabBadgeWhPo" class="hidden bg-amber-500/20 text-amber-300 text-[9px] font-bold px-1.5 rounded-full">0</span>
             </button>
@@ -1364,7 +1364,7 @@
           <div class="grid grid-cols-2 gap-2">
             <button type="button" id="roleBtnMitra" onclick="selectPortalAccountRole('mitra', true)" class="p-2.5 rounded-xl border border-sky-500 bg-sky-500/15 text-left transition">
               <div class="font-extrabold text-sky-300 text-xs">🤝 Mitra Cabang</div>
-              <p class="text-[10px] text-slate-400 mt-0.5">Fokus pantau lapak miliknya (Omzet, Lapak &amp; Statistik)</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Pantau lapak miliknya (Omzet, Lapak, HPP Gudang &amp; Statistik)</p>
             </button>
             <button type="button" id="roleBtnManagement" onclick="selectPortalAccountRole('management', true)" class="p-2.5 rounded-xl border border-slate-700 bg-slate-950 text-left transition">
               <div class="font-extrabold text-amber-300 text-xs">🛠️ Management Ops</div>
@@ -4140,16 +4140,19 @@
     }
 
     function setWarehouseSubtab(subtab) {
-      const allowed = ['stock', 'hpp', 'po'];
-      currentWhSubtab = allowed.includes(subtab) ? subtab : 'stock';
-      allowed.forEach(key => {
+      const isMitra = Boolean(currentPortalUser && currentPortalUser.role === 'mitra');
+      const allowed = isMitra ? ['hpp'] : ['stock', 'hpp', 'po'];
+      currentWhSubtab = allowed.includes(subtab) ? subtab : (isMitra ? 'hpp' : 'stock');
+      ['stock', 'hpp', 'po'].forEach(key => {
         const btn = document.querySelector(`[data-wh-subtab="${key}"]`);
         const panel = document.getElementById(`whPanel-${key}`);
-        const isActive = key === currentWhSubtab;
+        const isAllowed = allowed.includes(key);
+        const isActive = key === currentWhSubtab && isAllowed;
         if (btn) {
           btn.className = isActive
             ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shrink-0 transition'
             : 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent flex items-center gap-1.5 shrink-0 transition';
+          btn.classList.toggle('hidden', !isAllowed);
         }
         if (panel) panel.classList.toggle('hidden', !isActive);
       });
@@ -5928,6 +5931,13 @@
         shell.classList.toggle('portal-mitra', currentPortalUser.role === 'mitra');
         shell.classList.toggle('portal-no-finance', !portalCanViewFinance());
       }
+      const whKpiGrid = document.getElementById('whKpiGrid');
+      if (whKpiGrid) {
+        whKpiGrid.className = currentPortalUser.role === 'mitra'
+          ? 'grid grid-cols-2 gap-2.5'
+          : 'grid grid-cols-2 lg:grid-cols-4 gap-2.5';
+      }
+      setWarehouseSubtab(currentPortalUser.role === 'mitra' ? 'hpp' : currentWhSubtab);
 
       const styleMeta = PORTAL_ROLE_STYLES[currentPortalUser.role] || PORTAL_ROLE_STYLES.management;
       const iconEl = document.getElementById('headerRoleIcon');
@@ -6237,7 +6247,7 @@
         onPortalAccBranchScopeChange();
 
         const presetTabs = targetRole === 'mitra'
-          ? ['omzet', 'lapak', 'statistik']
+          ? ['omzet', 'lapak', 'gudang', 'statistik']
           : ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik'];
         document.querySelectorAll('input[name="portalAccTab"]').forEach(cb => {
           cb.checked = presetTabs.includes(cb.value);
