@@ -358,10 +358,13 @@ function enforceSuperAdminRbac(req, res, next) {
   }
 
   if (isWriteMethod && req.portalUser.role === 'mitra' && String(req.path || '').startsWith('/warehouse')) {
-    return res.status(403).json({
-      success: false,
-      message: 'Akun Mitra hanya dapat memantau Evaluasi Bahan & HPP cabangnya tanpa mengubah stok Gudang Pusat.'
-    });
+    const isPoCreate = req.path === '/warehouse/purchase-orders' && req.method === 'POST';
+    if (!isPoCreate) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akun Mitra hanya dapat memantau stok & mengajukan PO tanpa mengubah stok fisik Gudang Pusat.'
+      });
+    }
   }
 
   if (req.portalUser.role !== 'owner' && req.portalUser.branch_scope === 'selected') {
@@ -3908,15 +3911,16 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     ? Number((ratios.reduce((a, b) => a + b, 0) / ratios.length).toFixed(1))
     : null;
 
-  const isMitra = Boolean(req.portalUser && req.portalUser.role === 'mitra');
-  const purchaseOrders = isMitra
-    ? []
-    : [...(wh.purchase_orders || [])].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  const purchaseOrders = [...(wh.purchase_orders || [])].sort(
+    (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  );
   const recentLedger = [...(wh.ledger || [])]
     .filter(tx => {
-      if (!isMitra) return true;
-      const isBranchTx = tx.type === 'branch_transfer' || tx.type === 'branch_return';
-      return isBranchTx && (!allowedSet || allowedSet.has(tx.branch_id));
+      if (!allowedSet) return true;
+      if ((tx.type === 'branch_transfer' || tx.type === 'branch_return') && tx.branch_id) {
+        return allowedSet.has(tx.branch_id);
+      }
+      return true;
     })
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
@@ -3925,15 +3929,22 @@ app.get('/api/super-admin/warehouse', (req, res) => {
   const visibleTransferTotals = visibleTransferTotalsRaw
     .map(bt => allowFinance ? bt : { ...bt, total_value: null, returned_value: null });
 
-  const scopedTransferVal = isMitra
+  const scopedTransferVal = allowedSet
     ? visibleTransferTotalsRaw.reduce((s, b) => s + (Number(b.total_value) || 0), 0)
     : totalTransferValue;
-  const scopedReturnedVal = isMitra
+  const scopedReturnedVal = allowedSet
     ? visibleTransferTotalsRaw.reduce((s, b) => s + (Number(b.returned_value) || 0), 0)
     : totalReturnedValue;
-  const scopedUsedVal = isMitra
+  const scopedUsedVal = allowedSet
     ? branchEvaluations.reduce((s, e) => s + ((e.sessions || []).reduce((ss, ses) => ss + (Number(ses.total_hpp) || 0), 0)), 0)
     : items.reduce((s, it) => s + (it.used_value || 0), 0);
+
+  const filterBranchMap = obj => {
+    if (!allowedSet) return obj || {};
+    const out = {};
+    Object.entries(obj || {}).forEach(([k, v]) => { if (allowedSet.has(k)) out[k] = v; });
+    return out;
+  };
 
   const responseItems = items.map(it => {
     const base = allowFinance ? { ...it } : {
@@ -3942,25 +3953,18 @@ app.get('/api/super-admin/warehouse', (req, res) => {
       asset_value: null,
       used_value: null
     };
-    if (!isMitra) return base;
-    const filterMap = obj => {
-      if (!allowedSet) return obj || {};
-      const out = {};
-      Object.entries(obj || {}).forEach(([k, v]) => { if (allowedSet.has(k)) out[k] = v; });
-      return out;
-    };
+    if (!allowedSet) return base;
+    const scopedOut = Object.values(filterBranchMap(base.transfers_by_branch)).reduce((s, v) => s + (Number(v) || 0), 0);
+    const scopedRet = Object.values(filterBranchMap(base.returns_by_branch)).reduce((s, v) => s + (Number(v) || 0), 0);
+    const scopedUsed = Math.max(0, scopedOut - scopedRet);
     return {
       ...base,
-      opening_stock: 0,
-      stock_in: 0,
-      available_stock: 0,
-      waste: 0,
-      current_stock: 0,
-      safety_stock: 0,
-      asset_value: null,
-      suggested_po_qty: 0,
-      transfers_by_branch: filterMap(base.transfers_by_branch),
-      returns_by_branch: filterMap(base.returns_by_branch)
+      transfers_by_branch: filterBranchMap(base.transfers_by_branch),
+      returns_by_branch: filterBranchMap(base.returns_by_branch),
+      total_transfer_out: scopedOut,
+      total_returned: scopedRet,
+      total_used: scopedUsed,
+      used_value: allowFinance ? (scopedUsed * (Number(it.unit_cost) || 0)) : null
     };
   });
 
@@ -3968,21 +3972,20 @@ app.get('/api/super-admin/warehouse', (req, res) => {
     success: true,
     data: {
       meta: wh.meta,
-      mitra_branch_view: isMitra,
       finance_restricted: !allowFinance,
       categories: WAREHOUSE_CATEGORIES,
       branches: visibleBranches.map(b => ({ id: b.id, name: b.name })),
       stats: {
-        total_asset_value: (allowFinance && !isMitra) ? items.reduce((s, it) => s + it.asset_value, 0) : null,
-        reorder_count: isMitra ? 0 : items.filter(it => it.status === 'REORDER').length,
-        warning_count: isMitra ? 0 : items.filter(it => it.status === 'WARNING').length,
+        total_asset_value: allowFinance ? items.reduce((s, it) => s + it.asset_value, 0) : null,
+        reorder_count: items.filter(it => it.status === 'REORDER').length,
+        warning_count: items.filter(it => it.status === 'WARNING').length,
         total_transfer_value: allowFinance ? scopedTransferVal : null,
         total_returned_value: allowFinance ? scopedReturnedVal : null,
         total_used_value: allowFinance ? scopedUsedVal : null,
-        total_supplier_in_value: (allowFinance && !isMitra) ? totalSupplierInValue : null,
-        total_waste_value: (allowFinance && !isMitra) ? totalWasteValue : null,
+        total_supplier_in_value: allowFinance ? totalSupplierInValue : null,
+        total_waste_value: allowFinance ? totalWasteValue : null,
         transfer_by_branch_totals: visibleTransferTotals,
-        pending_po_count: isMitra ? 0 : purchaseOrders.filter(po => po.status === 'ordered').length,
+        pending_po_count: purchaseOrders.filter(po => po.status === 'ordered').length,
         avg_food_cost_ratio: avgFoodCostRatio
       },
       items: responseItems,
