@@ -2100,10 +2100,48 @@
     // Mode Ringkas (Compact): false = detail, true = ringkas hemat layar
     let isCompactMode = false;
 
-    // Staff session
+    // Staff session & Zero-Trust Kitchen Token
+    const KITCHEN_TOKEN_KEY = 'kebab_kitchen_token';
+    function getKitchenToken() {
+      try { return localStorage.getItem(KITCHEN_TOKEN_KEY) || ''; } catch (e) { return ''; }
+    }
+    function setKitchenToken(tok) {
+      try {
+        if (tok) localStorage.setItem(KITCHEN_TOKEN_KEY, tok);
+        else localStorage.removeItem(KITCHEN_TOKEN_KEY);
+      } catch (e) {}
+    }
+
+    (function installKitchenAuthFetch() {
+      const origFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        const isProtected = url.startsWith('/api/admin') || url.startsWith('/api/orders/');
+        let nextInit = init;
+        if (isProtected) {
+          const tok = getKitchenToken();
+          if (tok) {
+            const h = new Headers(init.headers || {});
+            if (!h.has('Authorization')) h.set('Authorization', `Bearer ${tok}`);
+            nextInit = { ...init, headers: h };
+          }
+        }
+        const resp = await origFetch(input, nextInit);
+        if (isProtected && resp.status === 401) {
+          setKitchenToken('');
+          currentKitchenStaff = null;
+          try { localStorage.removeItem('kebab_kitchen_staff'); } catch (e) {}
+          if (typeof checkKitchenPipeline === 'function') checkKitchenPipeline();
+        }
+        return resp;
+      };
+    })();
+
     let currentKitchenStaff = null;
     try {
-      currentKitchenStaff = JSON.parse(localStorage.getItem('kebab_kitchen_staff') || 'null');
+      const savedStaff = JSON.parse(localStorage.getItem('kebab_kitchen_staff') || 'null');
+      currentKitchenStaff = (savedStaff && getKitchenToken()) ? savedStaff : null;
+      if (savedStaff && !getKitchenToken()) localStorage.removeItem('kebab_kitchen_staff');
     } catch(e) {
       currentKitchenStaff = null;
     }
@@ -2157,6 +2195,7 @@
     function logoutKitchenStaff() {
       if (confirm('Apakah Anda yakin ingin keluar dari sesi kasir?')) {
         currentKitchenStaff = null;
+        setKitchenToken('');
         localStorage.removeItem('kebab_kitchen_staff');
         checkKitchenPipeline();
       }
@@ -2305,12 +2344,14 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setKitchenToken(res.data.token);
           currentKitchenStaff = res.data.staff;
           currentBranchId = branchId;
           localStorage.setItem('kebab_kitchen_staff', JSON.stringify(currentKitchenStaff));
           localStorage.setItem('activeKitchenBranchId', currentBranchId);
           alert(`🎉 ${res.message}`);
           checkKitchenPipeline();
+          fetchOrders();
         } else {
           alert(`⚠️ ${res.message}`);
         }
@@ -2339,37 +2380,35 @@
 
     async function doKitchenGoogleLogin(email, name, credential) {
       const targetBranch = allBranches.find(b => b.id === currentBranchId) || allBranches[0];
+      const branchLabel = targetBranch ? targetBranch.name : 'Cabang Aktif';
+      const pinCheck = prompt(`🔒 Keamanan Kasir: Masukkan PIN Cabang untuk ${branchLabel}:`);
+      if (!pinCheck || !pinCheck.trim()) return;
 
       try {
-        const res = await fetch('/api/auth/google-login', {
+        const res = await fetch('/api/auth/kitchen-login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            credential: credential || undefined,
-            email: email,
-            full_name: name,
-            avatar_url: `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`
+            branch_id: targetBranch ? targetBranch.id : currentBranchId,
+            pin_or_password: pinCheck.trim(),
+            staff_name: name || email,
+            email
           })
         }).then(r => r.json());
 
         if (res.success) {
-          currentKitchenStaff = {
-            id: res.data.user.id || `staff-${Date.now()}`,
-            name: res.data.user.name || name,
-            email: res.data.user.email || email,
-            role: 'staff_kasir',
-            branch_id: targetBranch ? targetBranch.id : 'cabang-01',
-            branch_name: targetBranch ? targetBranch.name : 'Cabang Utama'
-          };
+          if (res.data && res.data.token) setKitchenToken(res.data.token);
+          currentKitchenStaff = res.data.staff;
           localStorage.setItem('kebab_kitchen_staff', JSON.stringify(currentKitchenStaff));
           localStorage.setItem('activeKitchenBranchId', currentKitchenStaff.branch_id);
           alert(`🎉 Selamat bertugas, ${currentKitchenStaff.name}!`);
           checkKitchenPipeline();
+          fetchOrders();
         } else {
           alert(`⚠️ ${res.message}`);
         }
       } catch (err) {
-        alert('Gagal menghubungi server Google Login.');
+        alert('Gagal memverifikasi sesi kasir ke server.');
       }
     }
 
@@ -2564,7 +2603,11 @@
       document.getElementById('inputBranchName').value = branch.name || '';
       document.getElementById('inputBranchPhone').value = branch.phone || '';
       document.getElementById('inputBranchOpenHours').value = branch.open_hours || '15:00 - 23:00';
-      document.getElementById('inputBranchStaffPin').value = branch.staff_pin || '1234';
+      const pinEl = document.getElementById('inputBranchStaffPin');
+      if (pinEl) {
+        pinEl.value = '';
+        pinEl.placeholder = 'Biarkan kosong (ubah PIN hanya dari Portal Owner)';
+      }
       document.getElementById('inputBranchAddress').value = branch.address || '';
       document.getElementById('inputBranchBankInfo').value = branch.bank_info || '';
       document.getElementById('inputBranchQrisUrl').value = branch.qris_image || '';
@@ -2961,6 +3004,7 @@
     // 7. ORDER MANAGEMENT & KANBAN LOGIC
     // =========================================================================
     async function fetchOrders() {
+      if (!getKitchenToken()) return;
       try {
         const res = await fetch('/api/admin/orders').then(r => r.json());
         if (res.success) {

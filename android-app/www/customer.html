@@ -1452,7 +1452,71 @@
     let activeOrderId = null;
     let trackingInterval = null;
     let deferredPrompt = null;
-    let currentUser = JSON.parse(localStorage.getItem('kebab_user') || 'null');
+    const CUSTOMER_TOKEN_KEY = 'kebab_customer_token';
+    const ORDER_TRACKING_TOKENS_KEY = 'kebab_order_tracking_tokens';
+    function getCustomerToken() {
+      try { return localStorage.getItem(CUSTOMER_TOKEN_KEY) || ''; } catch (e) { return ''; }
+    }
+    function setCustomerToken(tok) {
+      try {
+        if (tok) localStorage.setItem(CUSTOMER_TOKEN_KEY, tok);
+        else localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+      } catch (e) {}
+    }
+    function saveOrderTrackingToken(orderId, tok) {
+      if (!orderId || !tok) return;
+      try {
+        const map = JSON.parse(localStorage.getItem(ORDER_TRACKING_TOKENS_KEY) || '{}');
+        map[orderId] = tok;
+        localStorage.setItem(ORDER_TRACKING_TOKENS_KEY, JSON.stringify(map));
+      } catch (e) {}
+    }
+    function getOrderTrackingToken(orderId) {
+      if (!orderId) return '';
+      try {
+        const map = JSON.parse(localStorage.getItem(ORDER_TRACKING_TOKENS_KEY) || '{}');
+        return map[orderId] || '';
+      } catch (e) { return ''; }
+    }
+
+    (function installCustomerAuthFetch() {
+      const origFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        const needsCustAuth = url.startsWith('/api/customer/') || url.startsWith('/api/orders');
+        let nextInit = init;
+        if (needsCustAuth) {
+          const h = new Headers(init.headers || {});
+          const cTok = getCustomerToken();
+          if (cTok && !h.has('Authorization')) h.set('Authorization', `Bearer ${cTok}`);
+          const ordMatch = url.match(/^\/api\/orders\/([^/?]+)/);
+          if (ordMatch && ordMatch[1] !== 'checkout') {
+            const tTok = getOrderTrackingToken(decodeURIComponent(ordMatch[1]));
+            if (tTok && !h.has('X-Tracking-Token')) h.set('X-Tracking-Token', tTok);
+          }
+          nextInit = { ...init, headers: h };
+        }
+        const resp = await origFetch(input, nextInit);
+        if (url.startsWith('/api/customer/') && resp.status === 401) {
+          setCustomerToken('');
+          currentUser = null;
+          try { localStorage.removeItem('kebab_user'); } catch (e) {}
+          if (typeof updateUserHeader === 'function') updateUserHeader();
+        }
+        return resp;
+      };
+    })();
+
+    let currentUser = (() => {
+      try {
+        const raw = JSON.parse(localStorage.getItem('kebab_user') || 'null');
+        if (raw && !getCustomerToken()) {
+          localStorage.removeItem('kebab_user');
+          return null;
+        }
+        return raw;
+      } catch (e) { return null; }
+    })();
     let pendingPhone = '';
 
     // Registrasi Service Worker & Deteksi PWA
@@ -1663,6 +1727,7 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setCustomerToken(res.data.token);
           currentUser = res.data.user;
           if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
           localStorage.setItem('kebab_user', JSON.stringify(currentUser));
@@ -1787,6 +1852,7 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setCustomerToken(res.data.token);
           currentUser = res.data.user;
           if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
           localStorage.setItem('kebab_user', JSON.stringify(currentUser));
@@ -1936,6 +2002,7 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setCustomerToken(res.data.token);
           currentUser = res.data.user;
           // Kompatibilitas field phone
           if (currentUser.whatsapp) currentUser.phone = currentUser.whatsapp;
@@ -2157,6 +2224,7 @@
     }
 
     function logoutCustomerFromOnboard() {
+      setCustomerToken('');
       currentUser = null;
       localStorage.removeItem('kebab_user');
       closeCustomerOnboardingModal();
@@ -2873,6 +2941,7 @@
 
     function logoutUser() {
       if (confirm('Apakah Anda ingin keluar dari akun Google ini?')) {
+        setCustomerToken('');
         currentUser = null;
         localStorage.removeItem('kebab_user');
         updateUserHeader();
@@ -3680,6 +3749,10 @@
 
         if (res.success && res.data && res.data.order) {
           activeOrderId = res.data.order.id;
+          if (res.data.tracking_token) {
+            saveOrderTrackingToken(activeOrderId, res.data.tracking_token);
+            if (res.data.order.order_code) saveOrderTrackingToken(res.data.order.order_code, res.data.tracking_token);
+          }
 
           // Kirim bukti transfer dummy otomatis agar langsung siap diverifikasi dapur
           try {

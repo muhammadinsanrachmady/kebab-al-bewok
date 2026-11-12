@@ -906,6 +906,42 @@
       }
     };
 
+    const DRIVER_TOKEN_KEY = 'kebab_driver_token';
+    function getDriverToken() {
+      try { return localStorage.getItem(DRIVER_TOKEN_KEY) || ''; } catch (e) { return ''; }
+    }
+    function setDriverToken(tok) {
+      try {
+        if (tok) localStorage.setItem(DRIVER_TOKEN_KEY, tok);
+        else localStorage.removeItem(DRIVER_TOKEN_KEY);
+      } catch (e) {}
+    }
+
+    (function installDriverAuthFetch() {
+      const origFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        const isProtected = url.startsWith('/api/driver') || url.startsWith('/api/orders/');
+        let nextInit = init;
+        if (isProtected) {
+          const tok = getDriverToken();
+          if (tok) {
+            const h = new Headers(init.headers || {});
+            if (!h.has('Authorization')) h.set('Authorization', `Bearer ${tok}`);
+            nextInit = { ...init, headers: h };
+          }
+        }
+        const resp = await origFetch(input, nextInit);
+        if (isProtected && !url.includes('/api/driver/auth/') && resp.status === 401) {
+          setDriverToken('');
+          currentDriver = null;
+          try { localStorage.removeItem('kebab_driver'); } catch (e) {}
+          if (typeof checkDriverPipeline === 'function') checkDriverPipeline();
+        }
+        return resp;
+      };
+    })();
+
     let currentDriver = null;
     let isOnline = true;
     let activeDelivery = null;
@@ -1026,12 +1062,15 @@
 
     function loadStoredDriver() {
       const stored = localStorage.getItem('kebab_driver');
-      if (stored) {
+      if (stored && getDriverToken()) {
         try {
           currentDriver = JSON.parse(stored);
         } catch (e) {
           currentDriver = null;
         }
+      } else {
+        if (stored && !getDriverToken()) localStorage.removeItem('kebab_driver');
+        currentDriver = null;
       }
       renderHeaderAuth();
       renderBiometricStatusBanner();
@@ -1233,6 +1272,7 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setDriverToken(res.data.token);
           currentDriver = res.data.driver;
           localStorage.setItem('kebab_driver', JSON.stringify(currentDriver));
           confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
@@ -1314,6 +1354,7 @@
         }).then(r => r.json());
 
         if (res.success) {
+          if (res.data && res.data.token) setDriverToken(res.data.token);
           currentDriver = res.data.driver;
           if (vehicle && !currentDriver.vehicle) currentDriver.vehicle = vehicle;
           if (plate && !currentDriver.vehicle_plate) currentDriver.vehicle_plate = plate;
@@ -1793,6 +1834,7 @@
 
     function logoutDriver() {
       if (!confirm('Apakah Anda yakin ingin keluar dari akun kurir ini?')) return;
+      setDriverToken('');
       localStorage.removeItem('kebab_driver');
       currentDriver = null;
       renderHeaderAuth();
@@ -1998,7 +2040,7 @@
     // 8. RADAR & AMBIL ORDERAN
     // ==========================================
     async function fetchAvailableOrders() {
-      if (!isOnline) return;
+      if (!isOnline || !getDriverToken()) return;
       try {
         const res = await fetch('/api/driver/orders/available').then(r => r.json());
         if (res.success) renderAvailableOrders(res.data);
@@ -2463,7 +2505,8 @@
     }
 
     async function syncDriverFromServer() {
-      const driverId = currentDriver ? currentDriver.id : 'driver-01';
+      const driverId = currentDriver ? currentDriver.id : null;
+      if (!driverId || !getDriverToken()) return;
       try {
         const res = await fetch(`/api/driver/wallet/${driverId}`).then(r => r.json());
         if (res.success) {
@@ -2496,7 +2539,7 @@
 
     async function sendDriverLocationHeartbeat(forceOnlineState = null) {
       const driverId = currentDriver ? currentDriver.id : null;
-      if (!driverId) return;
+      if (!driverId || !getDriverToken()) return;
       const onlineVal = typeof forceOnlineState === 'boolean' ? forceOnlineState : isOnline;
       try {
         await fetch('/api/driver/location', {

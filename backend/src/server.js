@@ -4,8 +4,31 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
+// Legacy SHA-256 hash retained strictly for migrating existing customer passwords upon login
 function hashPassword(password, salt = 'kebab_al_bewok_secret_salt_2026') {
   return crypto.createHmac('sha256', salt).update(String(password)).digest('hex');
+}
+
+function hashCustomerPasswordScrypt(password, salt = null) {
+  const usedSalt = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(String(password || ''), usedSalt, 32).toString('hex');
+  return { hash, salt: usedSalt };
+}
+
+function verifyCustomerPassword(password, cust) {
+  if (!cust || !cust.password_hash) return { valid: false, needsMigration: false };
+  const cleanPass = String(password || '').trim();
+  if (cust.password_salt && cust.password_alg === 'scrypt') {
+    const candidateHex = crypto.scryptSync(cleanPass, String(cust.password_salt), 32).toString('hex');
+    const a = Buffer.from(candidateHex, 'hex');
+    const b = Buffer.from(String(cust.password_hash), 'hex');
+    if (a.length !== b.length) return { valid: false, needsMigration: false };
+    return { valid: crypto.timingSafeEqual(a, b), needsMigration: false };
+  }
+  const legacyCandidate = Buffer.from(hashPassword(cleanPass), 'utf8');
+  const legacyStored = Buffer.from(String(cust.password_hash), 'utf8');
+  const valid = legacyCandidate.length === legacyStored.length && crypto.timingSafeEqual(legacyCandidate, legacyStored);
+  return { valid, needsMigration: valid };
 }
 
 function normalizePhone(p) {
@@ -16,12 +39,169 @@ function normalizePhone(p) {
   return s;
 }
 
+function maskPhoneMiddle(p) {
+  const raw = String(p || '').trim();
+  if (!raw || raw === '-') return raw;
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits.length < 7) return '••••';
+  return `${digits.slice(0, 4)}-****-${digits.slice(-4)}`;
+}
+
+function maskAddressArea(addr) {
+  const text = String(addr || '').trim();
+  if (!text) return 'Area Pengantaran';
+  const parts = text.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return `Area ${parts.slice(-2).join(', ')}`;
+  }
+  return text.length > 18 ? `${text.slice(0, 12)}••• (Detail tampil setelah Ambil Order)` : text;
+}
+
+function isValidGeoCoords(lat, lng) {
+  const nLat = Number(lat);
+  const nLng = Number(lng);
+  if (!Number.isFinite(nLat) || !Number.isFinite(nLng)) return false;
+  if (nLat < -90 || nLat > 90 || nLng < -180 || nLng > 180) return false;
+  if (Math.abs(nLat) < 0.0001 && Math.abs(nLng) < 0.0001) return false;
+  return true;
+}
+
+function calculateGeoDistanceKm(lat1, lng1, lat2, lng2) {
+  const toRad = d => (d * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function sanitizeCustomer(cust) {
   if (!cust) return null;
   const safe = { ...cust };
   safe.has_password = Boolean(cust.password_hash || cust.has_password);
   delete safe.password_hash;
+  delete safe.password_salt;
+  delete safe.password_alg;
+  delete safe.encrypted_pii;
   return safe;
+}
+
+function sanitizePublicBranch(branch) {
+  if (!branch) return null;
+  const safe = { ...branch };
+  delete safe.staff_pin;
+  delete safe.fixed_expenses;
+  return safe;
+}
+
+function sanitizeObjectDeep(val, depth = 0) {
+  if (depth > 8 || val === null || val === undefined || typeof val !== 'object') return val;
+  if (Array.isArray(val)) return val.map(item => sanitizeObjectDeep(item, depth + 1));
+  const clean = {};
+  for (const key of Object.keys(val)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
+    clean[key] = sanitizeObjectDeep(val[key], depth + 1);
+  }
+  return clean;
+}
+
+function getClientIp(req) {
+  const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return fwd || req.ip || (req.socket && req.socket.remoteAddress) || 'unknown';
+}
+
+function maskIpForAudit(ip) {
+  const raw = String(ip || '').replace(/^::ffff:/, '');
+  if (!raw || raw === '::1' || raw === '127.0.0.1') return raw || 'localhost';
+  const parts = raw.split('.');
+  if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.xxx`;
+  return `${raw.slice(0, 12)}...`;
+}
+
+const STALE_GPS_TTL_MS = 10 * 60 * 1000;
+const AUTH_MAX_FAILURES = 5;
+const AUTH_LOCK_WINDOW_MS = 15 * 60 * 1000;
+const GLOBAL_RATE_WINDOW_MS = 60 * 1000;
+const GLOBAL_RATE_MAX = 320;
+const GPS_RATE_MAX = 60;
+
+const ipRateBuckets = new Map();
+const gpsRateBuckets = new Map();
+const authFailureBuckets = new Map();
+
+function checkSlidingRateBucket(bucketMap, key, limit, windowMs) {
+  const now = Date.now();
+  let rec = bucketMap.get(key);
+  if (!rec || now >= rec.resetAt) {
+    rec = { count: 0, resetAt: now + windowMs };
+  }
+  rec.count += 1;
+  bucketMap.set(key, rec);
+  if (bucketMap.size > 5000) {
+    for (const [k, v] of bucketMap.entries()) {
+      if (now >= v.resetAt) bucketMap.delete(k);
+    }
+  }
+  return {
+    allowed: rec.count <= limit,
+    remaining: Math.max(0, limit - rec.count),
+    retryAfterSec: Math.max(1, Math.ceil((rec.resetAt - now) / 1000))
+  };
+}
+
+function isAuthLocked(req, scope, identifier = '') {
+  const key = `${getClientIp(req)}::${scope}::${String(identifier || '').toLowerCase().trim()}`;
+  const rec = authFailureBuckets.get(key);
+  if (!rec) return { locked: false };
+  const now = Date.now();
+  if (rec.lockedUntil && now < rec.lockedUntil) {
+    return {
+      locked: true,
+      remainingMin: Math.max(1, Math.ceil((rec.lockedUntil - now) / 60000)),
+      retryAfterSec: Math.max(1, Math.ceil((rec.lockedUntil - now) / 1000))
+    };
+  }
+  if (now >= rec.windowExpiresAt && (!rec.lockedUntil || now >= rec.lockedUntil)) {
+    authFailureBuckets.delete(key);
+  }
+  return { locked: false };
+}
+
+function recordAuthFailure(req, scope, identifier = '', actorDesc = '') {
+  const key = `${getClientIp(req)}::${scope}::${String(identifier || '').toLowerCase().trim()}`;
+  const now = Date.now();
+  let rec = authFailureBuckets.get(key);
+  if (!rec || now >= rec.windowExpiresAt) {
+    rec = { count: 0, windowExpiresAt: now + AUTH_LOCK_WINDOW_MS, lockedUntil: 0 };
+  }
+  rec.count += 1;
+  if (rec.count >= AUTH_MAX_FAILURES) {
+    rec.lockedUntil = now + AUTH_LOCK_WINDOW_MS;
+    appendSecurityAudit({
+      event: 'BRUTE_FORCE_LOCKED',
+      severity: 'CRITICAL',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: actorDesc || String(identifier || scope),
+      path: req.originalUrl || req.path,
+      detail: `Terkunci ${Math.round(AUTH_LOCK_WINDOW_MS / 60000)} menit setelah ${rec.count}x gagal di ${scope}`
+    });
+  } else {
+    appendSecurityAudit({
+      event: 'LOGIN_FAILED',
+      severity: 'WARN',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: actorDesc || String(identifier || scope),
+      path: req.originalUrl || req.path,
+      detail: `Percobaan gagal #${rec.count} pada ${scope}`
+    });
+  }
+  authFailureBuckets.set(key, rec);
+}
+
+function clearAuthFailures(req, scope, identifier = '') {
+  const key = `${getClientIp(req)}::${scope}::${String(identifier || '').toLowerCase().trim()}`;
+  authFailureBuckets.delete(key);
 }
 
 function getOrderFoodAmount(o) {
@@ -73,26 +253,125 @@ function findCustomerEntry(wallets, identifier) {
   return null;
 }
 
-function applyCustomerPasswordUpdate(wallets, customerKey, passwordHash) {
+function applyCustomerPasswordUpdate(wallets, customerKey, passwordHash, passwordSalt = null, passwordAlg = 'scrypt') {
   if (!wallets.customers || !wallets.customers[customerKey]) return null;
   const cust = wallets.customers[customerKey];
   cust.password_hash = passwordHash;
+  if (passwordSalt) {
+    cust.password_salt = passwordSalt;
+    cust.password_alg = passwordAlg;
+  } else {
+    delete cust.password_salt;
+    delete cust.password_alg;
+  }
   cust.has_password = true;
+  cust.token_version = (Number(cust.token_version) || 1) + 1;
   cust.password_reset_at = new Date().toISOString();
   cust.updated_at = new Date().toISOString();
   return cust;
 }
 
 const app = express();
+app.disable('x-powered-by');
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// 1. Lapis Header Keamanan HTTP Ketat + Anti-Cache Data Sensitif
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self), payment=()');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  if (req.path.startsWith('/api')) {
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  } else {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  }
+  next();
+});
+
+// 2. Strict CORS Origin Allowlist (Hanya domain resmi, localhost, & Android Capacitor APK)
+function isOriginAllowed(origin, hostHeader) {
+  if (!origin) return true;
+  try {
+    const u = new URL(origin);
+    const hostname = u.hostname.toLowerCase();
+    const proto = u.protocol.toLowerCase();
+    if (proto === 'capacitor:' || proto === 'ionic:') return true;
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') return true;
+    if (hostHeader && u.host.toLowerCase() === String(hostHeader).toLowerCase()) return true;
+    if (hostname.endsWith('.pinggy-free.link') || hostname.endsWith('.pinggy.net') || hostname.endsWith('.pinggy.io')) return true;
+    if (hostname.endsWith('.vercel.app') || hostname.endsWith('.onrender.com')) return true;
+    const extraOrigins = String(process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (extraOrigins.includes(origin) || extraOrigins.includes(hostname)) return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && !isOriginAllowed(origin, req.headers.host)) {
+    appendSecurityAudit({
+      event: 'CORS_BLOCKED',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: origin,
+      path: req.originalUrl || req.path,
+      detail: `Origin asing ditolak oleh kebijakan CORS ketat: ${origin}`
+    });
+    return res.status(403).json({ success: false, message: 'Origin tidak diizinkan oleh kebijakan keamanan server.' });
+  }
+  next();
+});
+
+app.use(cors({
+  origin: (origin, cb) => cb(null, isOriginAllowed(origin, '')),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Portal-Token', 'X-Kitchen-Token', 'X-Driver-Token', 'X-Customer-Token', 'X-Tracking-Token']
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files untuk frontend ketiga aplikasi
+// 3. Prototype Pollution Scrubber + Rate Limiter Global pada /api/*
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') req.body = sanitizeObjectDeep(req.body);
+  if (req.query && typeof req.query === 'object') req.query = sanitizeObjectDeep(req.query);
+  if (req.params && typeof req.params === 'object') req.params = sanitizeObjectDeep(req.params);
+  next();
+});
+
+app.use('/api', (req, res, next) => {
+  const rl = checkSlidingRateBucket(ipRateBuckets, getClientIp(req), GLOBAL_RATE_MAX, GLOBAL_RATE_WINDOW_MS);
+  if (!rl.allowed) {
+    res.setHeader('Retry-After', String(rl.retryAfterSec));
+    appendSecurityAudit({
+      event: 'RATE_LIMIT_HIT',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: 'IP_FLOOD',
+      path: req.originalUrl || req.path,
+      detail: `Melebihi batas ${GLOBAL_RATE_MAX} req/menit`
+    });
+    return res.status(429).json({
+      success: false,
+      message: `Terlalu banyak permintaan dari perangkat Anda. Coba lagi dalam ${rl.retryAfterSec} detik.`
+    });
+  }
+  next();
+});
+
+// Static files untuk frontend ketiga aplikasi (blokir akses dotfile)
 const PUBLIC_DIR = path.join(__dirname, '../public');
-app.use(express.static(PUBLIC_DIR));
+app.use(express.static(PUBLIC_DIR, { dotfiles: 'deny' }));
 
 // Rute jalan pintas untuk masing-masing aplikasi
 app.get('/customer', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'customer.html')));
@@ -112,6 +391,8 @@ const AUTH_CONFIG_FILE = path.join(DATA_DIR, 'auth_config.json');
 const WAREHOUSE_FILE = path.join(DATA_DIR, 'warehouse.json');
 const MITRA_WAREHOUSES_FILE = path.join(DATA_DIR, 'mitra_warehouses.json');
 const PORTAL_ACCOUNTS_FILE = path.join(DATA_DIR, 'portal_accounts.json');
+const SECURITY_KEYS_FILE = path.join(DATA_DIR, 'security_keys.json');
+const SECURITY_AUDIT_FILE = path.join(DATA_DIR, 'security_audit.json');
 
 const PORTAL_TAB_KEYS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
 const PORTAL_ROLE_LABELS = {
@@ -241,43 +522,230 @@ function sanitizePortalAccount(acc) {
   };
 }
 
-function signPortalToken(account, sessionSecret) {
+function getOrInitSecurityKeys() {
+  const existing = readJSON(SECURITY_KEYS_FILE, null);
+  if (existing && existing.master_secret && existing.telemetry_aes_key) {
+    if (!existing.session_epoch) existing.session_epoch = 1;
+    return existing;
+  }
+  const fresh = {
+    master_secret: crypto.randomBytes(32).toString('hex'),
+    telemetry_aes_key: crypto.randomBytes(32).toString('hex'),
+    session_epoch: 1,
+    rotated_at: new Date().toISOString()
+  };
+  writeJSON(SECURITY_KEYS_FILE, fresh);
+  return fresh;
+}
+
+function appendSecurityAudit({ event, severity = 'INFO', ip = '', actor = '', path: reqPath = '', detail = '' }) {
+  try {
+    const list = readJSON(SECURITY_AUDIT_FILE, []);
+    const arr = Array.isArray(list) ? list : [];
+    arr.unshift({
+      id: `sec-${Date.now()}-${crypto.randomBytes(2).toString('hex')}`,
+      event: String(event || 'SECURITY_EVENT'),
+      severity: String(severity || 'INFO'),
+      ip: String(ip || ''),
+      actor: String(actor || ''),
+      path: String(reqPath || ''),
+      detail: String(detail || ''),
+      at: new Date().toISOString()
+    });
+    if (arr.length > 400) arr.length = 400;
+    writeJSON(SECURITY_AUDIT_FILE, arr);
+  } catch (e) {
+    // Non-fatal audit write error
+  }
+}
+
+function deriveDomainSigningKey(domain) {
+  const keys = getOrInitSecurityKeys();
+  return crypto
+    .createHmac('sha256', String(keys.master_secret))
+    .update(`${String(domain)}:v${Number(keys.session_epoch) || 1}`)
+    .digest('hex');
+}
+
+function signScopedToken(domain, claims = {}, ttlMs = 24 * 60 * 60 * 1000) {
+  const keys = getOrInitSecurityKeys();
+  const now = Date.now();
   const payload = {
-    sub: account.id,
-    role: account.role,
-    iat: Date.now(),
-    exp: Date.now() + (30 * 24 * 60 * 60 * 1000)
+    ...claims,
+    dom: String(domain),
+    ep: Number(keys.session_epoch) || 1,
+    jti: crypto.randomBytes(8).toString('hex'),
+    iat: now,
+    exp: now + ttlMs
   };
   const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
-  const sig = crypto.createHmac('sha256', String(sessionSecret)).update(encoded).digest('base64url');
+  const sig = crypto
+    .createHmac('sha256', deriveDomainSigningKey(domain))
+    .update(encoded)
+    .digest('base64url');
   return `${encoded}.${sig}`;
 }
 
-function resolvePortalUserFromReq(req) {
-  const authHeader = String(req.headers['authorization'] || '');
-  const headerToken = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7).trim()
-    : String(req.headers['x-portal-token'] || '').trim();
-  if (!headerToken || !headerToken.includes('.')) return null;
-
-  const [encoded, sig] = headerToken.split('.');
+function verifyScopedToken(domain, token) {
+  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  const parts = token.split('.');
+  if (parts.length !== 2) return null;
+  const [encoded, sig] = parts;
   if (!encoded || !sig) return null;
 
-  const store = getOrInitPortalAccounts();
-  const expectedSig = crypto.createHmac('sha256', String(store.session_secret)).update(encoded).digest('base64url');
+  const expectedSig = crypto
+    .createHmac('sha256', deriveDomainSigningKey(domain))
+    .update(encoded)
+    .digest('base64url');
   const a = Buffer.from(sig, 'utf8');
   const b = Buffer.from(expectedSig, 'utf8');
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
 
   try {
     const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
-    if (!payload || !payload.sub || (payload.exp && Date.now() > Number(payload.exp))) return null;
+    const keys = getOrInitSecurityKeys();
+    if (!payload || payload.dom !== domain) return null;
+    if (Number(payload.ep) !== (Number(keys.session_epoch) || 1)) return null;
+    if (payload.exp && Date.now() > Number(payload.exp)) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+function encryptSensitivePayload(plainObj, aadText = '') {
+  try {
+    const keys = getOrInitSecurityKeys();
+    const keyBuf = Buffer.from(String(keys.telemetry_aes_key), 'hex');
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', keyBuf, iv);
+    if (aadText) cipher.setAAD(Buffer.from(String(aadText), 'utf8'));
+    const ct = Buffer.concat([cipher.update(JSON.stringify(plainObj), 'utf8'), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return {
+      alg: 'aes-256-gcm',
+      iv: iv.toString('base64url'),
+      tag: tag.toString('base64url'),
+      ct: ct.toString('base64url'),
+      at: new Date().toISOString()
+    };
+  } catch (e) {
+    return null;
+  }
+}
+
+function decryptSensitivePayload(blob, aadText = '') {
+  if (!blob || !blob.iv || !blob.tag || !blob.ct) return null;
+  try {
+    const keys = getOrInitSecurityKeys();
+    const keyBuf = Buffer.from(String(keys.telemetry_aes_key), 'hex');
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      keyBuf,
+      Buffer.from(String(blob.iv), 'base64url')
+    );
+    if (aadText) decipher.setAAD(Buffer.from(String(aadText), 'utf8'));
+    decipher.setAuthTag(Buffer.from(String(blob.tag), 'base64url'));
+    const plain = Buffer.concat([
+      decipher.update(Buffer.from(String(blob.ct), 'base64url')),
+      decipher.final()
+    ]);
+    return JSON.parse(plain.toString('utf8'));
+  } catch (e) {
+    return null;
+  }
+}
+
+function extractBearerOrHeader(req, altHeaderName) {
+  const authHeader = String(req.headers['authorization'] || '');
+  if (authHeader.startsWith('Bearer ')) return authHeader.slice(7).trim();
+  return String((altHeaderName && req.headers[altHeaderName]) || '').trim();
+}
+
+function signPortalToken(account, sessionSecret) {
+  const keys = getOrInitSecurityKeys();
+  const payload = {
+    dom: 'portal',
+    sub: account.id,
+    role: account.role,
+    ep: Number(keys.session_epoch) || 1,
+    tv: Number(account.token_version) || 1,
+    jti: crypto.randomBytes(8).toString('hex'),
+    iat: Date.now(),
+    exp: Date.now() + (14 * 24 * 60 * 60 * 1000)
+  };
+  const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const sig = crypto
+    .createHmac('sha256', `${String(sessionSecret)}:${deriveDomainSigningKey('portal')}`)
+    .update(encoded)
+    .digest('base64url');
+  return `${encoded}.${sig}`;
+}
+
+function resolvePortalUserFromReq(req) {
+  const headerToken = extractBearerOrHeader(req, 'x-portal-token');
+  if (!headerToken || !headerToken.includes('.')) return null;
+
+  const [encoded, sig] = headerToken.split('.');
+  if (!encoded || !sig) return null;
+
+  const store = getOrInitPortalAccounts();
+  const expectedSig = crypto
+    .createHmac('sha256', `${String(store.session_secret)}:${deriveDomainSigningKey('portal')}`)
+    .update(encoded)
+    .digest('base64url');
+  const a = Buffer.from(sig, 'utf8');
+  const b = Buffer.from(expectedSig, 'utf8');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+
+  try {
+    const keys = getOrInitSecurityKeys();
+    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    if (!payload || payload.dom !== 'portal' || !payload.sub) return null;
+    if (Number(payload.ep) !== (Number(keys.session_epoch) || 1)) return null;
+    if (payload.exp && Date.now() > Number(payload.exp)) return null;
     const liveAccount = store.accounts.find(acc => acc.id === payload.sub);
     if (!liveAccount || liveAccount.is_active === false) return null;
+    if (Number(payload.tv || 1) !== Number(liveAccount.token_version || 1)) return null;
     return sanitizePortalAccount(liveAccount);
   } catch (e) {
     return null;
   }
+}
+
+function resolveKitchenUserFromReq(req) {
+  const token = extractBearerOrHeader(req, 'x-kitchen-token');
+  const payload = verifyScopedToken('kitchen', token);
+  if (!payload || !payload.branch_id) return null;
+  return payload;
+}
+
+function resolveDriverUserFromReq(req) {
+  const token = extractBearerOrHeader(req, 'x-driver-token');
+  const payload = verifyScopedToken('driver', token);
+  if (!payload || !payload.driver_id) return null;
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const liveDriver = wallets.drivers && wallets.drivers[payload.driver_id];
+  if (!liveDriver || liveDriver.is_suspended) return null;
+  if (Number(payload.tv || 1) !== Number(liveDriver.token_version || 1)) return null;
+  return { ...payload, driver: liveDriver };
+}
+
+function resolveCustomerUserFromReq(req) {
+  const token = extractBearerOrHeader(req, 'x-customer-token');
+  const payload = verifyScopedToken('customer', token);
+  if (!payload || !payload.customer_key) return null;
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const liveCust = wallets.customers && wallets.customers[payload.customer_key];
+  if (!liveCust) return null;
+  if (Number(payload.tv || 1) !== Number(liveCust.token_version || 1)) return null;
+  return { ...payload, customer: liveCust };
+}
+
+function resolveTrackingTokenFromReq(req) {
+  const raw = String(req.headers['x-tracking-token'] || (req.query && req.query.tracking_token) || '').trim();
+  if (!raw) return null;
+  return verifyScopedToken('tracking', raw);
 }
 
 function portalUserHasTab(portalUser, tabKey) {
@@ -315,7 +783,7 @@ function filterAllowedBranches(portalUser, branchesList = []) {
 
 function getRequiredTabForSuperAdmin(reqPath) {
   const p = String(reqPath || '');
-  if (p.startsWith('/portal-accounts')) return '__owner_only__';
+  if (p.startsWith('/portal-accounts') || p.startsWith('/security')) return '__owner_only__';
   if (p.startsWith('/summary')) return null;
   if (p.startsWith('/stock-opname')) return 'omzet';
   if (p.startsWith('/stock-opening')) return 'lapak';
@@ -328,6 +796,14 @@ function getRequiredTabForSuperAdmin(reqPath) {
 
 function enforceSuperAdminRbac(req, res, next) {
   if (!req.portalUser) {
+    appendSecurityAudit({
+      event: 'UNAUTHORIZED_PORTAL_ACCESS',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: 'Anonymous',
+      path: req.originalUrl || req.path,
+      detail: 'Akses ke endpoint super-admin tanpa token valid'
+    });
     return res.status(401).json({
       success: false,
       auth_required: true,
@@ -337,9 +813,17 @@ function enforceSuperAdminRbac(req, res, next) {
 
   const reqTab = getRequiredTabForSuperAdmin(req.path);
   if (reqTab === '__owner_only__' && req.portalUser.role !== 'owner') {
+    appendSecurityAudit({
+      event: 'RBAC_OWNER_ONLY_DENIED',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: req.portalUser.username,
+      path: req.originalUrl || req.path,
+      detail: `Role ${req.portalUser.role} mencoba akses area khusus Owner Utama`
+    });
     return res.status(403).json({
       success: false,
-      message: 'Hanya Owner Utama yang diizinkan mengelola akun akses portal.'
+      message: 'Hanya Owner Utama yang diizinkan mengelola akun akses portal & kontrol keamanan.'
     });
   }
 
@@ -393,8 +877,67 @@ function enforceSuperAdminRbac(req, res, next) {
   next();
 }
 
+function enforceAdminAuth(req, res, next) {
+  if (req.portalUser) {
+    if (req.method !== 'GET' && !(req.portalUser.permissions && req.portalUser.permissions.can_edit)) {
+      return res.status(403).json({ success: false, message: 'Akun portal dalam mode Read-Only.' });
+    }
+    return next();
+  }
+  if (req.kitchenUser) {
+    const reqPath = String(req.path || '');
+    if ((reqPath === '/branches' && req.method === 'POST') || (/^\/branches\/[^/]+$/.test(reqPath) && req.method === 'DELETE')) {
+      return res.status(403).json({ success: false, message: 'Hanya Owner Utama yang dapat menambah atau menghapus cabang lapak.' });
+    }
+    if (req.query && req.query.branch_id && req.query.branch_id !== 'all' && req.query.branch_id !== req.kitchenUser.branch_id) {
+      return res.status(403).json({ success: false, message: 'Sesi Kasir hanya berlaku untuk cabang lapaknya sendiri.' });
+    }
+    if (req.body && req.body.branch_id && req.body.branch_id !== req.kitchenUser.branch_id) {
+      return res.status(403).json({ success: false, message: 'Sesi Kasir tidak dapat mengubah cabang lapak lain.' });
+    }
+    return next();
+  }
+  appendSecurityAudit({
+    event: 'UNAUTHORIZED_ADMIN_ACCESS',
+    severity: 'HIGH',
+    ip: maskIpForAudit(getClientIp(req)),
+    actor: 'Anonymous',
+    path: req.originalUrl || req.path,
+    detail: 'Akses ke /api/admin/* tanpa token Kasir/Owner'
+  });
+  return res.status(401).json({
+    success: false,
+    auth_required: true,
+    message: 'Sesi Kasir / Dapur diperlukan atau telah berakhir. Silakan login kembali.'
+  });
+}
+
+function enforceDriverAuth(req, res, next) {
+  if (String(req.path || '') === '/auth/google-login') return next();
+  if (!req.driverUser) {
+    appendSecurityAudit({
+      event: 'UNAUTHORIZED_DRIVER_ACCESS',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: 'Anonymous',
+      path: req.originalUrl || req.path,
+      detail: 'Akses ke /api/driver/* tanpa token kurir terautentikasi'
+    });
+    return res.status(401).json({
+      success: false,
+      auth_required: true,
+      message: 'Sesi kurir tidak valid atau telah berakhir. Silakan login ulang.'
+    });
+  }
+  next();
+}
+
 app.use('/api', (req, res, next) => {
   req.portalUser = resolvePortalUserFromReq(req);
+  req.kitchenUser = resolveKitchenUserFromReq(req);
+  req.driverUser = resolveDriverUserFromReq(req);
+  req.customerUser = resolveCustomerUserFromReq(req);
+  req.trackingToken = resolveTrackingTokenFromReq(req);
   next();
 });
 
@@ -893,9 +1436,20 @@ app.post('/api/portal/login', (req, res) => {
     return res.status(400).json({ success: false, message: 'ID / Username dan Password wajib diisi.' });
   }
 
+  const lockState = isAuthLocked(req, 'portal', cleanUser);
+  if (lockState.locked) {
+    res.setHeader('Retry-After', String(lockState.retryAfterSec));
+    return res.status(429).json({
+      success: false,
+      locked: true,
+      message: `Keamanan: Terlalu banyak percobaan login gagal. Coba lagi dalam ${lockState.remainingMin} menit.`
+    });
+  }
+
   const store = getOrInitPortalAccounts();
   const acc = store.accounts.find(a => String(a.username || '').toLowerCase() === cleanUser);
   if (!acc || !verifyPortalPassword(rawPass, acc)) {
+    recordAuthFailure(req, 'portal', cleanUser, cleanUser);
     return res.status(401).json({ success: false, message: 'ID / Username atau Password salah.' });
   }
 
@@ -903,8 +1457,18 @@ app.post('/api/portal/login', (req, res) => {
     return res.status(403).json({ success: false, message: 'Akun ini sedang dinonaktifkan oleh Owner Utama.' });
   }
 
+  clearAuthFailures(req, 'portal', cleanUser);
   acc.last_login_at = new Date().toISOString();
   writeJSON(PORTAL_ACCOUNTS_FILE, store);
+
+  appendSecurityAudit({
+    event: 'PORTAL_LOGIN_OK',
+    severity: 'INFO',
+    ip: maskIpForAudit(getClientIp(req)),
+    actor: `${acc.username} (${acc.role})`,
+    path: '/api/portal/login',
+    detail: 'Login portal terautentikasi sukses'
+  });
 
   const token = signPortalToken(acc, store.session_secret);
   res.json({
@@ -1104,6 +1668,7 @@ app.put('/api/super-admin/portal-accounts/:id', (req, res) => {
     const newSalt = crypto.randomBytes(16).toString('hex');
     acc.password_salt = newSalt;
     acc.password_hash = hashPortalPassword(cleanPass, newSalt);
+    acc.token_version = (Number(acc.token_version) || 1) + 1;
   }
 
   if (acc.role !== 'owner') {
@@ -1126,6 +1691,7 @@ app.put('/api/super-admin/portal-accounts/:id', (req, res) => {
     }
     if (is_active !== undefined) {
       acc.is_active = Boolean(is_active);
+      if (!acc.is_active) acc.token_version = (Number(acc.token_version) || 1) + 1;
     }
   }
 
@@ -1163,6 +1729,150 @@ app.delete('/api/super-admin/portal-accounts/:id', (req, res) => {
   });
 });
 
+// ============================================================================
+// OWNER SECURITY CONTROL CENTER (AUDIT LOG, CABUT SEMUA SESI, GPS PRIVACY SWEEP)
+// ============================================================================
+app.get('/api/super-admin/security/status', (req, res) => {
+  const keys = getOrInitSecurityKeys();
+  const auditList = readJSON(SECURITY_AUDIT_FILE, []);
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const orders = readJSON(ORDERS_FILE) || [];
+  const nowMs = Date.now();
+
+  let activeLocks = 0;
+  for (const v of authFailureBuckets.values()) {
+    if (v.lockedUntil && v.lockedUntil > nowMs) activeLocks++;
+  }
+
+  const drivers = Object.values(wallets.drivers || {});
+  const staleDriverGpsCount = drivers.filter(d => {
+    if (d.last_latitude == null && !d.encrypted_telemetry) return false;
+    const age = d.last_seen_at ? (nowMs - new Date(d.last_seen_at).getTime()) : Infinity;
+    return d.is_online === false || age > STALE_GPS_TTL_MS;
+  }).length;
+
+  const staleOrderGpsCount = orders.filter(o =>
+    ['completed', 'cancelled', 'rejected'].includes(o.status) &&
+    (o.driver_latitude != null || o.driver_longitude != null)
+  ).length;
+
+  res.json({
+    success: true,
+    data: {
+      session_epoch: Number(keys.session_epoch) || 1,
+      rotated_at: keys.rotated_at,
+      active_auth_locks: activeLocks,
+      stale_driver_gps_count: staleDriverGpsCount,
+      stale_order_gps_count: staleOrderGpsCount,
+      layers: [
+        { id: 'crypto_aes_gcm', name: 'AES-256-GCM GPS & PII Vault', status: 'ACTIVE' },
+        { id: 'domain_tokens', name: '5-Domain HMAC-SHA256 Zero-Trust Tokens', status: 'ACTIVE' },
+        { id: 'anti_gps_spoof', name: 'Anti-GPS Spoof & Teleportation Guard (>220km/h)', status: 'ACTIVE' },
+        { id: 'location_ttl', name: 'Auto-Redaksi GPS Selesai Antar + TTL 10 Menit', status: 'ACTIVE' },
+        { id: 'brute_force_lock', name: 'Brute-Force Lockout (5x Salah = Kunci 15 Menit)', status: 'ACTIVE' },
+        { id: 'strict_cors_headers', name: 'Strict CORS Allowlist, Anti-Cache & Security Headers', status: 'ACTIVE' },
+        { id: 'scrypt_kdf', name: 'Per-User Random Salt Scrypt Password Hashing', status: 'ACTIVE' }
+      ],
+      audit_logs: Array.isArray(auditList) ? auditList.slice(0, 60) : []
+    }
+  });
+});
+
+app.post('/api/super-admin/security/revoke-all', (req, res) => {
+  const keys = getOrInitSecurityKeys();
+  keys.session_epoch = (Number(keys.session_epoch) || 1) + 1;
+  keys.rotated_at = new Date().toISOString();
+  writeJSON(SECURITY_KEYS_FILE, keys);
+
+  appendSecurityAudit({
+    event: 'PANIC_SESSION_REVOKE',
+    severity: 'CRITICAL',
+    ip: maskIpForAudit(getClientIp(req)),
+    actor: req.portalUser.username,
+    path: '/api/super-admin/security/revoke-all',
+    detail: `Seluruh sesi Portal, Kasir, Kurir, Customer & Tracking dicabut (Epoch #${keys.session_epoch})`
+  });
+
+  // Terbitkan ulang token baru khusus untuk Owner yang menekan tombol agar tidak ikut ter-logout
+  const store = getOrInitPortalAccounts();
+  const ownerAcc = store.accounts.find(a => a.id === req.portalUser.id);
+  const newToken = ownerAcc ? signPortalToken(ownerAcc, store.session_secret) : '';
+
+  res.json({
+    success: true,
+    message: `Semua sesi aktif di seluruh perangkat berhasil dicabut (Epoch #${keys.session_epoch})! Perangkat lain wajib login ulang.`,
+    data: {
+      session_epoch: keys.session_epoch,
+      new_token: newToken
+    }
+  });
+});
+
+app.post('/api/super-admin/security/clear-lockouts', (req, res) => {
+  const cleared = authFailureBuckets.size;
+  authFailureBuckets.clear();
+  appendSecurityAudit({
+    event: 'LOCKOUTS_CLEARED',
+    severity: 'INFO',
+    ip: maskIpForAudit(getClientIp(req)),
+    actor: req.portalUser.username,
+    path: '/api/super-admin/security/clear-lockouts',
+    detail: `${cleared} catatan lockout brute-force dibersihkan oleh Owner`
+  });
+  res.json({ success: true, message: `Semua blokir sementara (${cleared} catatan) berhasil dibuka.` });
+});
+
+app.post('/api/super-admin/security/purge-stale-gps', (req, res) => {
+  const wallets = readJSON(WALLETS_FILE) || {};
+  const orders = readJSON(ORDERS_FILE) || [];
+  const nowMs = Date.now();
+  let purgedDrivers = 0;
+  let purgedOrders = 0;
+
+  Object.values(wallets.drivers || {}).forEach(d => {
+    const age = d.last_seen_at ? (nowMs - new Date(d.last_seen_at).getTime()) : Infinity;
+    const isActiveDelivering = orders.some(o =>
+      o.driver_id === d.id && ['accepted', 'delivering', 'driver_heading_to_branch', 'on_delivery'].includes(o.status)
+    );
+    if (!isActiveDelivering && (d.is_online === false || age > STALE_GPS_TTL_MS)) {
+      if (d.last_latitude != null || d.last_longitude != null || d.encrypted_telemetry) {
+        delete d.last_latitude;
+        delete d.last_longitude;
+        delete d.encrypted_telemetry;
+        purgedDrivers++;
+      }
+    }
+  });
+
+  orders.forEach(o => {
+    if (['completed', 'cancelled', 'rejected'].includes(o.status) && (o.driver_latitude != null || o.driver_longitude != null)) {
+      o.driver_latitude = null;
+      o.driver_longitude = null;
+      o.driver_start_latitude = null;
+      o.driver_start_longitude = null;
+      purgedOrders++;
+    }
+  });
+
+  if (purgedDrivers > 0) writeJSON(WALLETS_FILE, wallets);
+  if (purgedOrders > 0) writeJSON(ORDERS_FILE, orders);
+
+  appendSecurityAudit({
+    event: 'GPS_PRIVACY_PURGE',
+    severity: 'INFO',
+    ip: maskIpForAudit(getClientIp(req)),
+    actor: req.portalUser.username,
+    path: '/api/super-admin/security/purge-stale-gps',
+    detail: `Dibersihkan: ${purgedDrivers} telemetri kurir nonaktif & ${purgedOrders} GPS order selesai`
+  });
+
+  res.json({
+    success: true,
+    message: `Pembersihan privasi GPS selesai: ${purgedDrivers} koordinat kurir nonaktif & ${purgedOrders} koordinat order selesai dihapus.`,
+    data: { purged_drivers: purgedDrivers, purged_orders: purgedOrders }
+  });
+});
+
 // ==========================================
 // 1. ENDPOINTS UMUM & CUSTOMER (AUTH & MENU)
 // ==========================================
@@ -1181,7 +1891,21 @@ app.get('/api/config/auth', (req, res) => {
 });
 
 app.post('/api/config/auth', (req, res) => {
-  const { google_client_id } = req.body;
+  if (!req.portalUser || req.portalUser.role !== 'owner') {
+    appendSecurityAudit({
+      event: 'CONFIG_TAMPER_BLOCKED',
+      severity: 'HIGH',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: req.portalUser ? req.portalUser.username : 'Anonymous',
+      path: '/api/config/auth',
+      detail: 'Percobaan ubah Google Client ID tanpa otoritas Owner Utama ditolak'
+    });
+    return res.status(403).json({
+      success: false,
+      message: 'Hanya Owner Utama (login di Portal Owner) yang dapat mengubah konfigurasi Google Client ID.'
+    });
+  }
+  const { google_client_id } = req.body || {};
   const authConfig = readJSON(AUTH_CONFIG_FILE, { google_client_id: '' });
   authConfig.google_client_id = (google_client_id || '').trim();
   authConfig.updated_at = new Date().toISOString();
@@ -1268,6 +1992,11 @@ app.post('/api/auth/google-login', async (req, res) => {
   }
 
   writeJSON(WALLETS_FILE, wallets);
+  const custToken = signScopedToken('customer', {
+    customer_key: email,
+    email,
+    tv: Number(wallets.customers[email].token_version) || 1
+  }, 14 * 24 * 60 * 60 * 1000);
 
   res.json({
     success: true,
@@ -1275,17 +2004,23 @@ app.post('/api/auth/google-login', async (req, res) => {
       ? `Autentikasi Google Terverifikasi 100%! Selamat datang, ${wallets.customers[email].name}.`
       : `Login Google Berhasil! Selamat datang, ${wallets.customers[email].name}.`,
     data: {
-      token: `token-google-${email}-${Date.now()}`,
+      token: custToken,
       verified_by_google: isGoogleVerified,
       user: sanitizeCustomer(wallets.customers[email])
     }
   });
 });
 
-// Update Profil Pelanggan (Nomor WhatsApp, Alamat Pengiriman & Kata Sandi Akun)
+// Update Profil Pelanggan (Wajib Token Sesi Customer Terautentikasi)
 app.post('/api/customer/update-profile', (req, res) => {
+  if (!req.customerUser) {
+    return res.status(401).json({
+      success: false,
+      auth_required: true,
+      message: 'Sesi pelanggan tidak valid atau telah berakhir. Silakan login kembali.'
+    });
+  }
   const {
-    email,
     whatsapp,
     full_name,
     password, // Fitur Kata Sandi Baru
@@ -1298,70 +2033,84 @@ app.post('/api/customer/update-profile', (req, res) => {
     delivery_address,
     latitude,
     longitude
-  } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ success: false, message: 'Email akun diperlukan' });
-  }
+  } = req.body || {};
 
   const wallets = readJSON(WALLETS_FILE);
-  if (!wallets.customers || !wallets.customers[email]) {
+  const custKey = req.customerUser.customer_key;
+  if (!wallets.customers || !wallets.customers[custKey]) {
     return res.status(404).json({ success: false, message: 'Akun pelanggan tidak ditemukan' });
   }
 
-  const cust = wallets.customers[email];
-  if (full_name) cust.name = full_name.trim();
-  if (whatsapp) cust.whatsapp = whatsapp.trim();
+  const cust = wallets.customers[custKey];
+  if (full_name) cust.name = String(full_name).trim();
+  if (whatsapp) cust.whatsapp = String(whatsapp).trim();
 
-  // Pengaturan Kata Sandi
-  if (password && typeof password === 'string' && password.trim().length >= 4) {
-    cust.password_hash = hashPassword(password.trim());
+  // Pengaturan Kata Sandi (scrypt + random salt)
+  if (password && typeof password === 'string' && password.trim().length >= 6) {
+    const { hash, salt } = hashCustomerPasswordScrypt(password.trim());
+    cust.password_hash = hash;
+    cust.password_salt = salt;
+    cust.password_alg = 'scrypt';
     cust.has_password = true;
-    console.log(`🔑 [KATA SANDI DISIMPAN] Pelanggan ${cust.name} (${cust.email}) telah mengatur password akun.`);
+    console.log(`🔑 [KATA SANDI DISIMPAN] Pelanggan ${cust.name} (${cust.email || cust.phone}) telah memperbarui password dengan scrypt.`);
   }
 
   // Alamat Rumah (Utama)
-  if (home_address !== undefined) cust.home_address = home_address.trim();
+  if (home_address !== undefined) cust.home_address = String(home_address || '').trim();
   if (home_latitude !== undefined) cust.home_latitude = home_latitude;
   if (home_longitude !== undefined) cust.home_longitude = home_longitude;
 
   // Alamat Kantor / Lainnya
-  if (office_address !== undefined) cust.office_address = office_address.trim();
+  if (office_address !== undefined) cust.office_address = String(office_address || '').trim();
   if (office_latitude !== undefined) cust.office_latitude = office_latitude;
   if (office_longitude !== undefined) cust.office_longitude = office_longitude;
 
   // Fallback kompatibilitas
-  cust.delivery_address = cust.home_address || (delivery_address ? delivery_address.trim() : '');
+  cust.delivery_address = cust.home_address || (delivery_address ? String(delivery_address).trim() : '');
   cust.latitude = cust.home_latitude || latitude || null;
   cust.longitude = cust.home_longitude || longitude || null;
+  cust.encrypted_pii = encryptSensitivePayload({
+    whatsapp: cust.whatsapp || '',
+    home_address: cust.home_address || '',
+    home_latitude: cust.home_latitude || null,
+    home_longitude: cust.home_longitude || null,
+    office_address: cust.office_address || ''
+  }, custKey);
 
   // Status kelengkapan onboarding profil customer
   cust.profile_completed = Boolean(cust.whatsapp && (cust.home_address || cust.delivery_address));
-
   cust.updated_at = new Date().toISOString();
 
   writeJSON(WALLETS_FILE, wallets);
 
-  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | WA: ${cust.whatsapp} | Password: ${cust.has_password ? 'YA' : 'TIDAK'} | Rumah: ${cust.home_address}`);
-
-  const safeCust = { ...cust };
-  delete safeCust.password_hash;
+  console.log(`👤 [PROFIL DIPERBARUI] ${cust.name} | Password: ${cust.has_password ? 'YA' : 'TIDAK'}`);
 
   res.json({
     success: true,
     message: password 
       ? 'Profil, alamat & kata sandi akun berhasil disimpan!' 
       : 'Profil & alamat tujuan pengantaran berhasil disimpan!',
-    data: safeCust
+    data: sanitizeCustomer(cust)
   });
 });
 
 // Login Pelanggan dengan Email / Nomor WhatsApp & Kata Sandi
 app.post('/api/auth/login-password', (req, res) => {
-  const { identifier, password } = req.body;
+  const { identifier, password } = req.body || {};
 
   if (!identifier || !password) {
     return res.status(400).json({ success: false, message: 'Email / Nomor WhatsApp dan Kata Sandi wajib diisi' });
+  }
+
+  const cleanId = String(identifier).trim().toLowerCase();
+  const lockState = isAuthLocked(req, 'customer_pass', cleanId);
+  if (lockState.locked) {
+    res.setHeader('Retry-After', String(lockState.retryAfterSec));
+    return res.status(429).json({
+      success: false,
+      locked: true,
+      message: `Akun terkunci sementara setelah terlalu banyak percobaan salah. Coba lagi dalam ${lockState.remainingMin} menit.`
+    });
   }
 
   const wallets = readJSON(WALLETS_FILE);
@@ -1371,6 +2120,7 @@ app.post('/api/auth/login-password', (req, res) => {
   const targetCust = matched ? matched.customer : null;
 
   if (!targetCust) {
+    recordAuthFailure(req, 'customer_pass', cleanId, cleanId);
     return res.status(404).json({
       success: false,
       message: 'Akun dengan Email atau Nomor WhatsApp tersebut belum terdaftar. Silakan masuk via Google terlebih dahulu.'
@@ -1384,26 +2134,39 @@ app.post('/api/auth/login-password', (req, res) => {
     });
   }
 
-  const incomingHash = hashPassword(password.trim());
-  if (incomingHash !== targetCust.password_hash) {
+  const passCheck = verifyCustomerPassword(password, targetCust);
+  if (!passCheck.valid) {
+    recordAuthFailure(req, 'customer_pass', cleanId, cleanId);
     return res.status(401).json({
       success: false,
       message: 'Kata sandi salah. Silakan periksa kembali kata sandi akun Anda.'
     });
   }
 
+  clearAuthFailures(req, 'customer_pass', cleanId);
+  if (passCheck.needsMigration) {
+    const migrated = hashCustomerPasswordScrypt(String(password).trim());
+    targetCust.password_hash = migrated.hash;
+    targetCust.password_salt = migrated.salt;
+    targetCust.password_alg = 'scrypt';
+  }
   targetCust.last_login = new Date().toISOString();
   writeJSON(WALLETS_FILE, wallets);
 
   const safeCust = sanitizeCustomer(targetCust);
+  const custToken = signScopedToken('customer', {
+    customer_key: matched.key,
+    email: targetCust.email || '',
+    tv: Number(targetCust.token_version) || 1
+  }, 14 * 24 * 60 * 60 * 1000);
 
-  console.log(`🔑 [LOGIN PASSWORD BERHASIL] Pelanggan: ${safeCust.name} (${safeCust.email || safeCust.phone})`);
+  console.log(`🔑 [LOGIN PASSWORD BERHASIL] Pelanggan: ${safeCust.name}`);
 
   res.json({
     success: true,
     message: `Login Berhasil! Selamat datang kembali, Kak ${safeCust.name}.`,
     data: {
-      token: `token-pass-${safeCust.id || safeCust.email || safeCust.phone}-${Date.now()}`,
+      token: custToken,
       user: safeCust
     }
   });
@@ -1419,6 +2182,13 @@ app.post('/api/auth/forgot-password', (req, res) => {
     });
   }
 
+  const cleanId = String(identifier).trim().toLowerCase();
+  const lockState = isAuthLocked(req, 'forgot_pass', cleanId);
+  if (lockState.locked) {
+    res.setHeader('Retry-After', String(lockState.retryAfterSec));
+    return res.status(429).json({ success: false, message: `Terlalu banyak percobaan. Coba lagi dalam ${lockState.remainingMin} menit.` });
+  }
+
   const cleanPass = String(new_password).trim();
   if (cleanPass.length < 6) {
     return res.status(400).json({
@@ -1430,6 +2200,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
   const wallets = readJSON(WALLETS_FILE);
   const matched = findCustomerEntry(wallets, identifier);
   if (!matched) {
+    recordAuthFailure(req, 'forgot_pass', cleanId, cleanId);
     return res.status(404).json({
       success: false,
       message: 'Akun dengan Email / WhatsApp tersebut tidak ditemukan. Pastikan sudah pernah masuk sebelumnya.'
@@ -1439,7 +2210,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
   if (!wallets.password_reset_requests) wallets.password_reset_requests = [];
   const { key: customerKey, customer: cust } = matched;
   const nowIso = new Date().toISOString();
-  const newHash = hashPassword(cleanPass);
+  const { hash: newHash, salt: newSalt } = hashCustomerPasswordScrypt(cleanPass);
 
   const existingPending = wallets.password_reset_requests.find(
     r => r.customer_key === customerKey && r.status === 'pending'
@@ -1448,6 +2219,8 @@ app.post('/api/auth/forgot-password', (req, res) => {
   let resetReq;
   if (existingPending) {
     existingPending.new_password_hash = newHash;
+    existingPending.new_password_salt = newSalt;
+    existingPending.new_password_alg = 'scrypt';
     existingPending.has_requested_password = true;
     existingPending.note = (note || '').trim() || existingPending.note || 'Lupa kata sandi akun';
     existingPending.requested_at = nowIso;
@@ -1462,6 +2235,8 @@ app.post('/api/auth/forgot-password', (req, res) => {
       customer_phone: cust.whatsapp || cust.phone || '',
       note: (note || '').trim() || 'Lupa kata sandi akun',
       new_password_hash: newHash,
+      new_password_salt: newSalt,
+      new_password_alg: 'scrypt',
       has_requested_password: true,
       status: 'pending',
       requested_at: nowIso
@@ -1473,7 +2248,7 @@ app.post('/api/auth/forgot-password', (req, res) => {
 
   console.log(`🔐 [LUPA PASSWORD CUSTOMER] ${cust.name} (${cust.email || cust.whatsapp || cust.phone}) mengajukan reset menunggu ACC Owner.`);
 
-  const { new_password_hash, ...safeReq } = resetReq;
+  const { new_password_hash, new_password_salt, ...safeReq } = resetReq;
   res.json({
     success: true,
     message: 'Pengajuan reset kata sandi terkirim ke Owner! Setelah di-ACC Owner, Anda langsung bisa login memakai kata sandi baru tersebut.',
@@ -1501,13 +2276,13 @@ app.get('/api/auth/forgot-password/status', (req, res) => {
     return res.json({ success: true, data: null, message: 'Belum ada pengajuan reset kata sandi untuk akun ini.' });
   }
 
-  const { new_password_hash, ...latest } = list[0];
+  const { new_password_hash, new_password_salt, ...latest } = list[0];
   res.json({ success: true, data: latest });
 });
 
-// Login Dapur & Kasir Lapak (Mendukung PIN Kasir Cabang, Kata Sandi & Akun Google)
+// Login Dapur & Kasir Lapak (PIN Cabang Tervalidasi + Rate-Limit & Signed Kitchen Token)
 app.post('/api/auth/kitchen-login', (req, res) => {
-  const { branch_id, pin_or_password, staff_name, email } = req.body;
+  const { branch_id, pin_or_password, staff_name, email } = req.body || {};
 
   const branches = readJSON(BRANCHES_FILE);
   const targetBranch = branches.find(b => b.id === branch_id) || branches[0];
@@ -1516,22 +2291,35 @@ app.post('/api/auth/kitchen-login', (req, res) => {
     return res.status(404).json({ success: false, message: 'Cabang lapak tidak ditemukan' });
   }
 
-  const inputPin = String(pin_or_password || '').trim();
-  const validBranchPin = targetBranch.staff_pin || '1234';
-
-  // Verifikasi PIN / Password Kasir:
-  // Cocok jika sama dengan PIN cabang (default 1234), atau password master "albewok2026" / "admin123"
-  const isPinValid = inputPin === validBranchPin || inputPin === '1234' || inputPin === 'admin123' || inputPin === 'albewok2026';
-
-  if (!isPinValid) {
-    return res.status(401).json({
+  const lockState = isAuthLocked(req, 'kitchen', targetBranch.id);
+  if (lockState.locked) {
+    res.setHeader('Retry-After', String(lockState.retryAfterSec));
+    return res.status(429).json({
       success: false,
-      message: `PIN Kasir salah! PIN standar adalah 1234 untuk ${targetBranch.name}.`
+      locked: true,
+      message: `PIN Kasir ${targetBranch.name} dikunci ${lockState.remainingMin} menit karena terlalu banyak percobaan salah.`
     });
   }
 
-  const staffName = staff_name ? staff_name.trim() : `Kasir ${targetBranch.name.replace('Kebab AL Bewok - ', '')}`;
-  const staffEmail = email ? email.trim() : `kasir.${targetBranch.id}@kebab-albewok.com`;
+  const inputPin = String(pin_or_password || '').trim();
+  const validBranchPin = String(targetBranch.staff_pin || '1234').trim();
+
+  // Verifikasi PIN menggunakan timing-safe equality terhadap PIN cabang aktif (tanpa bypass backdoor)
+  const a = Buffer.from(inputPin, 'utf8');
+  const b = Buffer.from(validBranchPin, 'utf8');
+  const isPinValid = inputPin.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+
+  if (!isPinValid) {
+    recordAuthFailure(req, 'kitchen', targetBranch.id, `Kasir:${targetBranch.id}`);
+    return res.status(401).json({
+      success: false,
+      message: `PIN Kasir salah untuk ${targetBranch.name}! Hubungi Owner jika lupa PIN cabang.`
+    });
+  }
+
+  clearAuthFailures(req, 'kitchen', targetBranch.id);
+  const staffName = staff_name ? String(staff_name).trim() : `Kasir ${targetBranch.name.replace('Kebab AL Bewok - ', '')}`;
+  const staffEmail = email ? String(email).trim() : `kasir.${targetBranch.id}@kebab-albewok.com`;
 
   const staffUser = {
     id: `staff-${targetBranch.id}-${Date.now().toString().slice(-4)}`,
@@ -1542,22 +2330,28 @@ app.post('/api/auth/kitchen-login', (req, res) => {
     branch_name: targetBranch.name
   };
 
+  const kitchenToken = signScopedToken('kitchen', {
+    staff_id: staffUser.id,
+    staff_name: staffUser.name,
+    branch_id: targetBranch.id
+  }, 18 * 60 * 60 * 1000);
+
   console.log(`🏪 [KITCHEN LOGIN] ${staffUser.name} berhasil masuk ke ${targetBranch.name}`);
 
   res.json({
     success: true,
     message: `Akses diterima! Selamat bertugas di ${targetBranch.name}.`,
     data: {
-      token: `token-kitchen-${targetBranch.id}-${Date.now()}`,
+      token: kitchenToken,
       staff: staffUser,
-      branch: targetBranch
+      branch: sanitizePublicBranch(targetBranch)
     }
   });
 });
 
 // Login Cepat & Gratis (Fallback)
 app.post('/api/auth/login-free', (req, res) => {
-  const { full_name, phone_number } = req.body;
+  const { full_name, phone_number } = req.body || {};
 
   if (!full_name || full_name.trim().length < 2) {
     return res.status(400).json({ success: false, message: 'Mohon masukkan nama lengkap yang jelas.' });
@@ -1570,53 +2364,52 @@ app.post('/api/auth/login-free', (req, res) => {
     return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid (minimal 10 digit).' });
   }
 
-  // Simpan data pelanggan ke database
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.customers) wallets.customers = {};
 
   const name = full_name.trim();
+  const prev = wallets.customers[cleanPhone] || {};
   wallets.customers[cleanPhone] = {
+    ...prev,
     phone: cleanPhone,
     name,
-    balance: (wallets.customers[cleanPhone] ? wallets.customers[cleanPhone].balance : 0),
+    balance: prev.balance || 0,
     last_login: new Date().toISOString()
   };
   writeJSON(WALLETS_FILE, wallets);
 
-  console.log(`✅ [LOGIN GRATIS] Pelanggan terdaftar: ${name} (${cleanPhone})`);
+  const custToken = signScopedToken('customer', {
+    customer_key: cleanPhone,
+    tv: Number(wallets.customers[cleanPhone].token_version) || 1
+  }, 14 * 24 * 60 * 60 * 1000);
 
   res.json({
     success: true,
     message: `Selamat datang, Kak ${name}! Nomor WhatsApp Anda berhasil terhubung.`,
     data: {
-      token: `token-${cleanPhone}-${Date.now()}`,
-      user: wallets.customers[cleanPhone]
+      token: custToken,
+      user: sanitizeCustomer(wallets.customers[cleanPhone])
     }
   });
 });
 
 // Kirim Kode OTP WhatsApp (Opsional jika nanti ada bot)
 app.post('/api/auth/send-otp', (req, res) => {
-  const { phone_number, full_name } = req.body;
+  const { phone_number, full_name } = req.body || {};
   if (!phone_number || phone_number.length < 9) {
     return res.status(400).json({ success: false, message: 'Nomor WhatsApp tidak valid' });
   }
 
-  // Format nomor (hapus karakter aneh, ubah 08.. jadi format standar)
   let cleanPhone = phone_number.replace(/[^0-9]/g, '');
   if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
 
-  // Buat 4 digit OTP
-  const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const otpCode = String(crypto.randomInt(1000, 9999));
   otpStore.set(cleanPhone, {
     otp: otpCode,
     full_name: full_name || 'Pelanggan Kebab',
     expiresAt: Date.now() + 5 * 60 * 1000
   });
 
-  console.log(`🔑 [OTP KEBAB AL BEWOK] Kode verifikasi untuk ${cleanPhone} (${full_name}): ${otpCode}`);
-
-  // Kirimkan ke WhatsApp Bot Gratis (port 5001) jika bot aktif
   fetch('http://127.0.0.1:5001/api/send-otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1625,59 +2418,66 @@ app.post('/api/auth/send-otp', (req, res) => {
     if (data.success) {
       console.log(`📲 [WA BOT SUKSES] OTP asli telah terkirim via WhatsApp ke ${cleanPhone}`);
     }
-  }).catch(() => {
-    // Bot WA mungkin belum dinyalakan, sistem tetap berjalan aman
-  });
+  }).catch(() => {});
 
   res.json({
     success: true,
     message: 'Kode verifikasi berhasil dikirim!',
     data: {
       phone: cleanPhone,
-      // Dikembalikan di response agar simulasi langsung jalan tanpa perlu langganan API gateway WA berbayar
-      demo_otp: otpCode
+      ...(process.env.NODE_ENV !== 'production' ? { demo_otp: otpCode } : {})
     }
   });
 });
 
 // Verifikasi Kode OTP & Buat Sesi Login
 app.post('/api/auth/verify-otp', (req, res) => {
-  const { phone_number, otp_code, full_name } = req.body;
+  const { phone_number, otp_code, full_name } = req.body || {};
   let cleanPhone = (phone_number || '').replace(/[^0-9]/g, '');
   if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
 
-  const session = otpStore.get(cleanPhone);
-
-  // Validasi: Kode benar ATAU menggunakan Master PIN Demo '1234'
-  const isMasterCode = (otp_code === '1234');
-  const isValidSession = session && (session.otp === otp_code);
-
-  if (!isMasterCode && !isValidSession) {
-    return res.status(400).json({ success: false, message: 'Kode OTP salah. Silakan masukkan 1234 untuk demo.' });
+  const lockState = isAuthLocked(req, 'otp', cleanPhone);
+  if (lockState.locked) {
+    res.setHeader('Retry-After', String(lockState.retryAfterSec));
+    return res.status(429).json({ success: false, message: `Terlalu banyak percobaan OTP salah. Coba lagi dalam ${lockState.remainingMin} menit.` });
   }
 
-  // Simpan/update profil pelanggan di wallets/database
+  const session = otpStore.get(cleanPhone);
+  const isMasterCode = process.env.NODE_ENV !== 'production' && otp_code === '1234';
+  const isValidSession = session && session.expiresAt > Date.now() && (session.otp === otp_code);
+
+  if (!isMasterCode && !isValidSession) {
+    recordAuthFailure(req, 'otp', cleanPhone, cleanPhone);
+    return res.status(400).json({ success: false, message: 'Kode OTP salah atau sudah kedaluwarsa.' });
+  }
+
+  clearAuthFailures(req, 'otp', cleanPhone);
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.customers) wallets.customers = {};
 
   const name = full_name || (session ? session.full_name : 'Pelanggan Kebab');
+  const prev = wallets.customers[cleanPhone] || {};
   wallets.customers[cleanPhone] = {
+    ...prev,
     phone: cleanPhone,
     name,
-    balance: (wallets.customers[cleanPhone] ? wallets.customers[cleanPhone].balance : 0),
-    registered_at: new Date().toISOString()
+    balance: prev.balance || 0,
+    registered_at: prev.registered_at || new Date().toISOString()
   };
   writeJSON(WALLETS_FILE, wallets);
-
-  // Hapus OTP setelah dipakai
   otpStore.delete(cleanPhone);
+
+  const custToken = signScopedToken('customer', {
+    customer_key: cleanPhone,
+    tv: Number(wallets.customers[cleanPhone].token_version) || 1
+  }, 14 * 24 * 60 * 60 * 1000);
 
   res.json({
     success: true,
     message: 'Login berhasil! Selamat datang di Kebab AL Bewok.',
     data: {
-      token: `token-${cleanPhone}-${Date.now()}`,
-      user: wallets.customers[cleanPhone]
+      token: custToken,
+      user: sanitizeCustomer(wallets.customers[cleanPhone])
     }
   });
 });
@@ -1688,20 +2488,20 @@ app.get('/api/menu', (req, res) => {
   res.json({ success: true, data: menu });
 });
 
-// Ambil Daftar Cabang Lapak
+// Ambil Daftar Cabang Lapak (Disanitasi: Tanpa PIN & Biaya Tetap Internal)
 app.get('/api/branches', (req, res) => {
-  const branches = readJSON(BRANCHES_FILE);
-  res.json({ success: true, data: branches });
+  const branches = readJSON(BRANCHES_FILE) || [];
+  res.json({ success: true, data: branches.map(sanitizePublicBranch) });
 });
 
-// Ambil Detail Satu Cabang
+// Ambil Detail Satu Cabang (Disanitasi: Tanpa PIN & Biaya Tetap Internal)
 app.get('/api/branches/:id', (req, res) => {
-  const branches = readJSON(BRANCHES_FILE);
+  const branches = readJSON(BRANCHES_FILE) || [];
   const branch = branches.find(b => b.id === req.params.id);
   if (!branch) {
     return res.status(404).json({ success: false, message: 'Cabang tidak ditemukan' });
   }
-  res.json({ success: true, data: branch });
+  res.json({ success: true, data: sanitizePublicBranch(branch) });
 });
 
 // Helper Biaya Tetap Bulanan Cabang & Kalkulasi Laba Bersih (Terpusat)
@@ -1741,6 +2541,9 @@ function computeBranchProfitMetrics({ branch, omzet = 0, totalHpp = 0, closingOp
   };
 }
 
+// Middleware Zero-Trust untuk seluruh endpoint Admin Lapak & Dapur
+app.use('/api/admin', enforceAdminAuth);
+
 // Update Profil Lapak: Nama, Lokasi (Alamat, Lat, Lng), Nomor Telepon & QRIS Lapak
 app.put('/api/admin/branches/:id', (req, res) => {
   const { id } = req.params;
@@ -1754,6 +2557,8 @@ app.put('/api/admin/branches/:id', (req, res) => {
     if (!isBranchAllowedForPortalUser(req.portalUser, id)) {
       return res.status(403).json({ success: false, message: 'Lapak cabang ini di luar cakupan akun Anda.' });
     }
+  } else if (req.kitchenUser && req.kitchenUser.branch_id !== id) {
+    return res.status(403).json({ success: false, message: 'Kasir hanya dapat memperbarui profil cabangnya sendiri.' });
   }
   const {
     name,
@@ -1794,7 +2599,9 @@ app.put('/api/admin/branches/:id', (req, res) => {
   if (is_open !== undefined && is_open !== null) branches[idx].is_open = Boolean(is_open);
   if (open_hours !== undefined && open_hours !== null) branches[idx].open_hours = String(open_hours).trim();
   if (staff_pin !== undefined && staff_pin !== null && String(staff_pin).trim() !== '') {
-    branches[idx].staff_pin = String(staff_pin).trim();
+    if (req.portalUser && req.portalUser.role === 'owner') {
+      branches[idx].staff_pin = String(staff_pin).trim();
+    }
   }
   if (Array.isArray(out_of_stock)) {
     branches[idx].out_of_stock = out_of_stock;
@@ -1803,7 +2610,7 @@ app.put('/api/admin/branches/:id', (req, res) => {
     branches[idx].cash_opening = Math.max(0, Number(cash_opening));
   }
   if (fixed_expenses !== undefined && fixed_expenses !== null && typeof fixed_expenses === 'object') {
-    if (!req.portalUser || (req.portalUser.role !== 'mitra' && canViewPortalFinance(req.portalUser))) {
+    if (req.portalUser && req.portalUser.role !== 'mitra' && canViewPortalFinance(req.portalUser)) {
       const norm = normalizeFixedExpenses(fixed_expenses);
       branches[idx].fixed_expenses = {
         monthly_salary: norm.monthly_salary,
@@ -1818,7 +2625,7 @@ app.put('/api/admin/branches/:id', (req, res) => {
   res.json({
     success: true,
     message: 'Profil lapak dan QRIS berhasil diperbarui',
-    data: branches[idx]
+    data: sanitizePublicBranch(branches[idx])
   });
 });
 
@@ -1957,6 +2764,7 @@ app.post('/api/orders/checkout', (req, res) => {
     branch_name: branch.name,
     branch_latitude: branch.latitude || -6.2088,
     branch_longitude: branch.longitude || 106.8456,
+    customer_key: req.customerUser ? req.customerUser.customer_key : null,
     customer_name: customer_name || 'Pelanggan Kebab',
     customer_email: customer_email || null,
     customer_phone: customer_phone || '081234567890',
@@ -1982,26 +2790,92 @@ app.post('/api/orders/checkout', (req, res) => {
     driver_longitude: null,
     delivery_proof: null
   };
+  newOrder.encrypted_location = encryptSensitivePayload({
+    customer_phone: newOrder.customer_phone,
+    customer_address: newOrder.customer_address,
+    customer_latitude: newOrder.customer_latitude,
+    customer_longitude: newOrder.customer_longitude
+  }, newOrder.id);
+
+  const trackingToken = signScopedToken('tracking', {
+    oid: newOrder.id,
+    ck: newOrder.customer_key || null
+  }, 24 * 60 * 60 * 1000);
 
   const orders = readJSON(ORDERS_FILE);
   orders.unshift(newOrder);
   writeJSON(ORDERS_FILE, orders);
 
+  const { encrypted_location, ...safeOrder } = newOrder;
   res.json({
     success: true,
     message: 'Pesanan berhasil dibuat!',
     data: {
-      order: newOrder,
+      order: safeOrder,
+      tracking_token: trackingToken,
       qris_image: branch.qris_image,
       bank_info: branch.bank_info
     }
   });
 });
 
-// Upload Bukti Bayar QRIS Statis
+function isCallerAuthorizedForOrder(req, order) {
+  if (!order) return { ok: false, role: 'none' };
+  if (req.portalUser && isBranchAllowedForPortalUser(req.portalUser, order.branch_id)) {
+    return { ok: true, role: 'portal' };
+  }
+  if (req.kitchenUser && req.kitchenUser.branch_id === order.branch_id) {
+    return { ok: true, role: 'kitchen' };
+  }
+  if (req.driverUser && order.driver_id && req.driverUser.driver_id === order.driver_id) {
+    return { ok: true, role: 'driver' };
+  }
+  if (req.trackingToken && req.trackingToken.oid === order.id) {
+    return { ok: true, role: 'customer_tracking' };
+  }
+  if (req.customerUser) {
+    if (order.customer_key && order.customer_key === req.customerUser.customer_key) {
+      return { ok: true, role: 'customer' };
+    }
+    const cust = req.customerUser.customer || {};
+    const custEmail = String(cust.email || '').toLowerCase();
+    const custPhone = normalizePhone(cust.whatsapp || cust.phone || '');
+    if (custEmail && order.customer_email && String(order.customer_email).toLowerCase() === custEmail) {
+      return { ok: true, role: 'customer' };
+    }
+    if (custPhone.length >= 7 && order.customer_phone && normalizePhone(order.customer_phone) === custPhone) {
+      return { ok: true, role: 'customer' };
+    }
+  }
+  return { ok: false, role: 'none' };
+}
+
+function sanitizeOrderForViewer(order, viewerRole) {
+  if (!order) return null;
+  const clean = { ...order };
+  delete clean.encrypted_location;
+
+  // Putus total koordinat GPS live setelah pengantaran selesai / dibatalkan
+  const isFinished = ['completed', 'cancelled', 'rejected'].includes(clean.status);
+  if (isFinished) {
+    clean.driver_latitude = null;
+    clean.driver_longitude = null;
+    clean.driver_start_latitude = null;
+    clean.driver_start_longitude = null;
+    clean.location_redacted = true;
+  }
+
+  if (viewerRole === 'customer' || viewerRole === 'customer_tracking') {
+    if (clean.driver_phone) clean.driver_phone = maskPhoneMiddle(clean.driver_phone);
+    if (isFinished && clean.customer_phone) clean.customer_phone = maskPhoneMiddle(clean.customer_phone);
+  }
+  return clean;
+}
+
+// Upload Bukti Bayar QRIS Statis (Wajib Tracking Token / Pemilik Order / Kasir / Owner)
 app.post('/api/orders/:id/payment-proof', (req, res) => {
   const { id } = req.params;
-  const { proof_image } = req.body; // base64 / image url
+  const { proof_image } = req.body || {};
 
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id || o.order_code === id);
@@ -2010,11 +2884,24 @@ app.post('/api/orders/:id/payment-proof', (req, res) => {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
 
+  const authCheck = isCallerAuthorizedForOrder(req, orders[orderIndex]);
+  if (!authCheck.ok) {
+    return res.status(401).json({
+      success: false,
+      auth_required: true,
+      message: 'Token pelacakan pesanan tidak valid untuk mengirim bukti pembayaran.'
+    });
+  }
+
   orders[orderIndex].payment_proof = proof_image || 'https://placehold.co/400x600/png?text=Bukti+Transfer+QRIS+Valid';
   orders[orderIndex].status = 'pending_verification';
   writeJSON(ORDERS_FILE, orders);
 
-  res.json({ success: true, message: 'Bukti pembayaran terkirim! Menunggu verifikasi dapur.', data: orders[orderIndex] });
+  res.json({
+    success: true,
+    message: 'Bukti pembayaran terkirim! Menunggu verifikasi dapur.',
+    data: sanitizeOrderForViewer(orders[orderIndex], authCheck.role)
+  });
 });
 
 function calculateBearingDeg(lat1, lng1, lat2, lng2) {
@@ -2056,6 +2943,32 @@ function resolveOrderDriverPosition(order) {
   return { driverLat, driverLng, branchLat, branchLng, custLat, custLng };
 }
 
+function validateDriverGpsVelocity(driver, latitude, longitude) {
+  if (latitude == null || longitude == null) return { hasCoords: false, ok: true };
+  if (!isValidGeoCoords(latitude, longitude)) {
+    return { hasCoords: true, ok: false, reason: 'Koordinat GPS tidak valid atau berada di luar rentang bumi.' };
+  }
+  const nLat = parseFloat(latitude);
+  const nLng = parseFloat(longitude);
+  if (driver && isValidGeoCoords(driver.last_latitude, driver.last_longitude) && driver.last_seen_at) {
+    const dtSec = Math.max(1, (Date.now() - new Date(driver.last_seen_at).getTime()) / 1000);
+    if (dtSec <= 300) {
+      const distKm = calculateGeoDistanceKm(Number(driver.last_latitude), Number(driver.last_longitude), nLat, nLng);
+      const speedKmh = (distKm / dtSec) * 3600;
+      if (distKm > 1.5 && speedKmh > 220) {
+        return {
+          hasCoords: true,
+          ok: false,
+          distKm: Number(distKm.toFixed(2)),
+          speedKmh: Math.round(speedKmh),
+          reason: `Anomali GPS (Fake GPS / teleportasi ${distKm.toFixed(1)} km dalam ${Math.round(dtSec)} dtk) ditolak sistem keamanan.`
+        };
+      }
+    }
+  }
+  return { hasCoords: true, ok: true, lat: nLat, lng: nLng };
+}
+
 function updateDriverTelemetryInWallet(driverId, latitude, longitude, extra = {}) {
   if (!driverId) return;
   const wallets = readJSON(WALLETS_FILE);
@@ -2063,21 +2976,32 @@ function updateDriverTelemetryInWallet(driverId, latitude, longitude, extra = {}
   const d = wallets.drivers[driverId];
   const parsedLat = parseFloat(latitude);
   const parsedLng = parseFloat(longitude);
-  if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+  if (isValidGeoCoords(parsedLat, parsedLng)) {
     if (d.last_latitude !== undefined && d.last_longitude !== undefined && (d.last_latitude !== parsedLat || d.last_longitude !== parsedLng)) {
       d.last_heading = calculateBearingDeg(d.last_latitude, d.last_longitude, parsedLat, parsedLng);
     }
     d.last_latitude = parsedLat;
     d.last_longitude = parsedLng;
+    d.encrypted_telemetry = encryptSensitivePayload({
+      latitude: parsedLat,
+      longitude: parsedLng,
+      heading: extra.heading ?? d.last_heading ?? null,
+      speed_kmh: extra.speed_kmh ?? d.last_speed_kmh ?? null
+    }, driverId);
   }
   if (extra.is_online !== undefined) d.is_online = Boolean(extra.is_online);
+  if (extra.is_online === false) {
+    delete d.last_latitude;
+    delete d.last_longitude;
+    delete d.encrypted_telemetry;
+  }
   if (extra.heading !== undefined && !isNaN(Number(extra.heading))) d.last_heading = Number(extra.heading);
   if (extra.speed_kmh !== undefined && !isNaN(Number(extra.speed_kmh))) d.last_speed_kmh = Number(extra.speed_kmh);
   d.last_seen_at = new Date().toISOString();
   writeJSON(WALLETS_FILE, wallets);
 }
 
-// Lacak Status Pesanan & Lokasi Driver Real-time (3 Fase: Menuju Lapak -> Ambil Makanan -> Menuju Customer)
+// Lacak Status Pesanan & Lokasi Driver Real-time (Hanya Pemilik Order / Tracking Token / Kurir / Kasir / Owner)
 app.get('/api/orders/:id', (req, res) => {
   const { id } = req.params;
   const orders = readJSON(ORDERS_FILE);
@@ -2087,27 +3011,75 @@ app.get('/api/orders/:id', (req, res) => {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
 
-  const pos = resolveOrderDriverPosition(order);
-  order.driver_latitude = pos.driverLat;
-  order.driver_longitude = pos.driverLng;
-
-  res.json({ success: true, data: order });
-});
-
-// Heartbeat GPS & Status Standby Kurir (Untuk Radar Lalu Lintas Kurir Owner)
-app.post('/api/driver/location', (req, res) => {
-  const { driver_id, latitude, longitude, is_online, heading, speed_kmh } = req.body;
-  if (!driver_id) {
-    return res.status(400).json({ success: false, message: 'driver_id wajib diisi' });
+  const authCheck = isCallerAuthorizedForOrder(req, order);
+  if (!authCheck.ok) {
+    appendSecurityAudit({
+      event: 'UNAUTHORIZED_LOCATION_ACCESS',
+      severity: 'CRITICAL',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: req.customerUser ? req.customerUser.customer_key : (req.driverUser ? req.driverUser.driver_id : 'Anonymous'),
+      path: req.originalUrl || req.path,
+      detail: `Percobaan mengintip lokasi & data pesanan ${id} tanpa izin`
+    });
+    return res.status(401).json({
+      success: false,
+      auth_required: true,
+      message: 'Akses ditolak: Token pelacakan pesanan atau otorisasi pemilik tidak valid.'
+    });
   }
-  updateDriverTelemetryInWallet(driver_id, latitude, longitude, { is_online, heading, speed_kmh });
-  res.json({ success: true, message: 'Telemetri GPS kurir diperbarui' });
+
+  const viewOrder = { ...order };
+  if (!['completed', 'cancelled', 'rejected'].includes(viewOrder.status)) {
+    const pos = resolveOrderDriverPosition(viewOrder);
+    viewOrder.driver_latitude = pos.driverLat;
+    viewOrder.driver_longitude = pos.driverLng;
+  }
+
+  res.json({ success: true, data: sanitizeOrderForViewer(viewOrder, authCheck.role) });
 });
 
-// Update Live GPS Lokasi Kurir saat Menuju Lapak / Mengantar
+// Middleware Zero-Trust untuk seluruh endpoint Driver (/api/driver/* kecuali /auth/google-login)
+app.use('/api/driver', enforceDriverAuth);
+
+// Heartbeat GPS & Status Standby Kurir (Wajib Driver Token + Anti-Spoof Velocity Guard + Encrypted Vault)
+app.post('/api/driver/location', (req, res) => {
+  const driver_id = req.driverUser.driver_id;
+  const { latitude, longitude, is_online, heading, speed_kmh } = req.body || {};
+
+  const gpsRate = checkSlidingRateBucket(gpsRateBuckets, `${getClientIp(req)}::${driver_id}`, GPS_RATE_MAX, GLOBAL_RATE_WINDOW_MS);
+  if (!gpsRate.allowed) {
+    res.setHeader('Retry-After', String(gpsRate.retryAfterSec));
+    return res.status(429).json({ success: false, message: 'Terlalu banyak pembaruan GPS dalam 1 menit.' });
+  }
+
+  const guard = validateDriverGpsVelocity(req.driverUser.driver, latitude, longitude);
+  if (!guard.ok) {
+    appendSecurityAudit({
+      event: 'GPS_SPOOF_ANOMALY',
+      severity: 'CRITICAL',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: driver_id,
+      path: '/api/driver/location',
+      detail: guard.reason
+    });
+    return res.status(422).json({ success: false, message: guard.reason });
+  }
+
+  updateDriverTelemetryInWallet(driver_id, latitude, longitude, { is_online, heading, speed_kmh });
+  res.json({ success: true, message: 'Telemetri GPS terenkripsi kurir diperbarui' });
+});
+
+// Update Live GPS Lokasi Kurir saat Menuju Lapak / Mengantar (Khusus Driver Pengantar Aktif)
 app.post('/api/driver/orders/:id/location', (req, res) => {
   const { id } = req.params;
-  const { latitude, longitude, phase, heading, speed_kmh } = req.body;
+  const driverId = req.driverUser.driver_id;
+  const { latitude, longitude, phase, heading, speed_kmh } = req.body || {};
+
+  const gpsRate = checkSlidingRateBucket(gpsRateBuckets, `${getClientIp(req)}::${driverId}`, GPS_RATE_MAX, GLOBAL_RATE_WINDOW_MS);
+  if (!gpsRate.allowed) {
+    res.setHeader('Retry-After', String(gpsRate.retryAfterSec));
+    return res.status(429).json({ success: false, message: 'Terlalu banyak pembaruan GPS.' });
+  }
 
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id || o.order_code === id);
@@ -2115,29 +3087,72 @@ app.post('/api/driver/orders/:id/location', (req, res) => {
   if (orderIndex === -1) {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
+  if (orders[orderIndex].driver_id !== driverId) {
+    appendSecurityAudit({
+      event: 'GPS_ORDER_HIJACK_BLOCKED',
+      severity: 'CRITICAL',
+      ip: maskIpForAudit(getClientIp(req)),
+      actor: driverId,
+      path: req.originalUrl || req.path,
+      detail: `Kurir mencoba menyuntikkan GPS ke order milik kurir lain (${id})`
+    });
+    return res.status(403).json({ success: false, message: 'Anda bukan kurir yang bertugas pada pesanan ini.' });
+  }
+  if (!['driver_heading_to_branch', 'on_delivery'].includes(orders[orderIndex].status)) {
+    return res.status(400).json({ success: false, message: 'Pembaruan lokasi hanya aktif selama pesanan dalam pengantaran.' });
+  }
 
-  orders[orderIndex].driver_latitude = parseFloat(latitude);
-  orders[orderIndex].driver_longitude = parseFloat(longitude);
+  const guard = validateDriverGpsVelocity(req.driverUser.driver, latitude, longitude);
+  if (!guard.hasCoords || !guard.ok) {
+    if (!guard.ok) {
+      appendSecurityAudit({
+        event: 'GPS_SPOOF_ANOMALY',
+        severity: 'CRITICAL',
+        ip: maskIpForAudit(getClientIp(req)),
+        actor: driverId,
+        path: req.originalUrl || req.path,
+        detail: guard.reason
+      });
+    }
+    return res.status(422).json({ success: false, message: guard.reason || 'Koordinat GPS wajib valid.' });
+  }
+
+  orders[orderIndex].driver_latitude = guard.lat;
+  orders[orderIndex].driver_longitude = guard.lng;
   orders[orderIndex].manual_gps = true;
   if (phase) orders[orderIndex].driver_phase = phase;
   orders[orderIndex].last_location_update = new Date().toISOString();
+  orders[orderIndex].encrypted_location = encryptSensitivePayload({
+    customer_phone: orders[orderIndex].customer_phone,
+    customer_address: orders[orderIndex].customer_address,
+    customer_latitude: orders[orderIndex].customer_latitude,
+    customer_longitude: orders[orderIndex].customer_longitude,
+    driver_latitude: guard.lat,
+    driver_longitude: guard.lng
+  }, orders[orderIndex].id);
   writeJSON(ORDERS_FILE, orders);
 
-  if (orders[orderIndex].driver_id) {
-    updateDriverTelemetryInWallet(orders[orderIndex].driver_id, latitude, longitude, { is_online: true, heading, speed_kmh });
-  }
+  updateDriverTelemetryInWallet(driverId, guard.lat, guard.lng, { is_online: true, heading, speed_kmh });
 
-  res.json({ success: true, message: 'Lokasi kurir terkirim secara live', data: { latitude, longitude } });
+  res.json({ success: true, message: 'Lokasi kurir terkirim secara live & terenkripsi', data: { latitude: guard.lat, longitude: guard.lng } });
 });
 
 // ==========================================
 // 2. ENDPOINTS ADMIN LAPAK / DAPUR
 // ==========================================
 
-// Daftar Pesanan Dapur & Kasir
+// Daftar Pesanan Dapur & Kasir (Disaring Sesuai Cabang Akses)
 app.get('/api/admin/orders', (req, res) => {
-  const orders = readJSON(ORDERS_FILE);
-  res.json({ success: true, data: orders });
+  const orders = readJSON(ORDERS_FILE) || [];
+  let scoped = orders;
+  if (req.kitchenUser) {
+    scoped = orders.filter(o => o.branch_id === req.kitchenUser.branch_id);
+  } else if (req.portalUser) {
+    const allowedSet = getAllowedBranchIdSet(req.portalUser);
+    if (allowedSet) scoped = orders.filter(o => allowedSet.has(o.branch_id));
+  }
+  const safeList = scoped.map(o => sanitizeOrderForViewer(o, 'kitchen'));
+  res.json({ success: true, data: safeList });
 });
 
 // Verifikasi Pembayaran QRIS Masuk -> Status Jadi 'cooking'
@@ -2712,6 +3727,12 @@ app.post('/api/driver/auth/google-login', async (req, res) => {
     };
     wallets.drivers[driver.id] = driver;
   } else {
+    if (driver.is_suspended) {
+      return res.status(403).json({
+        success: false,
+        message: 'Akun kurir Anda sedang dinonaktifkan sementara oleh Owner.'
+      });
+    }
     if (full_name) driver.name = full_name;
     if (avatar_url) driver.avatar = avatar_url;
     if (isGoogleVerified) driver.google_verified = true;
@@ -2719,24 +3740,28 @@ app.post('/api/driver/auth/google-login', async (req, res) => {
 
   writeJSON(WALLETS_FILE, wallets);
 
+  const driverToken = signScopedToken('driver', {
+    driver_id: driver.id,
+    email: driver.email || '',
+    tv: Number(driver.token_version) || 1
+  }, 14 * 24 * 60 * 60 * 1000);
+
   res.json({
     success: true,
     message: isGoogleVerified 
       ? `Autentikasi Google Terverifikasi 100%! Selamat bertugas, Kak ${driver.name}.`
       : `Login Google Berhasil! Selamat bertugas, Kak ${driver.name}.`,
     data: {
-      token: `token-driver-${driver.id}-${Date.now()}`,
+      token: driverToken,
       verified_by_google: isGoogleVerified,
       driver
     }
   });
 });
 
-// Update Profil Kurir & Pendaftaran Rekening Dompet (Terkunci 1x Input)
+// Update Profil Kurir & Pendaftaran Rekening Dompet (Terkunci ke Pemilik Token Driver)
 app.post('/api/driver/update-profile', (req, res) => {
   const { 
-    driver_id, 
-    email, 
     name, 
     phone, 
     vehicle, 
@@ -2745,17 +3770,12 @@ app.post('/api/driver/update-profile', (req, res) => {
     wallet_channel,
     wallet_account_number,
     wallet_account_name
-  } = req.body;
+  } = req.body || {};
 
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.drivers) wallets.drivers = {};
-
-  let driver = null;
-  if (driver_id && wallets.drivers[driver_id]) {
-    driver = wallets.drivers[driver_id];
-  } else if (email) {
-    driver = Object.values(wallets.drivers).find(d => d.email === email);
-  }
+  const driverId = req.driverUser.driver_id;
+  const driver = wallets.drivers[driverId];
 
   if (!driver) {
     return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
@@ -2805,9 +3825,10 @@ app.post('/api/driver/update-profile', (req, res) => {
   });
 });
 
-// Permohonan Penggantian Rekening Dompet Kurir (Wajib Konfirmasi Owner)
+// Permohonan Penggantian Rekening Dompet Kurir (Wajib Konfirmasi Owner & Token Pemilik)
 app.post('/api/driver/request-wallet-change', (req, res) => {
-  const { driver_id, reason, new_channel, new_account_number, new_account_name } = req.body;
+  const { reason, new_channel, new_account_number, new_account_name } = req.body || {};
+  const driver_id = req.driverUser.driver_id;
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.drivers || !wallets.drivers[driver_id]) {
     return res.status(404).json({ success: false, message: 'Driver tidak ditemukan' });
@@ -2905,18 +3926,12 @@ app.post('/api/super-admin/wallet-changes/:id/reject', (req, res) => {
   });
 });
 
-// Verifikasi Biometrik Wajah Kurir (Anti Joki / Pinjam Akun)
+// Verifikasi Biometrik Wajah Kurir (Anti Joki / Pinjam Akun - Terikat Token Driver)
 app.post('/api/driver/verify-face', (req, res) => {
-  const { driver_id, email, face_image } = req.body;
+  const { face_image } = req.body || {};
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.drivers) wallets.drivers = {};
-
-  let driver = null;
-  if (driver_id && wallets.drivers[driver_id]) {
-    driver = wallets.drivers[driver_id];
-  } else if (email) {
-    driver = Object.values(wallets.drivers).find(d => d.email === email);
-  }
+  const driver = wallets.drivers[req.driverUser.driver_id];
 
   if (!driver) {
     return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
@@ -2942,16 +3957,10 @@ app.post('/api/driver/verify-face', (req, res) => {
 // Verifikasi Biometrik Ganda: Sidik Jari (Utama/Anti-Gelap) atau Wajah (Alternatif)
 // Mengunci Prinsip: 1 Akun 1 Driver (Device Lock & Anti-Joki)
 app.post('/api/driver/verify-biometric', (req, res) => {
-  const { driver_id, email, method = 'fingerprint', device_id, biometric_proof } = req.body;
+  const { method = 'fingerprint', device_id, biometric_proof } = req.body || {};
   const wallets = readJSON(WALLETS_FILE);
   if (!wallets.drivers) wallets.drivers = {};
-
-  let driver = null;
-  if (driver_id && wallets.drivers[driver_id]) {
-    driver = wallets.drivers[driver_id];
-  } else if (email) {
-    driver = Object.values(wallets.drivers).find(d => d.email === email);
-  }
+  const driver = wallets.drivers[req.driverUser.driver_id];
 
   if (!driver) {
     return res.status(404).json({ success: false, message: 'Akun kurir tidak ditemukan' });
@@ -2984,26 +3993,34 @@ app.post('/api/driver/verify-biometric', (req, res) => {
   });
 });
 
-// Radar Orderan Siap Antar (Siapa Cepat Dia Dapat)
+// Radar Orderan Siap Antar (Wajib Kurir Terverifikasi Biometrik; Alamat/GPS Customer Disamarkan Sebelum Diambil!)
 app.get('/api/driver/orders/available', (req, res) => {
+  const d = req.driverUser.driver;
+  if (!d || (d.biometric_verified === false && d.face_verified === false)) {
+    return res.json({ success: true, data: [] });
+  }
   const orders = readJSON(ORDERS_FILE);
-  // Order yang sudah matang dan belum diambil kurir
-  const availableOrders = orders.filter(o => o.status === 'ready_for_pickup' && !o.driver_id);
+  const availableOrders = orders
+    .filter(o => o.status === 'ready_for_pickup' && !o.driver_id)
+    .map(o => {
+      const safe = { ...o };
+      delete safe.encrypted_location;
+      safe.customer_phone = 'Terkunci s/d Ambil';
+      safe.customer_email = null;
+      safe.customer_address = maskAddressArea(o.customer_address);
+      // Kasarkan koordinat rumah menjadi grid ~1 km sebelum kurir resmi menerima pesanan
+      if (safe.customer_latitude != null) safe.customer_latitude = Number(Number(safe.customer_latitude).toFixed(2));
+      if (safe.customer_longitude != null) safe.customer_longitude = Number(Number(safe.customer_longitude).toFixed(2));
+      return safe;
+    });
   res.json({ success: true, data: availableOrders });
 });
 
-// Kurir Menerima Orderan (Fase 1: Mulai Melaju dari Lokasi Kurir Menuju Lapak)
+// Kurir Menerima Orderan (Fase 1: Terikat Token Driver & Anti-Spoof GPS)
 app.post('/api/driver/orders/:id/accept', (req, res) => {
   const { id } = req.params;
-  const {
-    driver_id = 'driver-01',
-    driver_name = 'Budi Santoso',
-    driver_phone,
-    driver_vehicle,
-    driver_photo,
-    driver_latitude,
-    driver_longitude
-  } = req.body;
+  const driver_id = req.driverUser.driver_id;
+  const { driver_latitude, driver_longitude } = req.body || {};
 
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id);
@@ -3017,15 +4034,15 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   }
 
   const wallets = readJSON(WALLETS_FILE);
-  if (driver_id && wallets.drivers && wallets.drivers[driver_id]) {
-    const d = wallets.drivers[driver_id];
-    if (d.is_suspended) {
+  const savedDriver = (wallets.drivers && wallets.drivers[driver_id]) ? wallets.drivers[driver_id] : null;
+  if (savedDriver) {
+    if (savedDriver.is_suspended) {
       return res.status(403).json({
         success: false,
         message: 'Akun kurir Anda sedang dinonaktifkan sementara oleh Owner.'
       });
     }
-    if (d.biometric_verified === false && d.face_verified === false) {
+    if (savedDriver.biometric_verified === false && savedDriver.face_verified === false) {
       return res.status(403).json({
         success: false,
         require_biometric_verification: true,
@@ -3034,20 +4051,26 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
     }
   }
 
+  if (driver_latitude != null && driver_longitude != null) {
+    const gpsGuard = validateDriverGpsVelocity(savedDriver, driver_latitude, driver_longitude);
+    if (!gpsGuard.ok) {
+      return res.status(422).json({ success: false, message: gpsGuard.reason });
+    }
+  }
+
   const branches = readJSON(BRANCHES_FILE);
   const branch = branches.find(b => b.id === orders[orderIndex].branch_id) || branches[0];
 
-  const savedDriver = (wallets.drivers && wallets.drivers[driver_id]) ? wallets.drivers[driver_id] : null;
-
   // Lokasi awal kurir saat terima order (dari GPS HP kurir atau offset realistis ~600 meter di jalan)
-  const initialDriverLat = driver_latitude ? parseFloat(driver_latitude) : ((branch.latitude || -6.2088) + 0.0065);
-  const initialDriverLng = driver_longitude ? parseFloat(driver_longitude) : ((branch.longitude || 106.8456) - 0.0055);
+  const hasRealGps = isValidGeoCoords(driver_latitude, driver_longitude);
+  const initialDriverLat = hasRealGps ? parseFloat(driver_latitude) : ((branch.latitude || -6.2088) + 0.0065);
+  const initialDriverLng = hasRealGps ? parseFloat(driver_longitude) : ((branch.longitude || 106.8456) - 0.0055);
 
   orders[orderIndex].driver_id = driver_id;
-  orders[orderIndex].driver_name = driver_name || (savedDriver ? savedDriver.name : 'Budi Santoso');
-  orders[orderIndex].driver_phone = driver_phone || (savedDriver ? savedDriver.phone : '0852-8584-1330');
-  orders[orderIndex].driver_vehicle = driver_vehicle || (savedDriver ? `${savedDriver.vehicle} (${savedDriver.vehicle_plate})` : 'Honda Beat (B 3918 KEB)');
-  orders[orderIndex].driver_photo = driver_photo || (savedDriver ? savedDriver.avatar : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face');
+  orders[orderIndex].driver_name = (savedDriver && savedDriver.name) || 'Kurir Resmi';
+  orders[orderIndex].driver_phone = (savedDriver && savedDriver.phone) || '-';
+  orders[orderIndex].driver_vehicle = savedDriver ? `${savedDriver.vehicle || 'Motor'} (${savedDriver.vehicle_plate || '-'})` : 'Motor Kurir';
+  orders[orderIndex].driver_photo = (savedDriver && savedDriver.avatar) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face';
   
   // Status Fase 1: Kurir menuju lapak untuk ambil pesanan
   orders[orderIndex].status = 'driver_heading_to_branch';
@@ -3057,7 +4080,7 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   orders[orderIndex].driver_start_longitude = initialDriverLng;
   orders[orderIndex].driver_latitude = initialDriverLat;
   orders[orderIndex].driver_longitude = initialDriverLng;
-  orders[orderIndex].manual_gps = !!(driver_latitude && driver_longitude);
+  orders[orderIndex].manual_gps = hasRealGps;
 
   writeJSON(ORDERS_FILE, orders);
   const accOrder = orders[orderIndex];
@@ -3068,18 +4091,22 @@ app.post('/api/driver/orders/:id/accept', (req, res) => {
   res.json({
     success: true,
     message: 'Orderan berhasil diambil! Silakan meluncur ke lapak kebab untuk mengambil pesanan.',
-    data: orders[orderIndex]
+    data: sanitizeOrderForViewer(orders[orderIndex], 'driver')
   });
 });
 
-// Kurir Tiba di Lapak & Mengambil Kebab (Fase 2: Mulai Melaju dari Lapak Menuju Rumah Pelanggan)
+// Kurir Tiba di Lapak & Mengambil Kebab (Fase 2: Terikat Driver Pemilik Order)
 app.post('/api/driver/orders/:id/pickup', (req, res) => {
   const { id } = req.params;
+  const driverId = req.driverUser.driver_id;
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id);
 
   if (orderIndex === -1) {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+  }
+  if (orders[orderIndex].driver_id !== driverId) {
+    return res.status(403).json({ success: false, message: 'Pesanan ini diantar oleh kurir lain.' });
   }
 
   const branches = readJSON(BRANCHES_FILE);
@@ -3090,7 +4117,7 @@ app.post('/api/driver/orders/:id/pickup', (req, res) => {
   orders[orderIndex].driver_picked_up_at = new Date().toISOString();
   orders[orderIndex].driver_latitude = branch.latitude || -6.2088;
   orders[orderIndex].driver_longitude = branch.longitude || 106.8456;
-  orders[orderIndex].manual_gps = false; // Reset simulasi perjalanan dari lapak ke rumah
+  orders[orderIndex].manual_gps = false;
 
   writeJSON(ORDERS_FILE, orders);
   const pickedOrder = orders[orderIndex];
@@ -3104,14 +4131,15 @@ app.post('/api/driver/orders/:id/pickup', (req, res) => {
   res.json({
     success: true,
     message: 'Kebab berhasil diambil! Sekarang silakan antar ke alamat pelanggan.',
-    data: orders[orderIndex]
+    data: sanitizeOrderForViewer(orders[orderIndex], 'driver')
   });
 });
 
-// Kurir Selesai Mengantar -> SALDO DRIVER OTOMATIS BERTAMBAH!
+// Kurir Selesai Mengantar -> SALDO BERTAMBAH & LIVE GPS LANGSUNG DIHAPUS DEMI PRIVASI!
 app.post('/api/driver/orders/:id/complete', (req, res) => {
   const { id } = req.params;
-  const { delivery_proof } = req.body;
+  const driverId = req.driverUser.driver_id;
+  const { delivery_proof } = req.body || {};
 
   const orders = readJSON(ORDERS_FILE);
   const orderIndex = orders.findIndex(o => o.id === id);
@@ -3119,22 +4147,26 @@ app.post('/api/driver/orders/:id/complete', (req, res) => {
   if (orderIndex === -1) {
     return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
   }
+  if (orders[orderIndex].driver_id !== driverId) {
+    return res.status(403).json({ success: false, message: 'Pesanan ini diantar oleh kurir lain.' });
+  }
 
   const order = orders[orderIndex];
   if (order.status === 'completed') {
     return res.status(400).json({ success: false, message: 'Pesanan ini sudah selesai sebelumnya.' });
   }
 
-  // Update status pesanan
   order.status = 'completed';
   order.delivery_proof = delivery_proof || 'https://placehold.co/400x300/png?text=Foto+Serah+Terima+Kebab';
   order.completed_at = new Date().toISOString();
+  // Hapus koordinat GPS live segera setelah pengantaran tuntas
+  order.driver_latitude = null;
+  order.driver_longitude = null;
+  order.driver_start_latitude = null;
+  order.driver_start_longitude = null;
   writeJSON(ORDERS_FILE, orders);
 
-  // OTOMATISASI SALDO: Tambah ongkir ke dompet driver
   const wallets = readJSON(WALLETS_FILE);
-  const driverId = order.driver_id || 'driver-01';
-
   if (!wallets.drivers[driverId]) {
     wallets.drivers[driverId] = { id: driverId, name: order.driver_name || 'Driver', balance: 0, trips: 0, is_online: true };
   }
@@ -3145,10 +4177,6 @@ app.post('/api/driver/orders/:id/complete', (req, res) => {
   wallets.drivers[driverId].is_online = true;
   wallets.drivers[driverId].last_seen_at = new Date().toISOString();
   wallets.drivers[driverId].last_speed_kmh = 0;
-  if (order.customer_latitude != null && order.customer_longitude != null) {
-    wallets.drivers[driverId].last_latitude = Number(order.customer_latitude);
-    wallets.drivers[driverId].last_longitude = Number(order.customer_longitude);
-  }
 
   wallets.history.push({
     id: `tx-${Date.now()}`,
@@ -3168,39 +4196,41 @@ app.post('/api/driver/orders/:id/complete', (req, res) => {
     success: true,
     message: `Pesanan selesai! Saldo Rp ${earnedFee.toLocaleString('id-ID')} otomatis masuk ke dompet Anda.`,
     data: {
-      order,
+      order: sanitizeOrderForViewer(order, 'driver'),
       driver_wallet: wallets.drivers[driverId]
     }
   });
 });
 
-// Ambil Informasi Dompet Driver
+// Ambil Informasi Dompet Driver (Anti-IDOR: Hanya Milik Pemilik Token)
 app.get('/api/driver/wallet/:driverId', (req, res) => {
   const { driverId } = req.params;
+  if (driverId !== req.driverUser.driver_id) {
+    return res.status(403).json({ success: false, message: 'Anda tidak diizinkan mengakses dompet kurir lain.' });
+  }
   const wallets = readJSON(WALLETS_FILE);
   const driver = wallets.drivers[driverId] || { id: driverId, name: 'Driver', balance: 0, trips: 0 };
-  const history = wallets.history.filter(h => h.user_id === driverId);
+  const safeDriver = { ...driver };
+  delete safeDriver.encrypted_telemetry;
+  const history = (wallets.history || []).filter(h => h.user_id === driverId);
 
   res.json({
     success: true,
     data: {
-      wallet: driver,
+      wallet: safeDriver,
       history
     }
   });
 });
 
-// ==========================================
-// 4. ENDPOINTS SUPER ADMIN / PEMILIK (OWNER)
-// ==========================================
-
-// Ajukan Penarikan Dana oleh Driver (Menggunakan Rekening Terkunci 1 Akun 1 Driver)
+// Ajukan Penarikan Dana oleh Driver (Menggunakan Rekening Terkunci 1 Akun 1 Driver + Token Pemilik)
 app.post('/api/driver/wallet/withdraw', (req, res) => {
-  const { driver_id, amount, payout_channel, account_number, account_name } = req.body;
+  const { amount, payout_channel, account_number, account_name } = req.body || {};
+  const driver_id = req.driverUser.driver_id;
   const wallets = readJSON(WALLETS_FILE);
 
-  if (!wallets.drivers[driver_id] || wallets.drivers[driver_id].balance < amount) {
-    return res.status(400).json({ success: false, message: 'Saldo tidak mencukupi untuk ditarik' });
+  if (!amount || Number(amount) <= 0 || !wallets.drivers[driver_id] || wallets.drivers[driver_id].balance < Number(amount)) {
+    return res.status(400).json({ success: false, message: 'Saldo tidak mencukupi atau nominal tidak valid' });
   }
 
   const driver = wallets.drivers[driver_id];
@@ -3288,7 +4318,7 @@ app.get('/api/super-admin/summary', (req, res) => {
       phone: b.phone || '',
       open_hours: b.open_hours || '15:00 - 23:00',
       bank_info: b.bank_info || '',
-      staff_pin: b.staff_pin || '1234',
+      staff_pin: (req.portalUser && req.portalUser.role === 'owner') ? (b.staff_pin || '1234') : '••••',
       latitude: b.latitude ?? -6.2088,
       longitude: b.longitude ?? 106.8456,
       has_qris: Boolean(b.qris_image),
@@ -3364,7 +4394,9 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
     isDeliveryOrder(o) && o.status === 'ready_for_pickup' && (!allowedSet || allowedSet.has(o.branch_id))
   );
   const activeOrdersRaw = orders.filter(o =>
-    isDeliveryOrder(o) && (o.status === 'accepted' || o.status === 'delivering') && (!allowedSet || allowedSet.has(o.branch_id))
+    isDeliveryOrder(o) &&
+    ['accepted', 'delivering', 'driver_heading_to_branch', 'on_delivery'].includes(o.status) &&
+    (!allowedSet || allowedSet.has(o.branch_id))
   );
 
   const branchById = new Map(branches.map(b => [b.id, b]));
@@ -3405,17 +4437,21 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
     SUSPENDED: 4
   };
 
+  const allowFinanceRadar = canViewPortalFinance(req.portalUser);
+  const nowMs = Date.now();
   const couriers = Object.values(driversObj).map((d, idx) => {
     const activeOrder = activeOrdersRaw.find(o => o.driver_id === d.id) || null;
     const isSuspended = Boolean(d.is_suspended);
 
     let radarStatus = 'OFFLINE';
     if (isSuspended) radarStatus = 'SUSPENDED';
-    else if (activeOrder && activeOrder.status === 'accepted') radarStatus = 'TO_BRANCH';
-    else if (activeOrder && activeOrder.status === 'delivering') radarStatus = 'TO_CUSTOMER';
+    else if (activeOrder && (activeOrder.status === 'accepted' || activeOrder.status === 'driver_heading_to_branch')) radarStatus = 'TO_BRANCH';
+    else if (activeOrder && (activeOrder.status === 'delivering' || activeOrder.status === 'on_delivery')) radarStatus = 'TO_CUSTOMER';
     else if (d.is_online !== false) radarStatus = 'STANDBY';
 
-    const hasLiveGps = d.last_latitude != null && d.last_longitude != null;
+    const lastSeenAgeMs = d.last_seen_at ? (nowMs - new Date(d.last_seen_at).getTime()) : Infinity;
+    const isGpsFresh = lastSeenAgeMs <= STALE_GPS_TTL_MS;
+    const hasLiveGps = d.last_latitude != null && d.last_longitude != null && (Boolean(activeOrder) || (d.is_online !== false && isGpsFresh));
     const angle = idx * 1.4;
     let lat = hasLiveGps ? Number(d.last_latitude) : baseLat + Math.sin(angle) * 0.0022;
     let lng = hasLiveGps ? Number(d.last_longitude) : baseLng + Math.cos(angle) * 0.0025;
@@ -3426,8 +4462,8 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
       const pos = resolveOrderDriverPosition(activeOrder);
       lat = pos.driverLat;
       lng = pos.driverLng;
-      const targetLat = activeOrder.status === 'accepted' ? pos.branchLat : pos.custLat;
-      const targetLng = activeOrder.status === 'accepted' ? pos.branchLng : pos.custLng;
+      const targetLat = (activeOrder.status === 'accepted' || activeOrder.status === 'driver_heading_to_branch') ? pos.branchLat : pos.custLat;
+      const targetLng = (activeOrder.status === 'accepted' || activeOrder.status === 'driver_heading_to_branch') ? pos.branchLng : pos.custLng;
       heading = d.last_heading != null
         ? Number(d.last_heading)
         : calculateBearingDeg(lat, lng, targetLat, targetLng);
@@ -3439,8 +4475,8 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
         branch_id: activeOrder.branch_id,
         branch_name: (br && br.name) || activeOrder.branch_name || 'Lapak',
         customer_name: activeOrder.customer_name || 'Pelanggan',
-        delivery_address: activeOrder.delivery_address || '',
-        delivery_fee: Number(activeOrder.delivery_fee) || 0,
+        delivery_address: activeOrder.delivery_address || activeOrder.customer_address || '',
+        delivery_fee: allowFinanceRadar ? (Number(activeOrder.delivery_fee) || 0) : null,
         branch_latitude: pos.branchLat,
         branch_longitude: pos.branchLng,
         customer_latitude: pos.custLat,
@@ -3457,7 +4493,7 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
       email: d.email || '',
       vehicle: d.vehicle || 'Motor',
       vehicle_plate: d.vehicle_plate || '-',
-      balance: Number(d.balance) || 0,
+      balance: allowFinanceRadar ? (Number(d.balance) || 0) : null,
       trips: Number(d.trips) || 0,
       is_online: d.is_online !== false,
       is_suspended: isSuspended,
@@ -3465,6 +4501,7 @@ app.get('/api/super-admin/courier-radar', (req, res) => {
       latitude: lat,
       longitude: lng,
       has_live_gps: hasLiveGps || Boolean(activeOrder),
+      gps_ttl_expired: Boolean(!activeOrder && !isGpsFresh),
       heading,
       speed_kmh: d.last_speed_kmh != null ? Number(d.last_speed_kmh) : (activeOrder ? 28 : 0),
       last_seen_at: d.last_seen_at || null,
@@ -3641,8 +4678,13 @@ app.post('/api/super-admin/customers/password-resets/:id/approve', (req, res) =>
   }
 
   let nextHash = resetReq.new_password_hash || '';
+  let nextSalt = resetReq.new_password_salt || null;
+  let nextAlg = resetReq.new_password_alg || (nextSalt ? 'scrypt' : 'legacy');
   if (temporary_password && String(temporary_password).trim().length >= 6) {
-    nextHash = hashPassword(String(temporary_password).trim());
+    const sc = hashCustomerPasswordScrypt(String(temporary_password).trim());
+    nextHash = sc.hash;
+    nextSalt = sc.salt;
+    nextAlg = 'scrypt';
   }
   if (!nextHash) {
     return res.status(400).json({
@@ -3651,11 +4693,11 @@ app.post('/api/super-admin/customers/password-resets/:id/approve', (req, res) =>
     });
   }
 
-  let cust = applyCustomerPasswordUpdate(wallets, resetReq.customer_key, nextHash);
+  let cust = applyCustomerPasswordUpdate(wallets, resetReq.customer_key, nextHash, nextSalt, nextAlg);
   if (!cust) {
     const fallbackMatch = findCustomerEntry(wallets, resetReq.customer_email || resetReq.customer_phone);
     if (fallbackMatch) {
-      cust = applyCustomerPasswordUpdate(wallets, fallbackMatch.key, nextHash);
+      cust = applyCustomerPasswordUpdate(wallets, fallbackMatch.key, nextHash, nextSalt, nextAlg);
     }
   }
   if (!cust) {
@@ -3711,7 +4753,8 @@ app.post('/api/super-admin/customers/:key/reset-password', (req, res) => {
   }
 
   const wallets = readJSON(WALLETS_FILE);
-  const cust = applyCustomerPasswordUpdate(wallets, key, hashPassword(cleanPass));
+  const sc = hashCustomerPasswordScrypt(cleanPass);
+  const cust = applyCustomerPasswordUpdate(wallets, key, sc.hash, sc.salt, 'scrypt');
   if (!cust) {
     return res.status(404).json({ success: false, message: 'Akun pelanggan tidak ditemukan' });
   }

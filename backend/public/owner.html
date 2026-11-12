@@ -1374,6 +1374,69 @@
           <div class="text-center py-6 text-xs text-slate-500">Memuat daftar akun akses...</div>
         </div>
       </div>
+
+      <!-- KHUSUS OWNER UTAMA: PUSAT KONTROL KEAMANAN & AUDIT REAL-TIME LOCATION -->
+      <div id="ownerSecurityPanel" class="hidden bg-slate-900/75 border border-emerald-500/25 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+          <div>
+            <h2 class="text-xs md:text-sm font-extrabold text-emerald-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Pusat Kontrol Keamanan Data &amp; Real-Time Location</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">Enkripsi AES-256-GCM GPS/PII, Zero-Trust Token 5-Domain, Anti-GPS Spoof, Brute-Force Lock &amp; Audit Trail.</p>
+          </div>
+          <span id="secEpochBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Epoch #1 • Aktif</span>
+        </div>
+
+        <div id="secLayersChips" class="flex flex-wrap gap-1.5 text-[10px]">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Blokir Brute-Force Aktif</span>
+            <p id="secStatLocks" class="text-base font-extrabold text-rose-400 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">GPS Kurir Kadaluarsa</span>
+            <p id="secStatStaleDriver" class="text-base font-extrabold text-amber-400 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">GPS Order Selesai</span>
+            <p id="secStatStaleOrder" class="text-base font-extrabold text-sky-400 tabular-nums mt-0.5">0</p>
+          </div>
+          <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5">
+            <span class="text-[10px] text-slate-500 block">Rotasi Kunci Terakhir</span>
+            <p id="secStatRotatedAt" class="text-[11px] font-bold text-slate-200 mt-1 truncate">-</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="revokeAllPlatformSessions()" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold flex items-center gap-1.5 shadow transition">
+            <i class="fa-solid fa-power-off"></i>
+            <span>Cabut Semua Sesi Aktif (Semua Perangkat)</span>
+          </button>
+          <button type="button" onclick="purgeStaleGpsTelemetry()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500 text-amber-300 hover:text-slate-950 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-broom"></i>
+            <span>Bersihkan Cache GPS Lama</span>
+          </button>
+          <button type="button" onclick="clearAuthLockouts()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-unlock-keyhole text-emerald-400"></i>
+            <span>Buka Blokir Login</span>
+          </button>
+          <button type="button" onclick="fetchSecurityStatus()" class="px-2.5 py-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 text-[11px] font-semibold flex items-center gap-1 transition ml-auto">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Refresh Audit</span>
+          </button>
+        </div>
+
+        <div class="space-y-1.5 pt-2 border-t border-slate-800">
+          <h3 class="text-[11px] font-bold text-slate-300 uppercase tracking-wide">Audit Log Keamanan &amp; Lokasi Terkini</h3>
+          <div id="secAuditLogList" class="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+            <div class="text-center py-4 text-xs text-slate-500">Memuat catatan keamanan...</div>
+          </div>
+        </div>
+      </div>
     </section>
 
   </div>
@@ -6364,6 +6427,7 @@
       const userWrap = document.getElementById('ownProfileUsernameWrap');
       const userInp = document.getElementById('ownProfileUsernameInput');
       const managerCard = document.getElementById('ownerAccountManagerCard');
+      const secPanel = document.getElementById('ownerSecurityPanel');
 
       if (avatarEl) avatarEl.innerText = meta.icon;
       if (nameEl) nameEl.innerText = currentPortalUser.full_name || currentPortalUser.username;
@@ -6377,6 +6441,8 @@
       if (userWrap) userWrap.classList.toggle('hidden', currentPortalUser.role !== 'owner');
       if (userInp) userInp.value = currentPortalUser.username || '';
       if (managerCard) managerCard.classList.toggle('hidden', currentPortalUser.role !== 'owner');
+      if (secPanel) secPanel.classList.toggle('hidden', currentPortalUser.role !== 'owner');
+      if (currentPortalUser.role === 'owner') fetchSecurityStatus();
 
       if (chipsEl) {
         const tabs = (currentPortalUser.permissions && currentPortalUser.permissions.tabs) || [];
@@ -6444,6 +6510,116 @@
         }
       } catch (err) {
         console.error('Gagal mengambil daftar akun portal:', err);
+      }
+    }
+
+    async function fetchSecurityStatus() {
+      if (!currentPortalUser || currentPortalUser.role !== 'owner') return;
+      try {
+        const res = await fetch('/api/super-admin/security/status').then(r => r.json());
+        if (res.success && res.data) {
+          renderSecurityPanel(res.data);
+        }
+      } catch (err) {
+        console.error('Gagal memuat status keamanan:', err);
+      }
+    }
+
+    function renderSecurityPanel(data) {
+      const epochEl = document.getElementById('secEpochBadge');
+      if (epochEl) epochEl.innerText = `Epoch #${data.session_epoch || 1} • Aktif`;
+
+      const locksEl = document.getElementById('secStatLocks');
+      if (locksEl) locksEl.innerText = Number(data.active_auth_locks || 0).toLocaleString('id-ID');
+
+      const drvEl = document.getElementById('secStatStaleDriver');
+      if (drvEl) drvEl.innerText = Number(data.stale_driver_gps_count || 0).toLocaleString('id-ID');
+
+      const ordEl = document.getElementById('secStatStaleOrder');
+      if (ordEl) ordEl.innerText = Number(data.stale_order_gps_count || 0).toLocaleString('id-ID');
+
+      const rotEl = document.getElementById('secStatRotatedAt');
+      if (rotEl) rotEl.innerText = data.rotated_at ? formatTimeAgo(data.rotated_at) : '-';
+
+      const chipsEl = document.getElementById('secLayersChips');
+      if (chipsEl) {
+        chipsEl.innerHTML = (data.layers || []).map(l => `
+          <span class="px-2 py-0.5 rounded-lg bg-slate-950 border border-emerald-500/25 text-emerald-300 font-semibold">
+            <i class="fa-solid fa-shield-check mr-1"></i>${escapeHtml(l.name)}
+          </span>
+        `).join('');
+      }
+
+      const logEl = document.getElementById('secAuditLogList');
+      if (logEl) {
+        const logs = data.audit_logs || [];
+        if (logs.length === 0) {
+          logEl.innerHTML = `<div class="text-center py-4 text-xs text-slate-500">Belum ada catatan aktivitas keamanan mencurigakan.</div>`;
+        } else {
+          const sevCls = {
+            CRITICAL: 'bg-rose-500/15 text-rose-300 border-rose-500/35',
+            HIGH: 'bg-orange-500/15 text-orange-300 border-orange-500/35',
+            WARN: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+            INFO: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+          };
+          logEl.innerHTML = logs.map(item => `
+            <div class="bg-slate-950/75 border border-slate-800 rounded-xl px-2.5 py-2 flex flex-wrap items-center justify-between gap-2 text-[10px]">
+              <div class="min-w-0 flex-1 space-y-0.5">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded border font-bold text-[9px] ${sevCls[item.severity] || sevCls.INFO}">${escapeHtml(item.severity)} • ${escapeHtml(item.event)}</span>
+                  <span class="font-bold text-slate-200">${escapeHtml(item.actor || '-')}</span>
+                  <span class="text-slate-500 font-mono">${escapeHtml(item.ip || '')}</span>
+                </div>
+                <p class="text-slate-400 truncate">${escapeHtml(item.detail || item.path || '-')}</p>
+              </div>
+              <span class="text-slate-500 shrink-0">${escapeHtml(formatTimeAgo(item.at))}</span>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    async function revokeAllPlatformSessions() {
+      if (!confirm('🚨 CABUT SEMUA SESI?\n\nSemua akun Portal (Mitra/Management), Kasir Lapak, Kurir, Customer, dan link pelacakan yang sedang aktif di perangkat lain akan langsung dikeluarkan (wajib login ulang). Anda tetap masuk di browser ini.\n\nLanjutkan?')) return;
+      try {
+        const res = await fetch('/api/super-admin/security/revoke-all', { method: 'POST' }).then(r => r.json());
+        if (res.success) {
+          if (res.data && res.data.new_token) setPortalToken(res.data.new_token);
+          alert('✅ ' + res.message);
+          fetchSecurityStatus();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal mencabut sesi'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function purgeStaleGpsTelemetry() {
+      try {
+        const res = await fetch('/api/super-admin/security/purge-stale-gps', { method: 'POST' }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchSecurityStatus();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal membersihkan GPS'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
+      }
+    }
+
+    async function clearAuthLockouts() {
+      try {
+        const res = await fetch('/api/super-admin/security/clear-lockouts', { method: 'POST' }).then(r => r.json());
+        if (res.success) {
+          alert('✅ ' + res.message);
+          fetchSecurityStatus();
+        } else {
+          alert('❌ ' + (res.message || 'Gagal membuka blokir'));
+        }
+      } catch (err) {
+        alert('❌ Gagal menghubungi server');
       }
     }
 
