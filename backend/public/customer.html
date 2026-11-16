@@ -19,6 +19,9 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- LEAFLET.JS MAP INTERAKTIF (100% GRATIS & RINGAN UNTUK HP) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -28,7 +31,10 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #FAF8F5;
+    }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     @keyframes pinBounce {
@@ -43,7 +49,7 @@
     .leaflet-bottom, .leaflet-top { z-index: 2 !important; }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800 pb-28">
+<body class="min-h-screen text-slate-800 pb-28">
 
   <!-- ========================================================================= -->
   <!-- PIPELINE CUSTOMER - STEP 1: COVER HALAMAN DEPAN PELANGGAN                 -->
@@ -217,47 +223,52 @@
     </div>
   </div>
 
-  <!-- TOP HEADER -->
-  <header class="bg-[#FBBF24] p-4 sticky top-0 z-20 shadow-sm border-b border-yellow-500">
+  <!-- TOP HEADER (OFFICIAL KEBAB AL BEWOK BRANDING) -->
+  <header class="bg-gradient-to-r from-red-800 via-red-700 to-amber-600 text-white p-3.5 sticky top-0 z-20 shadow-lg border-b border-amber-400/30">
     <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <span class="text-2xl">🍢</span>
+      <div class="flex items-center space-x-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-zinc-950/80 border border-amber-300/40 flex items-center justify-center text-xl shadow-md">
+          🍢
+        </div>
         <div>
-          <h1 class="font-extrabold text-red-700 text-lg leading-tight tracking-wide">KEBAB AL BEWOK</h1>
-          <p class="text-[11px] font-semibold text-gray-800">Rasa Nikmat, Harga Bersahabat!</p>
+          <h1 class="font-black text-white text-base leading-tight tracking-wide flex items-center gap-1.5">
+            <span>KEBAB</span>
+            <span class="text-amber-300 font-black">AL BEWOK</span>
+          </h1>
+          <p class="text-[10px] font-bold text-amber-100/90 tracking-tight">Rasa Nikmat, Harga Bersahabat!</p>
         </div>
       </div>
       <!-- BAGIAN KANAN HEADER: KERANJANG & USER BADGE -->
       <div class="flex items-center space-x-2">
         <!-- TOMBOL KERANJANG DI TOP HEADER -->
-        <button onclick="openCartModal()" id="btnHeaderCart" class="relative bg-white hover:bg-amber-50 text-slate-800 w-9 h-9 rounded-full shadow-sm border border-amber-300 flex items-center justify-center transition active:scale-95" title="Keranjang Belanja">
-          <i class="fa-solid fa-cart-shopping text-red-600 text-sm"></i>
+        <button onclick="openCartModal()" id="btnHeaderCart" class="relative bg-zinc-950/70 hover:bg-zinc-900 text-amber-300 w-9 h-9 rounded-xl shadow-md border border-amber-400/40 flex items-center justify-center transition active:scale-95" title="Keranjang Belanja">
+          <i class="fa-solid fa-cart-shopping text-amber-400 text-sm"></i>
           <span id="headerCartBadge" class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow hidden">0</span>
         </button>
 
         <!-- BADGE USER / LOGIN STATUS -->
         <div id="userHeaderBadge" class="flex items-center space-x-1.5">
-          <button onclick="openLoginModal()" class="bg-white hover:bg-gray-50 text-gray-800 text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow border flex items-center space-x-1.5 transition">
+          <button onclick="openLoginModal()" class="bg-zinc-950/70 hover:bg-zinc-900 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl shadow border border-amber-400/40 flex items-center space-x-1.5 transition">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            <span>Masuk Google</span>
+            <span>Masuk</span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- SELECTOR TUJUAN PENGANTARAN (SISTEM GOJEK / GRAB) -->
-    <div onclick="openAddressPickerModal()" class="mt-2.5 bg-gradient-to-r from-red-50 to-amber-50 border border-amber-300 rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-sm cursor-pointer hover:bg-amber-100/70 transition active:scale-98">
+    <div onclick="openAddressPickerModal()" class="mt-2.5 bg-white text-slate-800 border border-amber-300 rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-md cursor-pointer hover:bg-amber-50/70 transition active:scale-98">
       <div class="flex items-center space-x-2.5 overflow-hidden">
-        <div id="targetDestIconContainer" class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0">
+        <div id="targetDestIconContainer" class="w-8 h-8 rounded-xl bg-red-600 text-white flex items-center justify-center text-sm shadow-sm flex-shrink-0">
           <i id="targetDestIcon" class="fa-solid fa-location-crosshairs"></i>
         </div>
         <div class="truncate text-left">
           <div class="flex items-center space-x-1.5">
-            <span class="text-gray-500 text-[10px] font-bold">Antar ke:</span>
-            <span id="targetDestLabel" class="font-black text-gray-900 text-xs truncate">Posisi Saya Saat Ini</span>
-            <span id="targetDestBadge" class="bg-blue-200 text-blue-900 text-[9px] font-extrabold px-1.5 py-0.2 rounded-md">GPS</span>
+            <span class="text-zinc-500 text-[10px] font-bold">Antar ke:</span>
+            <span id="targetDestLabel" class="font-black text-slate-900 text-xs truncate">Posisi Saya Saat Ini</span>
+            <span id="targetDestBadge" class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-black px-1.5 py-0.2 rounded-md">GPS</span>
           </div>
-          <p id="targetDestAddressText" class="text-[11px] text-gray-600 font-medium truncate mt-0.5">Mendeteksi lokasi satelit HP Anda...</p>
+          <p id="targetDestAddressText" class="text-[11px] text-zinc-600 font-medium truncate mt-0.5">Mendeteksi lokasi satelit HP Anda...</p>
         </div>
       </div>
       <div class="flex items-center space-x-1 text-red-600 font-extrabold text-[11px] flex-shrink-0 pl-2">
@@ -267,32 +278,32 @@
     </div>
 
     <!-- OUTLET SELECTOR -->
-    <div class="mt-2.5 bg-white/90 backdrop-blur rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm">
+    <div class="mt-2.5 bg-zinc-950/80 text-white backdrop-blur rounded-xl p-2.5 flex items-center justify-between text-xs shadow-sm border border-amber-400/30">
       <div class="flex items-center space-x-2 overflow-hidden">
-        <i class="fa-solid fa-location-dot text-red-600"></i>
+        <i class="fa-solid fa-location-dot text-amber-400"></i>
         <div class="truncate">
-          <span class="text-gray-500 text-[10px] block">Lapak Terdekat:</span>
-          <select id="branchSelect" onchange="changeBranch()" class="font-bold text-gray-800 bg-transparent outline-none cursor-pointer">
-            <option value="cabang-01">Cabang Pasar Baru (1.2 km)</option>
-            <option value="cabang-02">Cabang Alun-Alun (2.5 km)</option>
+          <span class="text-zinc-400 text-[10px] block">Lapak Terdekat:</span>
+          <select id="branchSelect" onchange="changeBranch()" class="font-bold text-amber-200 bg-transparent outline-none cursor-pointer">
+            <option value="cabang-01" class="bg-zinc-900 text-white">Cabang Pasar Baru (1.2 km)</option>
+            <option value="cabang-02" class="bg-zinc-900 text-white">Cabang Alun-Alun (2.5 km)</option>
           </select>
         </div>
       </div>
-      <span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px]">BUKA</span>
+      <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-black px-2 py-0.5 rounded text-[10px]">BUKA</span>
     </div>
 
     <!-- BANNER PINTAR: DOWNLOAD APK ANDROID ATAU PASANG DI IPHONE -->
-    <div id="smartInstallBanner" class="mt-3 bg-gradient-to-r from-red-700 via-amber-600 to-yellow-600 text-white rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-md border border-yellow-300/50">
+    <div id="smartInstallBanner" class="mt-3 bg-gradient-to-r from-zinc-900 via-red-950 to-zinc-900 text-white rounded-2xl p-2.5 flex items-center justify-between text-xs shadow-lg border border-amber-500/30">
       <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center text-red-900 text-base shadow-sm shrink-0">
+        <div class="w-9 h-9 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center text-zinc-950 text-base shadow-sm shrink-0">
           <span id="bannerIcon">🤖</span>
         </div>
         <div>
           <span id="bannerTitle" class="font-extrabold block text-[12px] leading-tight text-white">Aplikasi Resmi Android</span>
-          <span id="bannerSubtitle" class="text-[10px] text-yellow-100">Unduh file .APK (Hanya 3.7 MB)</span>
+          <span id="bannerSubtitle" class="text-[10px] text-amber-200/80">Unduh file .APK (Hanya 3.7 MB)</span>
         </div>
       </div>
-      <a id="btnInstallAction" href="https://github.com/muhammadinsanrachmady/kebab-al-bewok/releases/download/v1.0.0/Kebab_AL_Bewok.apk" download class="bg-yellow-400 hover:bg-yellow-300 text-red-950 font-black px-3.5 py-2 rounded-xl text-[11px] shadow-md transition shrink-0 flex items-center space-x-1.5 cursor-pointer">
+      <a id="btnInstallAction" href="https://github.com/muhammadinsanrachmady/kebab-al-bewok/releases/download/v1.0.0/Kebab_AL_Bewok.apk" download class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-zinc-950 font-black px-3.5 py-2 rounded-xl text-[11px] shadow transition shrink-0 flex items-center space-x-1.5 cursor-pointer border border-amber-300/40">
         <i id="btnIcon" class="fa-solid fa-download text-xs"></i>
         <span id="bannerBtnText">Unduh APK</span>
       </a>

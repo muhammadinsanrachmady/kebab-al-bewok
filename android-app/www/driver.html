@@ -6,6 +6,9 @@
   <title>Kebab AL Bewok - Driver Kurir</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- LEAFLET.JS MAP INTERAKTIF (100% GRATIS & OPEN-SOURCE OPENSTREETMAP, TANPA API BERBAYAR) -->
@@ -15,6 +18,7 @@
   <!-- GOOGLE IDENTITY SERVICES (GSI) - AUTENTIKASI RESMI GOOGLE OAUTH 2.0 -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     @keyframes pulse-slow {
       0%, 100% { transform: scale(1); opacity: 1; }
       50% { transform: scale(1.04); opacity: 0.92; }
@@ -63,15 +67,15 @@
     
     <!-- BRANDING COVER -->
     <div class="pt-4">
-      <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-xl shadow-emerald-500/20 mb-3 border border-emerald-300/30 animate-bounce-short">
+      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 via-orange-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl shadow-red-950/70 mb-3 border-2 border-amber-300/40 animate-bounce-short">
         🛵
       </div>
-      <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-emerald-400/30">
+      <span class="bg-amber-400/20 text-amber-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-400/30">
         Mitra Kurir Resmi
       </span>
       <h1 class="text-2xl font-black tracking-tight mt-2 text-white">KEBAB AL BEWOK</h1>
-      <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-        Aplikasi Driver Freelance: Penghasilan harian pasti per trip & pencairan dompet instan!
+      <p class="text-xs text-amber-100/70 mt-1 max-w-xs mx-auto">
+        Aplikasi Driver Freelance: Penghasilan harian pasti per trip &amp; pencairan dompet instan!
       </p>
     </div>
 
@@ -152,10 +156,8 @@
     </div>
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- HEADER DRIVER: Profil Bar & Status Online                                 -->
-  <!-- ========================================================================= -->
-  <header class="bg-slate-950 text-white p-3.5 sticky top-0 z-30 shadow-lg border-b border-slate-800">
+  <!-- HEADER DRIVER: Profil Bar & Status Online (AL BEWOK DARK LUXURY) -->
+  <header class="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 text-white p-3.5 sticky top-0 z-30 shadow-xl border-b border-amber-500/30">
     <div class="max-w-md mx-auto flex items-center justify-between">
       
       <!-- Profil Pill / Tombol Login Driver -->

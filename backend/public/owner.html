@@ -6,9 +6,18 @@
   <title>Portal Owner - Kebab AL Bewok</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+      background-color: #08080a !important;
+      background-image: radial-gradient(circle at 50% -10%, #300c10 0%, #0d080a 35%, #08080a 100%) !important;
+      background-attachment: fixed !important;
+    }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -26,23 +35,23 @@
       z-index: 2 !important;
     }
     #courierRadarMap.leaflet-container {
-      background: #020617;
+      background: #08080c;
       font-family: inherit;
     }
     .atc-popup .leaflet-popup-content-wrapper {
-      background: #0f172a;
+      background: #14141c;
       color: #f1f5f9;
-      border: 1px solid #334155;
+      border: 1px solid rgba(245, 158, 11, 0.25);
       border-radius: 12px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75);
     }
     .atc-popup .leaflet-popup-tip {
-      background: #0f172a;
-      border-right: 1px solid #334155;
-      border-bottom: 1px solid #334155;
+      background: #14141c;
+      border-right: 1px solid rgba(245, 158, 11, 0.25);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
     }
     .atc-popup .leaflet-popup-close-button {
-      color: #94a3b8;
+      color: #f59e0b;
     }
     @keyframes atcPulse {
       0% { transform: scale(0.85); opacity: 0.8; }
@@ -64,79 +73,122 @@
     #ownerAppShell.portal-no-finance .portal-finance-only {
       display: none !important;
     }
+
+    /* Kebab AL Bewok Signature Palette Overrides */
+    .bg-slate-950 {
+      background-color: #09090c !important;
+    }
+    .bg-slate-900 {
+      background-color: #121218 !important;
+    }
+    .bg-slate-900\/95, .bg-slate-900\/90, .bg-slate-900\/80, .bg-slate-900\/75, .bg-slate-900\/70, .bg-slate-900\/60 {
+      background-color: rgba(18, 18, 24, 0.88) !important;
+    }
+    .bg-slate-800 {
+      background-color: #1a1a24 !important;
+    }
+    .border-slate-800, .border-slate-800\/80, .border-slate-800\/60 {
+      border-color: rgba(245, 158, 11, 0.16) !important;
+    }
+    .border-slate-700 {
+      border-color: rgba(245, 158, 11, 0.25) !important;
+    }
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-3 md:p-6 antialiased">
+<body class="text-slate-100 min-h-screen p-3 md:p-6 antialiased">
 
   <!-- LAYAR LOGIN PORTAL (OWNER UTAMA, MITRA & MANAGEMENT OPERASIONAL) -->
-  <div id="portalLoginOverlay" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-2xl">
-      <div class="text-center space-y-1.5">
-        <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center text-2xl">
-          👑
-        </div>
-        <h1 class="text-base font-extrabold text-slate-100 tracking-tight">Portal Owner &amp; Management</h1>
-        <p class="text-[11px] text-slate-400">Kebab AL Bewok • Masuk menggunakan akun Owner, Mitra, atau tim Management</p>
-      </div>
+  <div id="portalLoginOverlay" class="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950 border border-amber-500/30 rounded-3xl p-6 space-y-4 shadow-2xl shadow-red-950/40 relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-32 h-32 bg-red-600/15 rounded-full blur-2xl"></div>
+      <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-amber-500/15 rounded-full blur-2xl"></div>
 
-      <div id="portalLoginError" class="hidden bg-rose-500/15 border border-rose-500/35 text-rose-300 rounded-xl px-3 py-2 text-[11px] font-medium"></div>
-
-      <form onsubmit="submitPortalLogin(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="text-[11px] font-semibold text-slate-300 block mb-1">ID / Username</label>
-          <div class="relative">
-            <i class="fa-solid fa-user text-slate-500 absolute left-3 top-2.5 text-[11px]"></i>
-            <input type="text" id="portalLoginUsername" required autocomplete="username" placeholder="Masukkan ID / Username" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
+      <div class="text-center space-y-2 relative">
+        <!-- AL BEWOK BRAND LOGO -->
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 p-[2px] shadow-xl shadow-red-950/70">
+          <div class="w-full h-full bg-zinc-950 rounded-[14px] flex items-center justify-center relative overflow-hidden">
+            <span class="text-2xl filter drop-shadow">🍢</span>
+            <div class="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 to-amber-500"></div>
           </div>
         </div>
 
         <div>
-          <label class="text-[11px] font-semibold text-slate-300 block mb-1">Password</label>
+          <h1 class="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+            <span>KEBAB</span>
+            <span class="gold-gradient-text font-black">AL BEWOK</span>
+          </h1>
+          <p class="text-[11px] text-amber-200/70 font-medium">Portal Owner, Mitra &amp; Manajemen Pusat</p>
+        </div>
+      </div>
+
+      <div id="portalLoginError" class="hidden bg-rose-500/15 border border-rose-500/35 text-rose-300 rounded-xl px-3 py-2 text-[11px] font-medium"></div>
+
+      <form onsubmit="submitPortalLogin(event)" class="space-y-3.5 text-xs relative">
+        <div>
+          <label class="text-[11px] font-bold text-amber-200/90 block mb-1">ID / Username</label>
           <div class="relative">
-            <i class="fa-solid fa-lock text-slate-500 absolute left-3 top-2.5 text-[11px]"></i>
-            <input type="password" id="portalLoginPassword" required autocomplete="current-password" placeholder="Masukkan Password" class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-9 py-2 text-xs text-slate-100 outline-none focus:border-amber-500">
-            <button type="button" onclick="toggleInputVisibility('portalLoginPassword', this)" class="absolute right-2.5 top-2 text-slate-500 hover:text-slate-300 text-xs px-1" aria-label="Tampilkan Password">
+            <i class="fa-solid fa-user text-amber-500/60 absolute left-3 top-2.5 text-[11px]"></i>
+            <input type="text" id="portalLoginUsername" required autocomplete="username" placeholder="Masukkan ID / Username" class="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-500 rounded-xl pl-8 pr-3 py-2.5 text-xs text-slate-100 outline-none transition shadow-inner">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-amber-200/90 block mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock text-amber-500/60 absolute left-3 top-2.5 text-[11px]"></i>
+            <input type="password" id="portalLoginPassword" required autocomplete="current-password" placeholder="Masukkan Password" class="w-full bg-zinc-950 border border-zinc-700/80 focus:border-amber-500 rounded-xl pl-8 pr-9 py-2.5 text-xs text-slate-100 outline-none transition shadow-inner">
+            <button type="button" onclick="toggleInputVisibility('portalLoginPassword', this)" class="absolute right-2.5 top-2.5 text-zinc-400 hover:text-amber-400 text-xs px-1" aria-label="Tampilkan Password">
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
         </div>
 
-        <button type="submit" id="btnPortalLoginSubmit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition active:scale-98 flex items-center justify-center gap-1.5 shadow-lg">
+        <button type="submit" id="btnPortalLoginSubmit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs transition active:scale-98 flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/50 border border-amber-300/40">
           <i class="fa-solid fa-right-to-bracket"></i>
           <span>Masuk ke Dashboard</span>
         </button>
       </form>
 
-      <p class="text-[10px] text-center text-slate-500 leading-relaxed border-t border-slate-800/80 pt-3">
-        Akun <b class="text-slate-300">Mitra</b> &amp; <b class="text-slate-300">Management Operasional</b> dibuat oleh Owner Utama pada Tab Profile.
+      <p class="text-[10px] text-center text-zinc-400 leading-relaxed border-t border-amber-500/15 pt-3">
+        Akun <b class="text-amber-300 font-bold">Mitra</b> &amp; <b class="text-amber-300 font-bold">Manajemen</b> dibuat langsung oleh Owner Utama pada Tab Profile.
       </p>
     </div>
   </div>
 
   <div id="ownerAppShell" class="max-w-5xl mx-auto space-y-3.5 hidden">
 
-    <!-- HEADER COMPACT -->
-    <header class="flex items-center justify-between gap-3 pb-2 border-b border-slate-800/80">
-      <div class="flex items-center space-x-2.5 min-w-0">
-        <div id="headerRoleIcon" class="w-9 h-9 bg-amber-500/15 border border-amber-500/30 rounded-xl flex items-center justify-center text-base shrink-0">
-          👑
+    <!-- HEADER COMPACT BERBRANDING RESMI -->
+    <header class="flex items-center justify-between gap-3 pb-3 border-b border-amber-500/20 backdrop-blur-md bg-zinc-950/40 p-3 rounded-2xl">
+      <div class="flex items-center space-x-3 min-w-0">
+        <div id="headerRoleIcon" class="w-10 h-10 bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 p-[2px] rounded-xl shadow-lg shadow-red-950/60 shrink-0">
+          <div class="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center text-base">
+            🍢
+          </div>
         </div>
         <div class="min-w-0">
-          <h1 id="headerPortalTitle" class="text-sm md:text-base font-extrabold text-slate-100 tracking-tight truncate">Portal Owner</h1>
-          <p id="headerUserSubtitle" class="text-[11px] text-slate-400 truncate">Kebab AL Bewok • Super Admin</p>
+          <h1 id="headerPortalTitle" class="text-sm md:text-base font-black text-white tracking-tight truncate flex items-center gap-1">
+            <span>Portal</span>
+            <span class="gold-gradient-text font-black">Owner</span>
+          </h1>
+          <p id="headerUserSubtitle" class="text-[11px] text-amber-200/70 font-medium truncate">Kebab AL Bewok • Super Admin</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-1.5 text-[11px] shrink-0">
-        <a href="/admin.html" class="portal-no-mitra bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 transition flex items-center space-x-1">
-          <i class="fa-solid fa-cash-register text-[10px]"></i>
+        <a href="/admin.html" class="portal-no-mitra bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-amber-400 font-bold px-2.5 py-1.5 rounded-lg border border-amber-500/20 transition flex items-center space-x-1">
+          <i class="fa-solid fa-cash-register text-[10px] text-amber-400"></i>
           <span class="hidden sm:inline">Kasir</span>
         </a>
-        <button type="button" onclick="fetchAllData()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95">
+        <button type="button" onclick="fetchAllData()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black px-2.5 py-1.5 rounded-lg flex items-center space-x-1 transition active:scale-95 shadow-sm border border-amber-300/40">
           <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
           <span class="hidden sm:inline">Refresh</span>
         </button>
-        <button type="button" onclick="logoutPortal()" title="Keluar / Ganti Akun" class="bg-slate-900 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 font-semibold px-2.5 py-1.5 rounded-lg border border-slate-800 hover:border-rose-500/30 flex items-center space-x-1 transition">
+        <button type="button" onclick="logoutPortal()" title="Keluar / Ganti Akun" class="bg-zinc-900 hover:bg-rose-950/50 text-zinc-300 hover:text-rose-300 font-semibold px-2.5 py-1.5 rounded-lg border border-zinc-800 hover:border-rose-500/30 flex items-center space-x-1 transition">
           <i class="fa-solid fa-arrow-right-from-bracket text-[10px]"></i>
           <span class="hidden sm:inline">Keluar</span>
         </button>
@@ -1891,10 +1943,10 @@
     };
 
     const OWNER_TABS = ['omzet', 'lapak', 'kurir', 'costumer', 'gudang', 'statistik', 'profile'];
-    const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative';
-    const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative';
-    const PERIOD_ACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 transition';
-    const PERIOD_INACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-100 border border-transparent shrink-0 transition';
+    const TAB_ACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-black bg-gradient-to-r from-amber-500 to-amber-400 text-zinc-950 shadow-md shadow-amber-950/40 border border-amber-300/40 relative';
+    const TAB_INACTIVE_CLASS = 'shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-semibold text-zinc-400 hover:text-amber-200 hover:bg-zinc-800/80 border border-transparent relative';
+    const PERIOD_ACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-black bg-gradient-to-r from-amber-500/20 to-red-500/15 text-amber-300 border border-amber-500/40 shadow-sm shrink-0 transition';
+    const PERIOD_INACTIVE_CLASS = 'px-2.5 py-1 rounded-lg text-[11px] font-medium text-zinc-400 hover:text-amber-200 border border-transparent shrink-0 transition';
 
     let currentOwnerTab = 'omzet';
     let selectedBranchId = 'all';
