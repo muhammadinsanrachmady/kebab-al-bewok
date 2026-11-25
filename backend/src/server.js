@@ -279,7 +279,7 @@ const PORT = process.env.PORT || 5000;
 // 1. Lapis Header Keamanan HTTP Ketat + Anti-Cache Data Sensitif
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('X-DNS-Prefetch-Control', 'off');
   res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(self), payment=()');

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Kebab AL Bewok - Dapur & Kasir Lapak</title>
   <!-- PWA & MOBILE APP TAGS -->
   <link rel="manifest" href="/manifest-admin.json">
@@ -2747,10 +2748,10 @@
           attributionControl: true
         }).setView([activeLat, activeLng], 15);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          subdomains: ['a', 'b', 'c'],
-          attribution: '&copy; OpenStreetMap contributors'
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 20,
+          subdomains: 'abcd',
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(branchMap);
 
         const kioskIcon = L.divIcon({

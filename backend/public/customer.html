@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Kebab AL Bewok - Pesan Online</title>
   <meta name="description" content="Pesan Kebab AL Bewok lezat langsung dari lapak terdekat. Pengantaran cepat dengan kurir internal tanpa komisi.">
   <link rel="canonical" href="https://albewok.my.id/customer.html">
@@ -2328,11 +2329,11 @@
         // Kontrol zoom di pojok kiri atas
         L.control.zoom({ position: 'topleft' }).addTo(leafletMapInstance);
 
-        // Tile layer resmi OpenStreetMap murni (100% Gratis, Tanpa Watermark, Tanpa API Key)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          subdomains: ['a', 'b', 'c'],
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // Tile layer CartoDB Voyager murni berbasis data OpenStreetMap (Cepat, Stabil, HD, 100% Bebas Blokir)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 20,
+          subdomains: 'abcd',
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(leafletMapInstance);
 
         // Tampilkan marker cabang Kebab AL Bewok di peta
@@ -3877,10 +3878,10 @@
         attributionControl: false
       }).setView([defaultLat, defaultLng], 14);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        subdomains: ['a', 'b', 'c'],
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        subdomains: 'abcd',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       }).addTo(trackMap);
 
       L.control.zoom({ position: 'bottomright' }).addTo(trackMap);
