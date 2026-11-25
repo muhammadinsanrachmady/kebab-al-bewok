@@ -1,0 +1,25 @@
+{
+  "name": "Kebab AL Bewok - Dapur & Kasir POS",
+  "short_name": "Kebab POS",
+  "description": "Aplikasi Kasir & Kitchen Display Resmi Kebab AL Bewok",
+  "start_url": "/admin.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#121218",
+  "theme_color": "#D97706",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
