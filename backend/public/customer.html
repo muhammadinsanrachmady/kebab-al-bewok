@@ -71,6 +71,16 @@
       <p class="text-xs text-amber-100/80 mt-1 max-w-xs mx-auto">
         Rasa Gurih Berempah, Daging Panggang Juicy & Saus Istimewa Langsung Diantar ke Pintu Anda!
       </p>
+
+      <!-- MINI CINEMATIC PREVIEW -->
+      <div class="mt-3 max-w-xs mx-auto rounded-2xl overflow-hidden border border-amber-400/30 relative h-28 shadow-lg group">
+        <img src="/images/kebab-cheesy-melt.jpg" alt="Kebab Cheesy Lava" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/20"></div>
+        <div class="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[10px]">
+          <span class="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded uppercase">Sensasi Keju Lumer</span>
+          <span class="text-amber-200 font-bold bg-black/60 px-2 py-0.5 rounded backdrop-blur">⭐ 100% Halal &amp; Juicy</span>
+        </div>
+      </div>
     </div>
 
     <!-- PIPELINE ROADMAP 3 LANGKAH -->
@@ -314,15 +324,17 @@
     </div>
   </header>
 
-  <!-- BANNER PROMO -->
+  <!-- BANNER PROMO SINEMATIK -->
   <div class="p-4">
-    <div class="bg-gradient-to-r from-red-600 to-amber-500 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
-      <div class="relative z-10">
-        <span class="bg-yellow-400 text-red-900 font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase">Hemat Tanpa Komisi</span>
-        <h2 class="text-lg font-black mt-1">Beli Kebab Langsung di Lapak</h2>
-        <p class="text-xs text-yellow-100 mt-0.5">Ongkir murah, daging melimpah dengan nanas & bombay segar!</p>
+    <div class="rounded-2xl p-4 text-white shadow-md relative overflow-hidden bg-cover bg-center border border-amber-400/30" style="background-image: linear-gradient(to right, rgba(153, 27, 27, 0.94) 0%, rgba(180, 83, 9, 0.85) 55%, rgba(0, 0, 0, 0.4) 100%), url('/images/kebab-cheesy-melt.jpg');">
+      <div class="relative z-10 max-w-[75%] space-y-1">
+        <span class="bg-yellow-400 text-red-950 font-extrabold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider inline-flex items-center gap-1">
+          <i class="fa-solid fa-camera"></i> Foto Asli Produk
+        </span>
+        <h2 class="text-lg font-black leading-tight text-white drop-shadow">Sensasi Daging Panggang &amp; Keju Lumer</h2>
+        <p class="text-[11px] text-amber-100 font-medium">Tortilla renyah, daging berlimpah, nanas &amp; saus istimewa dibuat fresh!</p>
       </div>
-      <img src="/icons/kebab-albewok.svg" alt="Kebab" class="absolute -right-3 -bottom-4 w-24 h-24 opacity-25 filter drop-shadow pointer-events-none">
+      <img src="/icons/kebab-albewok.svg" alt="Kebab" class="absolute -right-3 -bottom-4 w-24 h-24 opacity-30 filter drop-shadow pointer-events-none">
     </div>
   </div>
 
@@ -3059,44 +3071,67 @@
       const container = document.getElementById('menuContainer');
       if (!globalMenu) return;
 
+      const catImages = {
+        'cat-original': '/images/kebab-original-cinematic.jpg',
+        'cat-cheesy': '/images/kebab-cheesy-melt.jpg',
+        'cat-signature': '/images/kebab-signature-curry.jpg'
+      };
+
       container.innerHTML = '';
 
       globalMenu.categories.forEach(cat => {
         if (catFilter !== 'all' && cat.id !== catFilter) return;
 
+        const catImg = catImages[cat.id] || '/images/kebab-original-cinematic.jpg';
         const catBlock = document.createElement('div');
         catBlock.className = 'space-y-3';
         catBlock.innerHTML = `
-          <div class="flex items-center justify-between border-b pb-1.5">
-            <div>
-              <h3 class="font-extrabold text-sm text-gray-900">${cat.name}</h3>
-              <p class="text-[11px] text-gray-500">${cat.description}</p>
+          <!-- HERO BANNER KATEGORI SINEMATIK -->
+          <div class="relative rounded-2xl overflow-hidden shadow-sm border border-amber-500/20 h-28 bg-zinc-950 group">
+            <img src="${catImg}" alt="${cat.name}" class="w-full h-full object-cover opacity-90 group-hover:scale-105 transition duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent"></div>
+            <div class="absolute bottom-2.5 left-3 right-3 flex items-end justify-between">
+              <div>
+                <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider inline-block mb-1">${cat.badge}</span>
+                <h3 class="font-black text-sm text-white leading-tight">${cat.name}</h3>
+                <p class="text-[10px] text-amber-100/90 line-clamp-1">${cat.description}</p>
+              </div>
+              <span class="text-[9px] bg-black/60 backdrop-blur text-amber-300 font-bold px-2 py-0.5 rounded-lg border border-amber-400/20">
+                ⭐ Foto Asli
+              </span>
             </div>
-            <span class="bg-amber-100 text-amber-800 font-bold text-[10px] px-2 py-0.5 rounded-full">${cat.badge}</span>
           </div>
+
+          <!-- LIST ITEM KATEGORI -->
           <div class="grid grid-cols-1 gap-2.5">
             ${cat.items.map(item => {
               const isItemOutOfStock = currentBranch && Array.isArray(currentBranch.out_of_stock) && currentBranch.out_of_stock.includes(item.id);
               return `
               <div class="bg-white p-3 rounded-2xl shadow-sm border ${isItemOutOfStock ? 'border-gray-200 opacity-60' : 'border-gray-100 hover:border-yellow-400'} flex items-center justify-between transition">
-                <div>
-                  <div class="flex items-center space-x-1.5">
-                    <span class="font-bold text-xs ${isItemOutOfStock ? 'text-gray-500 line-through' : 'text-gray-900'}">${item.name}</span>
-                    ${item.is_favorite && !isItemOutOfStock ? '<span class="text-[10px] bg-red-100 text-red-600 font-extrabold px-1.5 rounded">FAVORIT</span>' : ''}
-                    ${isItemOutOfStock ? '<span class="text-[9px] bg-red-100 text-red-600 font-black px-1.5 py-0.2 rounded">HABIS</span>' : ''}
+                <div class="flex items-center space-x-3 overflow-hidden">
+                  <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-amber-200/40 relative shadow-inner">
+                    <img src="${catImg}" alt="${item.name}" class="w-full h-full object-cover">
+                    ${item.is_favorite ? '<span class="absolute top-0 right-0 bg-red-600 text-[8px] text-white font-black px-1 rounded-bl">★</span>' : ''}
                   </div>
-                  <p class="text-[11px] text-gray-500 mt-0.5">Daging: ${item.meat_type}</p>
-                  <div class="mt-1 flex items-baseline space-x-1">
-                    <span class="text-xs font-extrabold text-red-600">Rp ${(item.prices ? (item.prices.reguler || item.prices.small || Object.values(item.prices)[0] || 0) : 0).toLocaleString('id-ID')}</span>
-                    <span class="text-[10px] text-gray-400">(${item.prices && item.prices.reguler ? 'Reguler' : 'Porsi'})</span>
+                  <div class="truncate">
+                    <div class="flex items-center space-x-1.5 truncate">
+                      <span class="font-bold text-xs ${isItemOutOfStock ? 'text-gray-500 line-through' : 'text-gray-900'} truncate">${item.name}</span>
+                      ${item.is_favorite && !isItemOutOfStock ? '<span class="text-[9px] bg-red-100 text-red-600 font-extrabold px-1.5 rounded shrink-0">FAVORIT</span>' : ''}
+                      ${isItemOutOfStock ? '<span class="text-[9px] bg-red-100 text-red-600 font-black px-1.5 py-0.2 rounded shrink-0">HABIS</span>' : ''}
+                    </div>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Daging: ${item.meat_type}</p>
+                    <div class="mt-1 flex items-baseline space-x-1">
+                      <span class="text-xs font-extrabold text-red-600">Rp ${(item.prices ? (item.prices.reguler || item.prices.small || Object.values(item.prices)[0] || 0) : 0).toLocaleString('id-ID')}</span>
+                      <span class="text-[10px] text-gray-400">(${item.prices && item.prices.reguler ? 'Reguler' : 'Porsi'})</span>
+                    </div>
                   </div>
                 </div>
                 ${isItemOutOfStock ? `
-                  <span class="bg-gray-200 text-gray-500 font-bold px-3 py-1.5 rounded-xl text-xs cursor-not-allowed">
+                  <span class="bg-gray-200 text-gray-500 font-bold px-3 py-1.5 rounded-xl text-xs cursor-not-allowed shrink-0 ml-2">
                     Habis
                   </span>
                 ` : `
-                  <button onclick="openCustomizeModal('${item.id}', '${cat.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 font-extrabold px-3.5 py-1.5 rounded-xl text-xs shadow-sm flex items-center space-x-1 transition active:scale-95">
+                  <button onclick="openCustomizeModal('${item.id}', '${cat.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-red-900 font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-sm flex items-center space-x-1 transition active:scale-95 shrink-0 ml-2">
                     <span>+ PESAN</span>
                   </button>
                 `}
