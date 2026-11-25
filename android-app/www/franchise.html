@@ -307,17 +307,21 @@
 
       <!-- SISI KANAN: HIGHLIGHT VISUAL MAKANAN & STATISTIK ROI -->
       <div class="lg:col-span-5 space-y-4">
-        <!-- CINEMATIC HERO SPOTLIGHT -->
-        <div class="surface-kelp overflow-hidden rounded-[16px] border border-[rgba(237,255,254,0.15)] relative group shadow-2xl">
+        <!-- CINEMATIC HERO SPOTLIGHT (CLICKABLE FOR VARIANT DETAILS) -->
+        <div onclick="openVariantModal('cheesy')" class="surface-kelp overflow-hidden rounded-[16px] border border-[rgba(237,255,254,0.15)] relative group shadow-2xl cursor-pointer hover:border-[#cbfffc]/50 transition duration-300">
           <div class="relative h-56 sm:h-64 w-full overflow-hidden">
             <img src="/images/kebab-cheesy-melt.jpg" alt="Kebab Cheesy Melt" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/30"></div>
             <span class="absolute top-3 left-3 bg-[#011d1c]/80 backdrop-blur-md text-[#cbfffc] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               ★ FOTO ASLI PRODUK KAMI
             </span>
+            <span class="absolute top-3 right-3 bg-[#003734]/90 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
+              <span>Klik Cek Varian</span>
+              <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+            </span>
             <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between">
               <div>
-                <span class="text-[10px] text-[#edfffe] uppercase tracking-wider block font-medium">MENU VIRAL TERLARIS</span>
+                <span class="text-[10px] text-[#edfffe] uppercase tracking-wider block font-medium">MENU VIRAL TERLARIS • RP 13.000 - 23.000</span>
                 <h4 class="text-base font-medium text-white tracking-tight">Kebab Cheesy Lava Bomb</h4>
               </div>
               <span class="text-xs bg-[#012624]/90 text-[#fde9ff] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
@@ -389,7 +393,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- ITEM 1: CHEESY MELT -->
-        <div class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/40 transition duration-300 flex flex-col justify-between">
+        <div onclick="openVariantModal('cheesy')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div>
             <div class="relative h-64 sm:h-72 w-full overflow-hidden bg-[#011d1c]">
               <img src="/images/kebab-cheesy-melt.jpg" alt="Kebab Cheesy Lava Melt" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
@@ -397,26 +401,33 @@
               <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#fde9ff] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
                 ★ BEST SELLER VIRAL
               </span>
+              <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
+                <span>Cek Varian</span>
+                <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              </span>
               <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2.5 py-1 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
-                Rp 18.000 - 23.000
+                Rp 13.000 — 23.000
               </span>
             </div>
             <div class="p-6 space-y-2">
               <span class="kicker-auros text-[10px] text-[#edfffe]">VARIAN SUPER CHEESY</span>
-              <h4 class="text-lg font-medium text-white tracking-tight">Kebab Cheesy Lava Melt Bomb</h4>
+              <h4 class="text-lg font-medium text-white tracking-tight group-hover:text-[#cbfffc] transition">Kebab Cheesy Lava Melt Bomb</h4>
               <p class="text-xs text-[#bbc7c6] leading-relaxed">
-                Daging sapi panggang gurih berpadu dengan limpahan saus keju cheddar dan lelehan mozarella yang meleleh lumer. Visualnya sangat Instagrammable dan selalu viral di media sosial.
+                Daging sapi panggang gurih berpadu dengan limpahan saus keju cheddar dan lelehan mozzarella yang meleleh lumer. Visualnya sangat Instagrammable dan selalu viral di media sosial.
               </p>
             </div>
           </div>
           <div class="px-6 pb-6 pt-2 border-t border-[rgba(237,255,254,0.06)] flex items-center justify-between text-xs">
             <span class="text-[#bbc7c6]">Potensi Margin: <strong class="text-[#fde9ff]">~45%</strong></span>
-            <span class="text-[11px] text-[#cbfffc] font-mono">Repeat Order: 92%</span>
+            <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
+              <span>Rincian Varian</span>
+              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </span>
           </div>
         </div>
 
         <!-- ITEM 2: ORIGINAL BEEF -->
-        <div class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/40 transition duration-300 flex flex-col justify-between">
+        <div onclick="openVariantModal('original')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div>
             <div class="relative h-64 sm:h-72 w-full overflow-hidden bg-[#011d1c]">
               <img src="/images/kebab-original-cinematic.jpg" alt="Kebab Original Classic" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
@@ -424,13 +435,17 @@
               <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#edfffe] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
                 🍢 RESEP LEGENDARIS
               </span>
+              <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
+                <span>Cek Varian</span>
+                <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              </span>
               <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2.5 py-1 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
-                Rp 14.000 - 19.000
+                Rp 12.000 — 22.000
               </span>
             </div>
             <div class="p-6 space-y-2">
               <span class="kicker-auros text-[10px] text-[#edfffe]">VARIAN KLASIK JUARA</span>
-              <h4 class="text-lg font-medium text-white tracking-tight">Kebab Original Classic Shawarma</h4>
+              <h4 class="text-lg font-medium text-white tracking-tight group-hover:text-[#cbfffc] transition">Kebab Original Classic Shawarma</h4>
               <p class="text-xs text-[#bbc7c6] leading-relaxed">
                 Tortila panggang renyah beraroma gurih membungkus irisan daging sapi empuk, selada hijau segar, irisan mentimun renyah, dan nanas bakar manis. Rasa seimbang yang tidak pernah membosankan.
               </p>
@@ -438,12 +453,15 @@
           </div>
           <div class="px-6 pb-6 pt-2 border-t border-[rgba(237,255,254,0.06)] flex items-center justify-between text-xs">
             <span class="text-[#bbc7c6]">Potensi Margin: <strong class="text-[#fde9ff]">~40%</strong></span>
-            <span class="text-[11px] text-[#cbfffc] font-mono">Volume Penjualan: Tertinggi</span>
+            <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
+              <span>Rincian Varian</span>
+              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </span>
           </div>
         </div>
 
         <!-- ITEM 3: SIGNATURE CURRY -->
-        <div class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/40 transition duration-300 flex flex-col justify-between">
+        <div onclick="openVariantModal('signature')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.12)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div>
             <div class="relative h-64 sm:h-72 w-full overflow-hidden bg-[#011d1c]">
               <img src="/images/kebab-signature-curry.jpg" alt="Kebab Signature Curry" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
@@ -451,13 +469,17 @@
               <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#cbfffc] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
                 🔥 BUMBU RAHASIA PUSAT
               </span>
+              <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
+                <span>Cek Varian</span>
+                <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              </span>
               <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2.5 py-1 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
-                Rp 16.000 - 22.000
+                Rp 13.000 — 23.000
               </span>
             </div>
             <div class="p-6 space-y-2">
               <span class="kicker-auros text-[10px] text-[#edfffe]">VARIAN EKSKLUSIF</span>
-              <h4 class="text-lg font-medium text-white tracking-tight">Kebab Signature Curry &amp; Special Spices</h4>
+              <h4 class="text-lg font-medium text-white tracking-tight group-hover:text-[#cbfffc] transition">Kebab Signature Curry &amp; Special Spices</h4>
               <p class="text-xs text-[#bbc7c6] leading-relaxed">
                 Inovasi saus kari rempah karamel yang gurih pekat beraroma khas. Merupakan resep rahasia yang tidak dapat ditiru pedagang kebab lain dan menjadi magnet pelanggan setia.
               </p>
@@ -465,11 +487,13 @@
           </div>
           <div class="px-6 pb-6 pt-2 border-t border-[rgba(237,255,254,0.06)] flex items-center justify-between text-xs">
             <span class="text-[#bbc7c6]">Potensi Margin: <strong class="text-[#fde9ff]">~42%</strong></span>
-            <span class="text-[11px] text-[#cbfffc] font-mono">Diferensiasi: Unik 100%</span>
+            <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
+              <span>Rincian Varian</span>
+              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+            </span>
           </div>
         </div>
       </div>
-    </section>
     </section>
 
     <!-- ========================================================================= -->
@@ -1134,6 +1158,218 @@
       }
       animate();
     })();
+  </script>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DETAIL VARIAN PRODUK (UKURAN, DAGING & MATRIKS HARGA)               -->
+  <!-- ========================================================================= -->
+  <div id="variantModal" class="fixed inset-0 z-50 bg-[#011d1c]/85 backdrop-blur-md flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeVariantModal()">
+    <div class="surface-deep border border-[#003734] rounded-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-7 space-y-5 text-left shadow-2xl relative">
+      
+      <!-- CLOSE BUTTON -->
+      <button onclick="closeVariantModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#003734] text-[#edfffe] hover:text-white flex items-center justify-center text-xs transition border border-[rgba(203,255,252,0.2)] z-20 cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- MODAL HERO IMAGE BANNER -->
+      <div class="relative h-48 sm:h-56 w-full rounded-xl overflow-hidden bg-[#012624] border border-[#003734]">
+        <img id="modalVariantImg" src="" alt="Varian Kebab" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#011d1c] via-[#011d1c]/40 to-transparent"></div>
+        <div class="absolute top-3 left-3">
+          <span id="modalVariantBadge" class="bg-[#012624]/90 text-[#cbfffc] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider backdrop-blur">
+            ★ BEST SELLER
+          </span>
+        </div>
+        <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+          <div>
+            <span id="modalVariantKicker" class="kicker-auros text-[10px] text-[#edfffe] block">VARIAN SUPER CHEESY</span>
+            <h3 id="modalVariantTitle" class="text-lg sm:text-xl font-medium text-white tracking-tight leading-tight">
+              Kebab Cheesy Lava Melt Bomb
+            </h3>
+          </div>
+          <span id="modalVariantPrice" class="text-xs bg-[#003734]/90 text-[#cbfffc] font-mono font-bold px-3 py-1 rounded-[4px] border border-[rgba(203,255,252,0.3)] shrink-0">
+            Rp 13.000 — 23.000
+          </span>
+        </div>
+      </div>
+
+      <!-- DESKRIPSI -->
+      <p id="modalVariantDesc" class="text-xs text-[#bbc7c6] leading-relaxed">
+        Deskripsi produk...
+      </p>
+
+      <!-- PILIHAN VARIAN UKURAN & DAGING -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+        <!-- PILIHAN UKURAN -->
+        <div class="bg-[#012624] p-3.5 rounded-xl border border-[#003734] space-y-2">
+          <span class="kicker-auros text-[10px] text-[#edfffe] flex items-center gap-1.5">
+            <i class="fi fi-sr-ruler text-[#00827c]"></i>
+            <span>3 PILIHAN UKURAN</span>
+          </span>
+          <div class="space-y-1.5 text-xs text-[#bbc7c6]">
+            <div class="flex items-center justify-between border-b border-[#003734]/60 pb-1">
+              <span class="font-medium text-white">Small</span>
+              <span class="text-[11px] text-[#edfffe]/70">Tortilla 18 cm (Snack)</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-[#003734]/60 pb-1">
+              <span class="font-medium text-white">Reguler</span>
+              <span class="text-[11px] text-[#cbfffc]">Tortilla 22 cm (Favorit)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="font-medium text-white">Jumbo</span>
+              <span class="text-[11px] text-[#fde9ff]">Tortilla 25 cm (Kenyang)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PILIHAN DAGING -->
+        <div class="bg-[#012624] p-3.5 rounded-xl border border-[#003734] space-y-2">
+          <span class="kicker-auros text-[10px] text-[#edfffe] flex items-center gap-1.5">
+            <i class="fi fi-sr-drumstick text-[#00827c]"></i>
+            <span>3 PILIHAN DAGING</span>
+          </span>
+          <div class="space-y-1.5 text-xs text-[#bbc7c6]">
+            <div class="border-b border-[#003734]/60 pb-1">
+              <span class="font-medium text-white block">Beef Klasik</span>
+              <span class="text-[10px] text-[#edfffe]/70">Sapi olahan gurih bumbu rempah</span>
+            </div>
+            <div class="border-b border-[#003734]/60 pb-1">
+              <span class="font-medium text-white block">Chicken</span>
+              <span class="text-[10px] text-[#edfffe]/70">Fillet ayam marinasi empuk &amp; gurih</span>
+            </div>
+            <div>
+              <span class="font-medium text-white block">Beef Premium ⭐</span>
+              <span class="text-[10px] text-[#fde9ff]">Daging sapi premium aroma asap smoky</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABEL MATRIKS HARGA LENGKAP -->
+      <div class="space-y-2">
+        <span class="kicker-auros text-[10px] text-[#edfffe]">MATRIKS HARGA LENGKAP OUTLET</span>
+        <div class="overflow-x-auto rounded-xl border border-[#003734] bg-[#012624]">
+          <table class="w-full text-xs text-left text-[#bbc7c6]">
+            <thead class="bg-[#003734] text-[#edfffe] font-mono text-[10px] uppercase tracking-wider">
+              <tr>
+                <th class="py-2.5 px-3">Varian Daging</th>
+                <th class="py-2.5 px-3 text-center">Small</th>
+                <th class="py-2.5 px-3 text-center">Reguler</th>
+                <th class="py-2.5 px-3 text-center">Jumbo</th>
+              </tr>
+            </thead>
+            <tbody id="modalPriceTableBody" class="divide-y divide-[#003734]/60 text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- EXTRA TOPPING & LEVEL PEDAS -->
+      <div class="bg-[#012624] p-3 rounded-xl border border-[#003734] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider text-[#edfffe] block font-medium">Topping Tambahan:</span>
+          <span class="text-[#bbc7c6] text-[11px]">Keju (+3rb), Telur (+5rb), Ekstra Daging (+6rb)</span>
+        </div>
+        <div>
+          <span class="text-[10px] uppercase tracking-wider text-[#edfffe] block font-medium">Tingkat Kepedasan:</span>
+          <span class="text-[#cbfffc] text-[11px]">Level 0 (Tomat) s/d Level 3 (Super Pedas)</span>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#003734]">
+        <a href="/customer.html" target="_blank" class="btn-aurora text-xs">
+          <i class="fi fi-sr-shopping-cart text-[11px] text-slate-900"></i>
+          <span>Coba Pesan di Aplikasi</span>
+        </a>
+        <a id="modalWhatsAppBtn" href="https://wa.me/6285285841330" target="_blank" class="btn-kelp text-xs">
+          <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+          <span>Konsultasi Menu Franchise</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT DETAIL VARIAN PRODUK -->
+  <script>
+    const variantData = {
+      cheesy: {
+        title: 'Kebab Cheesy Lava Melt Bomb',
+        kicker: 'VARIAN SUPER CHEESY',
+        badge: '★ BEST SELLER VIRAL',
+        priceRange: 'Rp 13.000 — 23.000',
+        image: '/images/kebab-cheesy-melt.jpg',
+        desc: 'Daging sapi panggang gurih berpadu dengan limpahan saus keju cheddar dan lelehan mozzarella yang meleleh lumer. Visualnya sangat Instagrammable dan selalu viral di media sosial.',
+        rows: [
+          { meat: 'Beef Klasik', small: 'Rp 13.000', reguler: 'Rp 17.000', jumbo: 'Rp 19.000' },
+          { meat: 'Chicken', small: 'Rp 14.000', reguler: 'Rp 18.000', jumbo: 'Rp 20.000' },
+          { meat: 'Beef Premium ⭐', small: 'Rp 16.000', reguler: 'Rp 20.000', jumbo: 'Rp 23.000' }
+        ]
+      },
+      original: {
+        title: 'Kebab Original Classic Shawarma',
+        kicker: 'VARIAN KLASIK JUARA',
+        badge: '🍢 RESEP LEGENDARIS',
+        priceRange: 'Rp 12.000 — 22.000',
+        image: '/images/kebab-original-cinematic.jpg',
+        desc: 'Tortila panggang renyah beraroma gurih membungkus irisan daging sapi empuk, selada hijau segar, irisan mentimun renyah, dan nanas bakar manis. Rasa seimbang yang tidak pernah membosankan.',
+        rows: [
+          { meat: 'Beef Klasik', small: 'Rp 12.000', reguler: 'Rp 16.000', jumbo: 'Rp 18.000' },
+          { meat: 'Chicken', small: 'Rp 13.000', reguler: 'Rp 17.000', jumbo: 'Rp 19.000' },
+          { meat: 'Beef Premium ⭐', small: 'Rp 15.000', reguler: 'Rp 19.000', jumbo: 'Rp 22.000' }
+        ]
+      },
+      signature: {
+        title: 'Kebab Signature Curry & Spices',
+        kicker: 'VARIAN EKSKLUSIF',
+        badge: '🔥 BUMBU RAHASIA PUSAT',
+        priceRange: 'Rp 13.000 — 23.000',
+        image: '/images/kebab-signature-curry.jpg',
+        desc: 'Inovasi saus kari rempah karamel yang gurih pekat beraroma khas. Merupakan resep rahasia yang tidak dapat ditiru pedagang kebab lain dan menjadi magnet pelanggan setia.',
+        rows: [
+          { meat: 'Beef Klasik', small: 'Rp 13.000', reguler: 'Rp 17.000', jumbo: 'Rp 19.000' },
+          { meat: 'Chicken', small: 'Rp 14.000', reguler: 'Rp 18.000', jumbo: 'Rp 20.000' },
+          { meat: 'Beef Premium ⭐', small: 'Rp 16.000', reguler: 'Rp 20.000', jumbo: 'Rp 23.000' }
+        ]
+      }
+    };
+
+    function openVariantModal(key) {
+      const data = variantData[key];
+      if (!data) return;
+
+      document.getElementById('modalVariantImg').src = data.image;
+      document.getElementById('modalVariantBadge').innerText = data.badge;
+      document.getElementById('modalVariantKicker').innerText = data.kicker;
+      document.getElementById('modalVariantTitle').innerText = data.title;
+      document.getElementById('modalVariantPrice').innerText = data.priceRange;
+      document.getElementById('modalVariantDesc').innerText = data.desc;
+
+      const tbody = document.getElementById('modalPriceTableBody');
+      tbody.innerHTML = data.rows.map(r => `
+        <tr class="hover:bg-[#003734]/30 transition">
+          <td class="py-2.5 px-3 font-medium text-white">${r.meat}</td>
+          <td class="py-2.5 px-3 text-center text-[#edfffe] font-mono">${r.small}</td>
+          <td class="py-2.5 px-3 text-center text-[#cbfffc] font-mono font-medium">${r.reguler}</td>
+          <td class="py-2.5 px-3 text-center text-[#fde9ff] font-mono font-medium">${r.jumbo}</td>
+        </tr>
+      `).join('');
+
+      const waText = encodeURIComponent(`Halo Tim Franchise Kebab AL Bewok, saya tertarik berdiskusi mengenai menu ${data.title} (${data.priceRange}) untuk potensi kemitraan.`);
+      document.getElementById('modalWhatsAppBtn').href = `https://wa.me/6285285841330?text=${waText}`;
+
+      document.getElementById('variantModal').classList.remove('hidden');
+    }
+
+    function closeVariantModal() {
+      document.getElementById('variantModal').classList.add('hidden');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeVariantModal();
+    });
   </script>
 
 </body>

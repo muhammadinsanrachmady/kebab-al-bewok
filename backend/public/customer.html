@@ -3107,7 +3107,7 @@
             ${cat.items.map(item => {
               const isItemOutOfStock = currentBranch && Array.isArray(currentBranch.out_of_stock) && currentBranch.out_of_stock.includes(item.id);
               return `
-              <div class="bg-white p-3 rounded-2xl shadow-sm border ${isItemOutOfStock ? 'border-gray-200 opacity-60' : 'border-gray-100 hover:border-yellow-400'} flex items-center justify-between transition">
+              <div onclick="${isItemOutOfStock ? '' : `openCustomizeModal('${item.id}', '${cat.id}')`}" class="bg-white p-3 rounded-2xl shadow-sm border ${isItemOutOfStock ? 'border-gray-200 opacity-60' : 'border-gray-100 hover:border-yellow-400 cursor-pointer active:scale-[0.99]'} flex items-center justify-between transition">
                 <div class="flex items-center space-x-3 overflow-hidden">
                   <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-amber-200/40 relative shadow-inner">
                     <img src="${catImg}" alt="${item.name}" class="w-full h-full object-cover">
