@@ -1,5 +1,35 @@
 [
   {
+    "id": "sec-1795610446796-2205",
+    "event": "UNAUTHORIZED_ADMIN_ACCESS",
+    "severity": "HIGH",
+    "ip": "::1",
+    "actor": "Anonymous",
+    "path": "/api/admin/orders",
+    "detail": "Akses ke /api/admin/* tanpa token Kasir/Owner",
+    "at": "2026-11-25T12:40:46.796Z"
+  },
+  {
+    "id": "sec-1795610446793-9a26",
+    "event": "UNAUTHORIZED_ADMIN_ACCESS",
+    "severity": "HIGH",
+    "ip": "::1",
+    "actor": "Anonymous",
+    "path": "/api/admin/stock-opname?branch_id=cabang-01",
+    "detail": "Akses ke /api/admin/* tanpa token Kasir/Owner",
+    "at": "2026-11-25T12:40:46.793Z"
+  },
+  {
+    "id": "sec-1795610446788-8a51",
+    "event": "UNAUTHORIZED_ADMIN_ACCESS",
+    "severity": "HIGH",
+    "ip": "::1",
+    "actor": "Anonymous",
+    "path": "/api/admin/opname-items",
+    "detail": "Akses ke /api/admin/* tanpa token Kasir/Owner",
+    "at": "2026-11-25T12:40:46.789Z"
+  },
+  {
     "id": "sec-1794802373073-7898",
     "event": "PORTAL_LOGIN_OK",
     "severity": "INFO",

@@ -65,7 +65,7 @@
   </script>
 
   <!-- CRITICAL LCP & FONT PRELOADS (ELIMINATE RENDER-BLOCKING & DISCOVERY DELAY) -->
-  <link rel="preload" as="image" href="/images/kebab-cheesy-melt.webp" type="image/webp">
+  <link rel="preload" as="image" href="/images/kebab-cheesy-melt.webp" type="image/webp" fetchpriority="high">
   <link rel="preload" as="style" href="/css/tailwind-compiled.css">
   <link rel="stylesheet" href="/css/tailwind-compiled.css">
 
@@ -74,14 +74,7 @@
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
-  <!-- NON-BLOCKING ASYNC ICONS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css" media="print" onload="this.media='all'">
   <noscript>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
-    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap">
   </noscript>
 
@@ -251,9 +244,6 @@
 </head>
 <body class="min-h-screen text-slate-100 antialiased relative selection:bg-[#00827c] selection:text-white">
 
-  <!-- BIOLUMINESCENT DATA ORB CANVAS BACKGROUND -->
-  <canvas id="bioluminescentCanvas"></canvas>
-
   <div class="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-12">
 
     <!-- AUROS NAVIGATION BAR -->
@@ -287,9 +277,9 @@
       <!-- PRIMARY ACTION BUTTONS -->
       <div class="flex items-center gap-2.5">
         <a href="/franchise.html" class="btn-aurora">
-          <i class="fi fi-sr-shop text-xs text-slate-900"></i>
+          <svg class="w-3.5 h-3.5 text-slate-900 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h18l-2 9H5L3 3zm0 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0M6 21h12a2 2 0 002-2v-7H4v7a2 2 0 002 2z"/></svg>
           <span>Info Franchise</span>
-          <i class="fa-solid fa-arrow-up-right text-[11px]"></i>
+          <svg class="w-3 h-3 text-slate-900 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
         </a>
         <a href="/customer.html" target="_blank" rel="noopener noreferrer" class="btn-kelp">
           <img src="/icons/kebab-albewok.svg" alt="Pesan Kebab" width="14" height="14" class="w-3.5 h-3.5 object-contain">
@@ -324,7 +314,7 @@
         </div>
         <a href="/franchise.html" class="text-xs text-[#cbfffc] hover:text-white flex items-center gap-1.5 font-medium transition">
           <span>Eksplorasi Potensi Franchise</span>
-          <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          <svg class="w-3 h-3 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </a>
       </div>
 
@@ -332,14 +322,14 @@
         <!-- CARD 1: CHEESY LAVA -->
         <div onclick="openVariantModal('cheesy')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-cheesy-melt.webp" alt="Kebab Cheesy Lava Melt Bomb Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-cheesy-melt.webp" alt="Kebab Cheesy Lava Melt Bomb Kebab AL Bewok" width="540" height="360" loading="eager" fetchpriority="high" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#fde9ff] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               ★ BEST SELLER
             </span>
             <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
               <span>Cek Varian</span>
-              <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
             </span>
             <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
               Rp 13.000 — 23.000
@@ -356,7 +346,7 @@
             <span class="text-[11px] text-[#bbc7c6]">Varian: <strong class="text-white">Beef, Chicken, Premium</strong></span>
             <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
               <span>Detail</span>
-              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </span>
           </div>
         </div>
@@ -364,14 +354,14 @@
         <!-- CARD 2: ORIGINAL CLASSIC -->
         <div onclick="openVariantModal('original')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-original-cinematic.webp" alt="Kebab Original Classic Beef Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-original-cinematic.webp" alt="Kebab Original Classic Beef Kebab AL Bewok" width="540" height="360" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#cbfffc] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               AUTHENTIC FLAVOR
             </span>
             <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
               <span>Cek Varian</span>
-              <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
             </span>
             <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
               Rp 12.000 — 22.000
@@ -388,7 +378,7 @@
             <span class="text-[11px] text-[#bbc7c6]">Varian: <strong class="text-white">Beef, Chicken, Premium</strong></span>
             <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
               <span>Detail</span>
-              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </span>
           </div>
         </div>
@@ -396,14 +386,14 @@
         <!-- CARD 3: SIGNATURE CURRY -->
         <div onclick="openVariantModal('signature')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-signature-curry.webp" alt="Kebab Signature Spiced Curry Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-signature-curry.webp" alt="Kebab Signature Spiced Curry Kebab AL Bewok" width="540" height="360" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#fde9ff] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               HOUSE SPECIALTY
             </span>
             <span class="absolute top-3 right-3 bg-[#003734]/80 text-[#edfffe] text-[10px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)] flex items-center gap-1 group-hover:bg-[#00827c] transition">
               <span>Cek Varian</span>
-              <i class="fa-solid fa-arrow-up-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
             </span>
             <span class="absolute bottom-3 right-3 bg-[#011d1c]/90 text-[#cbfffc] font-mono text-[11px] font-bold px-2 py-0.5 rounded-[4px] border border-[rgba(203,255,252,0.2)]">
               Rp 13.000 — 23.000
@@ -420,7 +410,7 @@
             <span class="text-[11px] text-[#bbc7c6]">Varian: <strong class="text-white">Beef, Chicken, Premium</strong></span>
             <span class="text-[11px] text-[#cbfffc] font-mono flex items-center gap-1">
               <span>Detail</span>
-              <i class="fa-solid fa-chevron-right text-[8px]"></i>
+              <svg class="w-2.5 h-2.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </span>
           </div>
         </div>
@@ -542,81 +532,14 @@
 
       <div class="flex flex-wrap items-center gap-3">
         <a href="/customer.html" target="_blank" rel="noopener noreferrer" class="btn-aurora">
-          <i class="fi fi-sr-shopping-cart text-[11px] text-slate-900"></i>
+          <svg class="w-3.5 h-3.5 text-slate-900 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           <span>Pesan Kebab Sekarang</span>
-          <i class="fa-solid fa-arrow-up-right text-[11px]"></i>
+          <svg class="w-3 h-3 text-slate-900 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7v10"/></svg>
         </a>
       </div>
     </footer>
 
   </div>
-
-  <!-- SCRIPT: BIOLUMINESCENT ORB CANVAS (DESKTOP ACCELERATED, IDLE ON MOBILE) -->
-  <script>
-    (function initBioluminescentCanvas() {
-      const canvas = document.getElementById('bioluminescentCanvas');
-      if (!canvas) return;
-      if (window.innerWidth < 768) {
-        // Mobile performance optimization: idle canvas to free 100% CPU on mobile
-        canvas.style.display = 'none';
-        return;
-      }
-      const ctx = canvas.getContext('2d');
-      let width, height;
-      let particles = [];
-      const PARTICLE_COUNT = 45;
-
-      function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resize, { passive: true });
-      resize();
-
-      class Particle {
-        constructor() {
-          this.reset();
-        }
-        reset() {
-          this.x = Math.random() * width;
-          this.y = Math.random() * height;
-          this.radius = Math.random() * 2 + 0.6;
-          this.vx = (Math.random() - 0.5) * 0.3;
-          this.vy = (Math.random() - 0.5) * 0.3;
-          this.alpha = Math.random() * 0.4 + 0.2;
-          this.color = Math.random() > 0.35 ? 'rgb(0, 130, 124)' : 'rgb(203, 255, 252)';
-        }
-        update() {
-          this.x += this.vx;
-          this.y += this.vy;
-          if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
-            this.reset();
-          }
-        }
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-          ctx.fillStyle = this.color;
-          ctx.globalAlpha = this.alpha;
-          ctx.fill();
-        }
-      }
-
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
-        particles.push(new Particle());
-      }
-
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-        particles.forEach(p => {
-          p.update();
-          p.draw();
-        });
-        requestAnimationFrame(animate);
-      }
-      animate();
-    })();
-  </script>
 
   <!-- ========================================================================= -->
   <!-- MODAL DETAIL VARIAN PRODUK (UKURAN, DAGING & MATRIKS HARGA)               -->
@@ -626,7 +549,7 @@
       
       <!-- CLOSE BUTTON -->
       <button onclick="closeVariantModal()" aria-label="Tutup jendela detail varian" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#003734] text-[#edfffe] hover:text-white flex items-center justify-center text-xs transition border border-[rgba(203,255,252,0.2)] z-20 cursor-pointer">
-        <i class="fa-solid fa-xmark"></i>
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
 
       <!-- MODAL HERO IMAGE BANNER -->
@@ -661,7 +584,7 @@
         <!-- PILIHAN UKURAN -->
         <div class="bg-[#012624] p-3.5 rounded-xl border border-[#003734] space-y-2">
           <span class="kicker-auros text-[10px] text-[#edfffe] flex items-center gap-1.5">
-            <i class="fi fi-sr-ruler text-[#00827c]"></i>
+            <svg class="w-3 h-3 text-[#00827c] inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16"/></svg>
             <span>3 PILIHAN UKURAN</span>
           </span>
           <div class="space-y-1.5 text-xs text-[#bbc7c6]">
@@ -683,7 +606,7 @@
         <!-- PILIHAN DAGING -->
         <div class="bg-[#012624] p-3.5 rounded-xl border border-[#003734] space-y-2">
           <span class="kicker-auros text-[10px] text-[#edfffe] flex items-center gap-1.5">
-            <i class="fi fi-sr-drumstick text-[#00827c]"></i>
+            <svg class="w-3 h-3 text-[#00827c] inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m-3-3h6"/></svg>
             <span>3 PILIHAN DAGING</span>
           </span>
           <div class="space-y-1.5 text-xs text-[#bbc7c6]">
@@ -738,11 +661,11 @@
       <!-- ACTION BUTTONS -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#003734]">
         <a href="/customer.html" target="_blank" rel="noopener noreferrer" class="btn-aurora text-xs">
-          <i class="fi fi-sr-shopping-cart text-[11px] text-slate-900"></i>
+          <svg class="w-3.5 h-3.5 text-slate-900 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           <span>Coba Pesan di Aplikasi</span>
         </a>
         <a id="modalWhatsAppBtn" href="https://wa.me/6285285841330" target="_blank" rel="noopener noreferrer" class="btn-kelp text-xs">
-          <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+          <svg class="w-3.5 h-3.5 text-emerald-400 inline-block fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.301-.15-1.782-.879-2.057-.98-.276-.1-.477-.15-.678.15-.2.301-.778.98-.953 1.18-.175.2-.351.226-.652.075-.301-.15-1.272-.469-2.423-1.496-.895-.799-1.5-1.787-1.675-2.088-.175-.301-.019-.464.132-.614.136-.135.301-.351.452-.527.15-.176.2-.301.301-.502.1-.2.05-.376-.025-.526-.075-.15-.678-1.634-.929-2.239-.244-.589-.493-.509-.678-.519l-.578-.01c-.2 0-.526.075-.802.376-.276.301-1.053 1.029-1.053 2.508 0 1.48 1.078 2.909 1.229 3.11.15.201 2.122 3.24 5.141 4.544.718.31 1.278.496 1.716.635.722.23 1.38.197 1.9.12.579-.087 1.782-.728 2.033-1.432.251-.703.251-1.305.176-1.432-.075-.126-.276-.201-.577-.351zM12.042 2C6.518 2 2.03 6.485 2.03 12.008c0 1.83.493 3.55 1.353 5.035L2 22l5.12-1.341c1.428.784 3.06 1.233 4.922 1.233 5.524 0 10.012-4.485 10.012-10.008C22.054 6.485 17.566 2 12.042 2zm0 18.272c-1.606 0-3.094-.471-4.35-1.282l-.312-.201-3.042.798.812-2.966-.22-.351c-.889-1.416-1.36-3.06-1.36-4.762 0-4.693 3.82-8.513 8.517-8.513 4.696 0 8.516 3.82 8.516 8.513 0 4.694-3.82 8.513-8.516 8.513z"/></svg>
           <span>Konsultasi Menu Franchise</span>
         </a>
       </div>
