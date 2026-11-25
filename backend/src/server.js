@@ -369,9 +369,20 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// Static files untuk frontend ketiga aplikasi (blokir akses dotfile)
+// Static files untuk frontend ketiga aplikasi (blokir akses dotfile & optimasi caching headers)
 const PUBLIC_DIR = path.join(__dirname, '../public');
-app.use(express.static(PUBLIC_DIR, { dotfiles: 'deny' }));
+app.use(express.static(PUBLIC_DIR, {
+  dotfiles: 'deny',
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      // HTML file selalu revalidasi agar pembaruan cepat terbaca
+      res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+    } else if (filePath.match(/\.(jpg|jpeg|png|gif|svg|webp|ico|css|js|woff2?|ttf|eot)$/i)) {
+      // Asset gambar & font di-cache 30 hari untuk skor Google PageSpeed optimal
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    }
+  }
+}));
 
 // Rute jalan pintas untuk masing-masing aplikasi
 app.get('/customer', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'customer.html')));

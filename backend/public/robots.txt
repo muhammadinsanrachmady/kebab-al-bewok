@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin.html
+Disallow: /driver.html
+Disallow: /owner.html
+
+Sitemap: https://albewok.my.id/sitemap.xml
