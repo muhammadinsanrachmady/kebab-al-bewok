@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kemitraan Franchise — Kebab AL Bewok</title>
+  
+  <!-- PWA & META TAGS -->
+  <meta name="theme-color" content="#012624">
+  <meta name="description" content="Peluang bisnis waralaba kuliner Kebab AL Bewok. 100% Halal, tanpa royalty fee seumur hidup, BEP cepat 2-4 bulan dengan dukungan ekosistem POS & Kurir digital terintegrasi.">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <!-- TAILWIND & ICONS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            auros: {
+              abyss: '#012624',
+              deep: '#011d1c',
+              kelp: '#003734',
+              mist: '#edfffe',
+              platinum: '#ffffff',
+              silver: '#bbc7c6',
+              ash: '#f2f2f2',
+              slate: '#707777',
+              lavender: '#fde9ff',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --color-liquid-abyss: #012624;
+      --color-liquid-deep: #011d1c;
+      --color-liquid-kelp: #003734;
+      --color-liquid-mist: #edfffe;
+      --color-platinum: #ffffff;
+      --color-silver-mist: #bbc7c6;
+      --color-lavender-phosphor: #fde9ff;
+      --gradient-aurora: linear-gradient(90deg, rgb(203, 255, 252) 0%, rgb(237, 255, 254) 26.25%, rgb(255, 253, 250) 47.57%, rgb(250, 209, 255) 88.96%);
+      --gradient-bioluminescent: linear-gradient(90deg, rgb(0, 130, 124) 0%, rgb(203, 255, 252) 100%);
+    }
+
+    body {
+      background-color: var(--color-liquid-abyss);
+      color: var(--color-silver-mist);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .heading-auros {
+      font-weight: 500 !important;
+      letter-spacing: -0.04em !important;
+      line-height: 1.05 !important;
+      color: var(--color-platinum);
+    }
+
+    .kicker-auros {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-liquid-mist);
+    }
+
+    .stat-number-auros {
+      font-weight: 500;
+      color: var(--color-lavender-phosphor);
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+    }
+
+    .surface-deep {
+      background-color: var(--color-liquid-deep);
+      border-radius: 16px;
+    }
+
+    .surface-kelp {
+      background-color: var(--color-liquid-kelp);
+      border-radius: 16px;
+    }
+
+    .btn-aurora {
+      background: var(--gradient-aurora);
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 6px;
+      padding: 12px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-aurora:hover {
+      opacity: 0.95;
+      transform: translateY(-2px);
+    }
+
+    .btn-kelp {
+      background-color: var(--color-liquid-kelp);
+      color: var(--color-platinum);
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 6px;
+      padding: 11px 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      border: 1px solid rgba(237, 255, 254, 0.15);
+    }
+    .btn-kelp:hover {
+      background-color: #024b47;
+      color: var(--color-liquid-mist);
+      transform: translateY(-2px);
+    }
+
+    .btn-arrow-trigger {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(3, 81, 75, 0.6);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    .btn-arrow-trigger:hover {
+      background: rgba(0, 130, 124, 0.85);
+      transform: translate(2px, -2px);
+    }
+
+    .nav-ghost-link {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-silver-mist);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .nav-ghost-link:hover {
+      color: var(--color-platinum);
+    }
+
+    /* Custom range slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: #011d1c;
+      border-radius: 6px;
+      height: 8px;
+      outline: none;
+      border: 1px solid rgba(203, 255, 252, 0.2);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #cbfffc;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 130, 124, 0.8);
+      border: 2px solid #003734;
+    }
+
+    /* Bioluminescent canvas */
+    #bioluminescentCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.35;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 antialiased relative selection:bg-[#00827c] selection:text-white">
+
+  <!-- BIOLUMINESCENT CANVAS -->
+  <canvas id="bioluminescentCanvas"></canvas>
+
+  <!-- WRAPPER CONTENT -->
+  <div class="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-16">
+
+    <!-- ========================================================================= -->
+    <!-- 1. TOP HEADER & NAVIGATION                                                -->
+    <!-- ========================================================================= -->
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-[#003734] pb-5">
+      <div class="flex items-center space-x-3.5">
+        <a href="/" class="w-10 h-10 rounded-[6px] bg-[#003734] p-1.5 flex items-center justify-center border border-[rgba(203,255,252,0.2)]">
+          <img src="/icons/kebab-albewok.svg" alt="Kebab AL Bewok" class="w-full h-full object-contain">
+        </a>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="kicker-auros text-[10px] text-[#edfffe]">KEBAB AL BEWOK</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-[4px] bg-[#003734] text-[#edfffe] font-mono uppercase tracking-widest border border-[rgba(203,255,252,0.15)]">
+              WARALABA RESMI 2026
+            </span>
+          </div>
+          <h1 class="text-base font-medium tracking-tight text-white m-0 p-0 leading-tight">
+            Program Kemitraan &amp; Waralaba Kebab
+          </h1>
+        </div>
+      </div>
+
+      <nav class="hidden lg:flex items-center space-x-6 text-xs">
+        <a href="#keunggulan" class="nav-ghost-link">Keunggulan</a>
+        <a href="#ekosistem" class="nav-ghost-link">Ekosistem Digital</a>
+        <a href="#paket" class="nav-ghost-link">Paket Usaha</a>
+        <a href="#kalkulator" class="nav-ghost-link">Simulasi Laba</a>
+        <a href="#langkah" class="nav-ghost-link">Cara Gabung</a>
+        <a href="#faq" class="nav-ghost-link">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <a href="https://wa.me/6285285841330?text=Halo%20Admin%20Kebab%20AL%20Bewok,%20saya%20tertarik%20dengan%20peluang%20kemitraan%20franchise.%20Boleh%20minta%20info%20lengkapnya?" target="_blank" class="btn-aurora">
+          <i class="fa-brands fa-whatsapp text-sm text-slate-900"></i>
+          <span>Konsultasi WA</span>
+        </a>
+        <a href="/" class="btn-kelp hidden sm:inline-flex">
+          <span>Live Simulator</span>
+          <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+        </a>
+      </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- 2. HERO SECTION: PELUANG EMAS KEMITRAAN KEBAB                             -->
+    <!-- ========================================================================= -->
+    <section class="py-6 lg:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div class="lg:col-span-7 space-y-6">
+        <div class="space-y-3">
+          <span class="kicker-auros block text-[#edfffe]">PELUANG BISNIS KULINER TAHAN KRISIS • MARGIN BESAR</span>
+          <h2 class="heading-auros text-4xl sm:text-5xl lg:text-6xl text-white">
+            Miliki Bisnis Kebab Viral dengan Potensi Laba Bersih Puluhan Juta Tiap Bulan.
+          </h2>
+          <p class="text-base sm:text-lg text-[#bbc7c6] leading-relaxed font-normal">
+            Kemitraan resmi <strong class="text-[#edfffe] font-medium">Kebab AL Bewok</strong> menawarkan sistem waralaba siap jualan: 
+            <span class="text-[#fde9ff] font-medium">100% keuntungan milik Anda tanpa biaya royalti bulanan</span>. Dilengkapi ekosistem aplikasi kasir POS &amp; kurir otomatis.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <a href="#paket" class="btn-aurora">
+            <span>PILIH PAKET USAHA</span>
+            <i class="fa-solid fa-arrow-down text-[11px]"></i>
+          </a>
+          <a href="https://wa.me/6285285841330?text=Halo%20Kebab%20AL%20Bewok,%20saya%20mau%20konsultasi%20franchise" target="_blank" class="btn-kelp">
+            <i class="fa-brands fa-whatsapp text-emerald-400"></i>
+            <span>Hubungi Konsultan (0852-8584-1330)</span>
+          </a>
+        </div>
+
+        <!-- TRUST BADGES ROW -->
+        <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs border-t border-[#003734]">
+          <div class="flex items-center space-x-2">
+            <i class="fi fi-sr-shield-check text-[#cbfffc] text-base"></i>
+            <span class="text-[#bbc7c6] font-medium">100% Halal MUI &amp; Higienis</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <i class="fi fi-sr-sack-dollar text-[#fde9ff] text-base"></i>
+            <span class="text-[#bbc7c6] font-medium">0% Royalti Fee Selamanya</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <i class="fi fi-sr-chart-histogram text-[#cbfffc] text-base"></i>
+            <span class="text-[#bbc7c6] font-medium">BEP Cepat 2–4 Bulan</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <i class="fi fi-sr-hat-chef text-[#fde9ff] text-base"></i>
+            <span class="text-[#bbc7c6] font-medium">Pelatihan Staff Full SOP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SISI KANAN: HIGHLIGHT KARTU BISNIS & STATISTIK ROI -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="surface-kelp p-6 sm:p-8 space-y-6 border border-[rgba(237,255,254,0.12)] relative overflow-hidden">
+          <div class="flex items-center justify-between border-b border-[rgba(237,255,254,0.1)] pb-3">
+            <span class="kicker-auros text-[#edfffe]">PERFORMA OUTLET RATA-RATA</span>
+            <span class="text-[10px] bg-[#012624] text-[#cbfffc] px-2 py-0.5 rounded-[4px] font-mono uppercase tracking-wider border border-[#003734]">
+              DATA REAL-TIME
+            </span>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <span class="text-xs text-[#bbc7c6] uppercase tracking-wider block">Estimasi Omzet Outlet / Bulan</span>
+              <div class="stat-number-auros text-3xl sm:text-4xl mt-0.5">Rp 28.800.000+</div>
+              <span class="text-[11px] text-[#edfffe]/80 block mt-0.5">Berdasarkan rata-rata 60 porsi / hari</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-3 border-t border-[rgba(237,255,254,0.08)]">
+              <div>
+                <span class="text-[11px] text-[#bbc7c6] block">Margin Keuntungan:</span>
+                <span class="text-lg font-medium text-[#cbfffc]">35% — 45%</span>
+              </div>
+              <div>
+                <span class="text-[11px] text-[#bbc7c6] block">Estimasi Balik Modal:</span>
+                <span class="text-lg font-medium text-[#fde9ff]">2 s/d 3.5 Bulan</span>
+              </div>
+            </div>
+
+            <div class="bg-[#012624] p-3.5 rounded-[8px] border border-[#003734] space-y-2 text-xs">
+              <div class="flex items-center space-x-2 text-[#edfffe]">
+                <i class="fi fi-sr-badge-check text-[#00827c]"></i>
+                <span class="font-medium">Sudah Termasuk Lisensi Sistem POS &amp; Kurir</span>
+              </div>
+              <p class="text-[11px] text-[#bbc7c6]">
+                Tidak perlu beli software kasir terpisah seharga jutaan. Langsung dapat aplikasi Dapur, Kasir POS, dan Portal Pemilik.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 3. MENGAPA KEBAB AL BEWOK? (6 KEUNGGULAN UTAMA)                           -->
+    <!-- ========================================================================= -->
+    <section id="keunggulan" class="space-y-6">
+      <div class="max-w-2xl space-y-2">
+        <span class="kicker-auros text-[#edfffe]">MENGAPA MEMILIH KAMI?</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          6 Pilar Sukses Kemitraan Kebab AL Bewok
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6]">
+          Kami tidak hanya menjual peralatan gerobak, tetapi menghadirkan sistem bisnis kuliner matang yang siap menghasilkan omzet sejak hari pertama.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- 1 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <img src="/icons/kebab-albewok.svg" class="w-full h-full object-contain">
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">Rasa Gurih Berempah Khas</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Daging sapi pilihan dipanggang sempurna dengan aroma rempah istimewa, irisan nanas karamel, dan saus racikan eksklusif yang memicu repeat order tinggi.
+          </p>
+        </div>
+
+        <!-- 2 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <i class="fi fi-sr-sack-dollar text-[#fde9ff] text-xl"></i>
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">Tanpa Royalty Fee Seumur Hidup</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            100% laba penjualan harian menjadi hak milik mitra. Tidak ada potongan persentase bulanan tersembunyi yang membebani cash flow bisnis Anda.
+          </p>
+        </div>
+
+        <!-- 3 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <img src="/icons/flaticon-pos.svg" class="w-full h-full object-contain">
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">Ekosistem POS &amp; Kurir Digital</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Dilengkapi aplikasi POS Dapur pintar untuk mencegah kecurangan staff kasir, cetak struk thermal, dan sistem armada kurir mandiri bebas potongan ojol 30%.
+          </p>
+        </div>
+
+        <!-- 4 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <i class="fi fi-sr-boxes text-[#cbfffc] text-xl"></i>
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">Pasokan Bahan Baku Terjamin</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Gudang pusat menyuplai rol daging kebab siap panggang, kulit tortila lebut, keju lumer, saus, hingga kemasan food-grade higienis tepat waktu.
+          </p>
+        </div>
+
+        <!-- 5 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <i class="fi fi-sr-hat-chef text-[#fde9ff] text-xl"></i>
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">SOP &amp; Pelatihan Staff Siap Pakai</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Karyawan lapak Anda akan dibimbing langsung mengenai standar meracik, memanggang daging, higienitas dapur, hingga pelayanan pelanggan profesional.
+          </p>
+        </div>
+
+        <!-- 6 -->
+        <div class="surface-kelp p-6 space-y-3 border border-[rgba(237,255,254,0.08)]">
+          <div class="w-10 h-10 rounded-[6px] bg-[#012624] p-2 flex items-center justify-center border border-[#003734]">
+            <img src="/icons/flaticon-owner.svg" class="w-full h-full object-contain">
+          </div>
+          <h4 class="text-base font-medium text-white tracking-tight">Pantau Omzet dari Smartphone</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Buka Portal Owner kapan pun dan di mana pun untuk melihat grafik penjualan harian, laporan closing kasir, stok opname, dan keuntungan bersih secara live.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 4. EKOSISTEM DIGITAL MULTI-ROLE: DIFERENSIASI KAMI DARI WARALABA LAIN     -->
+    <!-- ========================================================================= -->
+    <section id="ekosistem" class="surface-deep p-6 sm:p-10 border border-[#003734] space-y-8">
+      <div class="max-w-3xl space-y-2">
+        <span class="kicker-auros text-[#edfffe]">DIGITAL REVOLUTION IN F&amp;B</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          Teknologi Canggih yang Membuat Bisnis Mitra Berjalan Otomatis
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6]">
+          Jangan terjebak pembukuan manual dan kecurangan kasir. Kebab AL Bewok membekali setiap mitra dengan ekosistem perangkat lunak canggih tanpa biaya langganan bulanan.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- APP 1 -->
+        <div class="p-6 rounded-[12px] bg-[#012624] border border-[#003734] space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="kicker-auros text-[10px] text-[#edfffe]">01 / POS LAPAK</span>
+              <img src="/icons/flaticon-pos.svg" class="w-6 h-6 object-contain">
+            </div>
+            <h4 class="text-base font-medium text-white tracking-tight">Aplikasi Dapur &amp; Kasir POS</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Catat pesanan offline / walk-in, cetak struk thermal via printer Bluetooth, kelola stok bahan baku otomatis, dan verifikasi setor kas harian tanpa selisih.
+            </p>
+          </div>
+          <a href="/admin.html" target="_blank" class="btn-kelp text-[11px] justify-between">
+            <span>Lihat Tampilan POS</span>
+            <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- APP 2 -->
+        <div class="p-6 rounded-[12px] bg-[#012624] border border-[#003734] space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="kicker-auros text-[10px] text-[#edfffe]">02 / RADAR KURIR</span>
+              <img src="/icons/flaticon-courier.svg" class="w-6 h-6 object-contain">
+            </div>
+            <h4 class="text-base font-medium text-white tracking-tight">Armada Kurir Mandiri</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Pelanggan memesan langsung lewat webapp tanpa komisi potongan 20-30% ojek online. Driver lapak mengantar via navigasi GPS dan menerima ongkir instan.
+            </p>
+          </div>
+          <a href="/driver.html" target="_blank" class="btn-kelp text-[11px] justify-between">
+            <span>Lihat Tampilan Kurir</span>
+            <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- APP 3 -->
+        <div class="p-6 rounded-[12px] bg-[#012624] border border-[#003734] space-y-4 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="kicker-auros text-[10px] text-[#edfffe]">03 / PORTAL OWNER</span>
+              <img src="/icons/flaticon-owner.svg" class="w-6 h-6 object-contain">
+            </div>
+            <h4 class="text-base font-medium text-white tracking-tight">Portal Pemilik Lapak</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Akses dari smartphone Anda dari mana saja. Pantau omzet kotor, laba bersih, riwayat setoran uang, audit stok bahan, dan status toko buka/tutup dalam genggaman.
+            </p>
+          </div>
+          <a href="/owner.html" target="_blank" class="btn-kelp text-[11px] justify-between">
+            <span>Lihat Portal Owner</span>
+            <i class="fa-solid fa-arrow-up-right text-[10px]"></i>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 5. PAKET KEMITRAAN FRANCHISE (3 PILIHAN INVESTASI)                         -->
+    <!-- ========================================================================= -->
+    <section id="paket" class="space-y-6">
+      <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="kicker-auros text-[#edfffe]">INVESTASI TERJANGKAU • CEPAT BALIK MODAL</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          Pilihan Paket Usaha Kebab AL Bewok
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6]">
+          Pilih paket kemitraan yang paling sesuai dengan modal dan lokasi usaha yang Anda miliki. Semua paket sudah siap langsung jualan (*turnkey*).
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        
+        <!-- PAKET 1: PORTABLE BOOTH -->
+        <div class="surface-kelp p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[rgba(237,255,254,0.08)]">
+          <div class="space-y-4">
+            <div class="space-y-1">
+              <span class="kicker-auros text-[10px] text-[#bbc7c6]">STARTER PACKAGE</span>
+              <h4 class="text-xl font-medium text-white tracking-tight">Paket Booth Portable</h4>
+              <p class="text-xs text-[#bbc7c6]">Solusi fleksibel untuk jualan di depan minimarket, foodcourt, atau event kuliner.</p>
+            </div>
+
+            <div class="py-2 border-y border-[rgba(237,255,254,0.1)]">
+              <span class="text-xs text-[#bbc7c6]">Investasi Kemitraan:</span>
+              <div class="text-3xl font-medium text-[#cbfffc] tracking-tight">Rp 9.500.000</div>
+              <span class="text-[10px] text-[#edfffe]/70 font-mono">Bebas royalti fee seumur hidup</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-[#bbc7c6]">
+              <span class="font-medium text-white block">Yang Anda Dapatkan:</span>
+              <ul class="space-y-2">
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Booth Lipat Aluminium Praktis &amp; Branding Neon</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Burner Panggangan Daging Kebab Stainless Steel</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Pisau Daging Kebab Panjang &amp; Wajan Roti</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Paket Bahan Baku Awal 100 Porsi Kebab Lengkap</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Akun Aplikasi POS Dapur &amp; Kasir Lapak</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Modul SOP &amp; Video Pelatihan Peracikan Kebab</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <a href="https://wa.me/6285285841330?text=Halo%20Kebab%20AL%20Bewok,%20saya%20tertarik%20dengan%20Paket%20Booth%20Portable%20(Rp%209.5%20Juta)" target="_blank" class="btn-kelp w-full justify-center">
+            <span>Pilih Paket Portable</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- PAKET 2: KONTEN MODERN (BEST SELLER) -->
+        <div class="surface-kelp p-6 sm:p-8 flex flex-col justify-between space-y-6 border-2 border-[#cbfffc] relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#00827c] text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-widest">
+            Paling Diminati &bull; Best Seller
+          </div>
+
+          <div class="space-y-4">
+            <div class="space-y-1">
+              <span class="kicker-auros text-[10px] text-[#edfffe]">COMPLETE STATION</span>
+              <h4 class="text-xl font-medium text-white tracking-tight">Gerobak Semi-Kontainer Modern</h4>
+              <p class="text-xs text-[#bbc7c6]">Gerobak estetik eye-catching dengan lampu LED bioluminescent yang memikat pembeli dari kejauhan.</p>
+            </div>
+
+            <div class="py-2 border-y border-[rgba(237,255,254,0.1)]">
+              <span class="text-xs text-[#bbc7c6]">Investasi Kemitraan:</span>
+              <div class="text-3xl font-medium text-[#fde9ff] tracking-tight">Rp 16.800.000</div>
+              <span class="text-[10px] text-[#edfffe]/70 font-mono">Bebas royalti fee seumur hidup</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-[#bbc7c6]">
+              <span class="font-medium text-white block">Yang Anda Dapatkan:</span>
+              <ul class="space-y-2">
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Gerobak Semi-Kontainer Plat Besi Kokoh &amp; Lampu Neon</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Burner Kebab 2 Tungku + Deep Fryer Kentang &amp; Nugget</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Paket Tablet Android Kasir + Printer Thermal Struk</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Paket Bahan Baku Awal 250 Porsi Kebab Komplit</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Seragam Apron Chef &amp; Topi Resmi Kebab AL Bewok</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Marketing Kit: Spanduk, Banner, Menu Akrilik, Brosur</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Pelatihan Langsung di Lokasi &amp; Pendampingan Opening</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <a href="https://wa.me/6285285841330?text=Halo%20Kebab%20AL%20Bewok,%20saya%20tertarik%20dengan%20Paket%20Semi-Kontainer%20(Rp%2016.8%20Juta)" target="_blank" class="btn-aurora w-full justify-center">
+            <span>Daftar Paket Kontainer</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- PAKET 3: OUTLET RUKO / MASTER WILAYAH -->
+        <div class="surface-kelp p-6 sm:p-8 flex flex-col justify-between space-y-6 border border-[rgba(237,255,254,0.08)]">
+          <div class="space-y-4">
+            <div class="space-y-1">
+              <span class="kicker-auros text-[10px] text-[#bbc7c6]">ENTERPRISE FRANCHISE</span>
+              <h4 class="text-xl font-medium text-white tracking-tight">Outlet Ruko / Dine-In Resto</h4>
+              <p class="text-xs text-[#bbc7c6]">Konsep mini-resto dengan kapasitas penjualan tinggi &amp; hak eksklusivitas radius wilayah.</p>
+            </div>
+
+            <div class="py-2 border-y border-[rgba(237,255,254,0.1)]">
+              <span class="text-xs text-[#bbc7c6]">Investasi Kemitraan:</span>
+              <div class="text-3xl font-medium text-[#cbfffc] tracking-tight">Rp 34.500.000</div>
+              <span class="text-[10px] text-[#edfffe]/70 font-mono">Bebas royalti fee seumur hidup</span>
+            </div>
+
+            <div class="space-y-2.5 text-xs text-[#bbc7c6]">
+              <span class="font-medium text-white block">Yang Anda Dapatkan:</span>
+              <ul class="space-y-2">
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Set Meja Kasir Interior &amp; Neon Sign Wall Akrilik</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Mesin Burner Kebab Heavy-Duty 4 Tungku Komersial</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Freezer Daging Kebab Kapasitas 200 Liter</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Bahan Baku Awal 500 Porsi Menu Komplit</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Hak Monopoli Wilayah (Tidak ada cabang lain radius 3 KM)</span></li>
+                <li class="flex items-start space-x-2"><i class="fa-solid fa-check text-emerald-400 mt-0.5"></i><span>Promosi Kampanye Iklan Berbayar Meta &amp; TikTok dari Pusat</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <a href="https://wa.me/6285285841330?text=Halo%20Kebab%20AL%20Bewok,%20saya%20tertarik%20dengan%20Paket%20Outlet%20Ruko%20/%20Master%20(Rp%2034.5%20Juta)" target="_blank" class="btn-kelp w-full justify-center">
+            <span>Pilih Paket Ruko</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 6. KALKULATOR INTERAKTIF SIMULASI ROI & BALIK MODAL                       -->
+    <!-- ========================================================================= -->
+    <section id="kalkulator" class="surface-deep p-6 sm:p-10 border border-[#003734] space-y-8">
+      <div class="max-w-3xl space-y-2">
+        <span class="kicker-auros text-[#edfffe]">INTERACTIVE ROI CALCULATOR</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          Hitung Estimasi Keuntungan Anda Sekarang
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6]">
+          Geser slider di bawah ini untuk melihat estimasi omzet harian, keuntungan bersih bulanan, serta perkiraan waktu balik modal lapak Anda.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <!-- CONTROLS SLIDER -->
+        <div class="lg:col-span-6 space-y-6 bg-[#012624] p-6 rounded-[12px] border border-[#003734]">
+          <!-- SLIDER 1: PORSI PER HARI -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white font-medium">Target Penjualan Kebab / Hari:</span>
+              <span id="sliderPorsiLabel" class="text-base font-bold text-[#cbfffc]">60 Porsi</span>
+            </div>
+            <input type="range" id="inputPorsi" min="20" max="200" step="5" value="60" oninput="calculateROI()">
+            <div class="flex justify-between text-[10px] text-[#bbc7c6]">
+              <span>20 porsi (Santai)</span>
+              <span>60 porsi (Rata-rata)</span>
+              <span>200 porsi (Ramai)</span>
+            </div>
+          </div>
+
+          <!-- SLIDER 2: HARGA RATA-RATA -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-white font-medium">Harga Rata-Rata per Porsi:</span>
+              <span id="sliderHargaLabel" class="text-base font-bold text-[#cbfffc]">Rp 16.000</span>
+            </div>
+            <input type="range" id="inputHarga" min="12000" max="28000" step="1000" value="16000" oninput="calculateROI()">
+            <div class="flex justify-between text-[10px] text-[#bbc7c6]">
+              <span>Rp 12.000 (Reguler)</span>
+              <span>Rp 16.000 (Mix Topping)</span>
+              <span>Rp 28.000 (Jumbo Cheese)</span>
+            </div>
+          </div>
+
+          <div class="pt-2 text-[11px] text-[#bbc7c6] leading-relaxed">
+            💡 <em>Catatan:</em> Perhitungan menggunakan estimasi HPP bahan baku ~50%, biaya operasional (karyawan, listrik, sewa tempat) ~15%, dan margin laba bersih rata-rata <strong>35%</strong>.
+          </div>
+        </div>
+
+        <!-- RESULTS METRICS (AUROS LAVENDER PHOSPHOR GLOW) -->
+        <div class="lg:col-span-6 surface-kelp p-6 sm:p-8 space-y-5 border border-[rgba(237,255,254,0.12)]">
+          <span class="kicker-auros text-[#edfffe] block">ESTIMASI PROYEKSI KEUANGAN</span>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-xs text-[#bbc7c6] block">Omzet per Hari:</span>
+              <div id="resOmzetHarian" class="text-2xl font-medium text-white tracking-tight mt-0.5">Rp 960.000</div>
+            </div>
+            <div>
+              <span class="text-xs text-[#bbc7c6] block">Omzet per Bulan (30 Hari):</span>
+              <div id="resOmzetBulanan" class="text-2xl font-medium text-[#cbfffc] tracking-tight mt-0.5">Rp 28.800.000</div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-[rgba(237,255,254,0.1)]">
+            <span class="text-xs text-[#edfffe] block uppercase tracking-wider font-medium">Estimasi Laba Bersih Anda / Bulan:</span>
+            <div id="resLabaBersih" class="stat-number-auros text-3xl sm:text-4xl text-[#fde9ff] mt-1">Rp 10.080.000</div>
+            <span class="text-[11px] text-[#bbc7c6] block mt-0.5">Uang bersih yang langsung masuk ke rekening Anda!</span>
+          </div>
+
+          <div class="p-3.5 rounded-[8px] bg-[#011d1c] border border-[#003734] flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-[#bbc7c6] block">Estimasi Waktu Balik Modal (BEP):</span>
+              <span id="resBEP" class="text-base font-bold text-emerald-400">~1.7 Bulan (Paket Kontainer)</span>
+            </div>
+            <a href="https://wa.me/6285285841330?text=Halo%20Kebab%20AL%20Bewok,%20saya%20sudah%20hitung%20simulasi%20laba%20dan%20tertarik%20bergabung" target="_blank" class="btn-aurora text-[11px] py-2 px-3">
+              <span>Klaim Wilayah</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 7. 4 LANGKAH MUDAH BERGABUNG KEMITRAAN                                    -->
+    <!-- ========================================================================= -->
+    <section id="langkah" class="space-y-6">
+      <div class="max-w-2xl space-y-2">
+        <span class="kicker-auros text-[#edfffe]">MUDAH &bull; TRANSPARAN &bull; CEPAT</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          4 Langkah Mudah Memulai Outlet Anda
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6]">
+          Dari konsultasi pertama hingga pembukaan outlet perdana, tim manajemen pusat Kebab AL Bewok akan memandu Anda step-by-step.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="surface-kelp p-6 space-y-2.5 border border-[rgba(237,255,254,0.08)]">
+          <span class="stat-number-auros text-2xl text-[#fde9ff]">01</span>
+          <h4 class="text-base font-medium text-white tracking-tight">Konsultasi &amp; Pilih Paket</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Hubungi konsultan franchise kami via WhatsApp untuk berdiskusi mengenai paket usaha yang cocok dengan anggaran modal Anda.
+          </p>
+        </div>
+
+        <div class="surface-kelp p-6 space-y-2.5 border border-[rgba(237,255,254,0.08)]">
+          <span class="stat-number-auros text-2xl text-[#fde9ff]">02</span>
+          <h4 class="text-base font-medium text-white tracking-tight">Tentukan Titik Lokasi</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Pilih lokasi strategis (depan minimarket, pinggir jalan ramai, atau dekat kampus). Tim kami siap membantu analisa kelayakan lokasi.
+          </p>
+        </div>
+
+        <div class="surface-kelp p-6 space-y-2.5 border border-[rgba(237,255,254,0.08)]">
+          <span class="stat-number-auros text-2xl text-[#fde9ff]">03</span>
+          <h4 class="text-base font-medium text-white tracking-tight">Kirim Alat &amp; Training Staff</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Peralatan lengkap dan bahan baku awal dikirim ke lokasi Anda. Karyawan lapak mendapatkan pelatihan meracik kebab dan pengoperasian POS.
+          </p>
+        </div>
+
+        <div class="surface-kelp p-6 space-y-2.5 border border-[rgba(237,255,254,0.08)]">
+          <span class="stat-number-auros text-2xl text-[#fde9ff]">04</span>
+          <h4 class="text-base font-medium text-white tracking-tight">Grand Opening &amp; Cuan</h4>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Outlet Anda resmi beroperasi! Mulai layani pembeli walk-in maupun pesanan online. Pantau omzet harian Anda secara live di Portal Owner.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 8. FAQ ACCORDION                                                          -->
+    <!-- ========================================================================= -->
+    <section id="faq" class="surface-deep p-6 sm:p-10 border border-[#003734] space-y-6">
+      <div class="max-w-2xl space-y-2">
+        <span class="kicker-auros text-[#edfffe]">PERTANYAAN UMUM</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          Pertanyaan yang Sering Diajukan Mitra
+        </h3>
+      </div>
+
+      <div class="space-y-3 max-w-4xl">
+        <!-- Q1 -->
+        <details class="bg-[#012624] border border-[#003734] rounded-[10px] p-4 text-xs transition cursor-pointer group">
+          <summary class="font-medium text-sm text-white flex justify-between items-center list-none">
+            <span>Apakah benar tidak ada royalty fee atau bagi hasil bulanan?</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <p class="text-[#bbc7c6] leading-relaxed mt-3 pt-3 border-t border-[#003734]">
+            Benar sekali! Kemitraan Kebab AL Bewok menerapkan sistem <strong>0% Royalty Fee seumur hidup</strong>. Semua keuntungan bersih dari penjualan harian 100% milik mitra seutuhnya. Mitra hanya perlu memesan ulang bahan baku ke pusat saat persediaan mulai menipis.
+          </p>
+        </details>
+
+        <!-- Q2 -->
+        <details class="bg-[#012624] border border-[#003734] rounded-[10px] p-4 text-xs transition cursor-pointer group">
+          <summary class="font-medium text-sm text-white flex justify-between items-center list-none">
+            <span>Bagaimana jika saya belum punya pengalaman kuliner sama sekali?</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <p class="text-[#bbc7c6] leading-relaxed mt-3 pt-3 border-t border-[#003734]">
+            Jangan khawatir! Konsep Kebab AL Bewok dirancang sangat mudah dipelajari (*foolproof*). Bahan baku daging sudah dimarinasi dengan resep rahasia pusat, saus sudah siap pakai, dan kulit tortila tinggal dipanggang. Kami juga menyediakan panduan video SOP lengkap dan bimbingan langsung untuk karyawan Anda.
+          </p>
+        </details>
+
+        <!-- Q3 -->
+        <details class="bg-[#012624] border border-[#003734] rounded-[10px] p-4 text-xs transition cursor-pointer group">
+          <summary class="font-medium text-sm text-white flex justify-between items-center list-none">
+            <span>Bagaimana suplai bahan baku dikirim ke outlet saya?</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <p class="text-[#bbc7c6] leading-relaxed mt-3 pt-3 border-t border-[#003734]">
+            Pemesanan bahan baku (daging kebab olahan, tortila, saus, box kemasan) dapat dipesan dengan mudah melalui Portal Owner atau WhatsApp admin logistik pusat. Pengiriman menggunakan armada berpendingin/kurir cepat sehingga kualitas kesegaran selalu prima sampai di lapak Anda.
+          </p>
+        </details>
+
+        <!-- Q4 -->
+        <details class="bg-[#012624] border border-[#003734] rounded-[10px] p-4 text-xs transition cursor-pointer group">
+          <summary class="font-medium text-sm text-white flex justify-between items-center list-none">
+            <span>Apakah lokasi jualan ditentukan oleh mitra atau pusat?</span>
+            <i class="fa-solid fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform"></i>
+          </summary>
+          <p class="text-[#bbc7c6] leading-relaxed mt-3 pt-3 border-t border-[#003734]">
+            Mitra dipersilakan mengajukan titik lokasi yang diinginkan (misal di halaman teras minimarket, ruko, dekat pemukiman/kampus). Tim konsultan kami akan membantu mengecek kelayakan potensi pasar dan memastikan tidak ada tabrakan zona wilayah dengan mitra Kebab AL Bewok lain.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 9. CTA FORMULIR KONSULTASI FRANCHISE                                      -->
+    <!-- ========================================================================= -->
+    <section class="surface-kelp p-8 sm:p-12 border border-[rgba(237,255,254,0.15)] rounded-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div class="lg:col-span-7 space-y-4">
+        <span class="kicker-auros text-[#edfffe]">KUOTA MITRA TERBATAS PER KOTA</span>
+        <h3 class="heading-auros text-3xl sm:text-4xl text-white">
+          Amankan Wilayah &amp; Mulai Bisnis Kebab Anda Hari Ini.
+        </h3>
+        <p class="text-xs sm:text-sm text-[#bbc7c6] leading-relaxed">
+          Jangan biarkan lokasi strategis di kota Anda diambil orang lain. Konsultasikan rencana bisnis Anda bersama tim franchise kami secara gratis tanpa komitmen.
+        </p>
+
+        <div class="flex items-center space-x-4 pt-2">
+          <div class="flex -space-x-2">
+            <div class="w-9 h-9 rounded-full bg-emerald-500 border-2 border-[#003734] flex items-center justify-center font-bold text-xs text-slate-950">A</div>
+            <div class="w-9 h-9 rounded-full bg-cyan-400 border-2 border-[#003734] flex items-center justify-center font-bold text-xs text-slate-950">B</div>
+            <div class="w-9 h-9 rounded-full bg-amber-400 border-2 border-[#003734] flex items-center justify-center font-bold text-xs text-slate-950">C</div>
+          </div>
+          <span class="text-xs text-[#edfffe] font-medium">Bergabung bersama puluhan jaringan mitra aktif</span>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 bg-[#011d1c] p-6 rounded-[12px] border border-[#003734] space-y-3.5">
+        <h4 class="text-sm font-medium text-white tracking-tight">Formulir Minat Kemitraan Cepat:</h4>
+        
+        <form onsubmit="submitFranchiseForm(event)" class="space-y-3 text-xs">
+          <div>
+            <label class="block text-[11px] text-[#bbc7c6] mb-1">Nama Lengkap Anda:</label>
+            <input type="text" id="formNama" required placeholder="Contoh: Budi Prasetyo" class="w-full bg-[#012624] border border-[#003734] focus:border-[#00827c] rounded-[6px] px-3 py-2 text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-[#bbc7c6] mb-1">Nomor WhatsApp Aktif:</label>
+            <input type="tel" id="formWA" required placeholder="Contoh: 08123456789" class="w-full bg-[#012624] border border-[#003734] focus:border-[#00827c] rounded-[6px] px-3 py-2 text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-[#bbc7c6] mb-1">Rencana Kota Lokasi Buka:</label>
+            <input type="text" id="formKota" required placeholder="Contoh: Jakarta Timur / Bekasi" class="w-full bg-[#012624] border border-[#003734] focus:border-[#00827c] rounded-[6px] px-3 py-2 text-white outline-none">
+          </div>
+
+          <div>
+            <label class="block text-[11px] text-[#bbc7c6] mb-1">Minat Paket Usaha:</label>
+            <select id="formPaket" class="w-full bg-[#012624] border border-[#003734] focus:border-[#00827c] rounded-[6px] px-3 py-2 text-white outline-none cursor-pointer">
+              <option value="Paket Semi-Kontainer (Rp 16.8 Juta) - Best Seller">Paket Semi-Kontainer (Rp 16.8 Juta) — Best Seller</option>
+              <option value="Paket Booth Portable (Rp 9.5 Juta)">Paket Booth Portable (Rp 9.5 Juta)</option>
+              <option value="Paket Outlet Ruko / Master (Rp 34.5 Juta)">Paket Outlet Ruko / Master (Rp 34.5 Juta)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-aurora w-full justify-center mt-2">
+            <i class="fa-brands fa-whatsapp text-sm"></i>
+            <span>Kirim &amp; Hubungi Konsultan</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 10. FOOTER AUROS ABYSSAL TERMINAL                                         -->
+    <!-- ========================================================================= -->
+    <footer class="surface-deep p-8 lg:p-12 border border-[#003734] rounded-2xl flex flex-wrap items-center justify-between gap-6 text-xs">
+      <div class="space-y-1.5 max-w-md">
+        <div class="flex items-center space-x-2">
+          <span class="kicker-auros text-[#edfffe]">KEBAB AL BEWOK</span>
+          <span class="text-[#707777]">•</span>
+          <span class="kicker-auros text-[#bbc7c6]">DIVISI FRANCHISE &amp; KEMITRAAN PUSAT</span>
+        </div>
+        <p class="text-[#bbc7c6] leading-relaxed">
+          PT Kebab AL Bewok Nusantara &bull; Jaringan kuliner kebab modern halal dengan sistem terintegrasi cloud &amp; armada mandiri.
+        </p>
+        <p class="text-[11px] text-[#707777]">
+          &copy; 2026 Kebab AL Bewok. Hak Cipta Dilindungi Undang-Undang.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="/" class="nav-ghost-link">Live Simulator</a>
+        <a href="/owner.html" class="nav-ghost-link">Portal Owner</a>
+        <a href="/admin.html" class="nav-ghost-link">Kasir Lapak</a>
+        <a href="/driver.html" class="nav-ghost-link">Kurir Driver</a>
+        <a href="/customer.html" class="nav-ghost-link">Pesan Kebab</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JAVASCRIPT: ROI CALCULATOR & FORM SUBMISSION -->
+  <script>
+    // 1. Interactive ROI Calculator Logic
+    function calculateROI() {
+      const porsi = parseInt(document.getElementById('inputPorsi').value, 10);
+      const harga = parseInt(document.getElementById('inputHarga').value, 10);
+
+      document.getElementById('sliderPorsiLabel').innerText = porsi + ' Porsi';
+      document.getElementById('sliderHargaLabel').innerText = 'Rp ' + harga.toLocaleString('id-ID');
+
+      const omzetHarian = porsi * harga;
+      const omzetBulanan = omzetHarian * 30;
+      // Net profit ~35%
+      const labaBersih = Math.round(omzetBulanan * 0.35);
+
+      document.getElementById('resOmzetHarian').innerText = 'Rp ' + omzetHarian.toLocaleString('id-ID');
+      document.getElementById('resOmzetBulanan').innerText = 'Rp ' + omzetBulanan.toLocaleString('id-ID');
+      document.getElementById('resLabaBersih').innerText = 'Rp ' + labaBersih.toLocaleString('id-ID');
+
+      // BEP based on Paket Kontainer (16.800.000)
+      const modalKontainer = 16800000;
+      const bepBulan = (modalKontainer / labaBersih).toFixed(1);
+      document.getElementById('resBEP').innerText = `~${bepBulan} Bulan (Paket Kontainer)`;
+    }
+
+    // Run on load
+    calculateROI();
+
+    // 2. Submit Franchise Lead to WhatsApp
+    function submitFranchiseForm(e) {
+      e.preventDefault();
+      const nama = document.getElementById('formNama').value;
+      const wa = document.getElementById('formWA').value;
+      const kota = document.getElementById('formKota').value;
+      const paket = document.getElementById('formPaket').value;
+
+      const message = `Halo Manajemen Kebab AL Bewok,\n\nSaya ingin berkonsultasi mengenai Kemitraan Franchise Kebab AL Bewok:\n- Nama: ${nama}\n- WhatsApp: ${wa}\n- Rencana Kota: ${kota}\n- Minat Paket: ${paket}\n\nMohon info proposal kemitraan & ketersediaan wilayah ya. Terima kasih!`;
+      
+      const waUrl = `https://wa.me/6285285841330?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    // 3. Bioluminescent Particle Orb Canvas
+    (function initBioluminescentCanvas() {
+      const canvas = document.getElementById('bioluminescentCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let particles = [];
+      const PARTICLE_COUNT = 65;
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.radius = Math.random() * 2.2 + 0.5;
+          this.vx = (Math.random() - 0.5) * 0.35;
+          this.vy = (Math.random() - 0.5) * 0.35;
+          this.alpha = Math.random() * 0.45 + 0.15;
+          this.color = Math.random() > 0.4 ? 'rgb(0, 130, 124)' : 'rgb(203, 255, 252)';
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+            this.reset();
+          }
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.alpha;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = this.color;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new Particle());
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+  </script>
+
+</body>
+</html>
