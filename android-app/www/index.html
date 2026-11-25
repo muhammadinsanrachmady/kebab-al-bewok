@@ -64,7 +64,9 @@
   }
   </script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- COMPILED ULTRA-LIGHT PRODUCTION TAILWIND CSS (18KB vs 350KB PLAY CDN) -->
+  <link rel="stylesheet" href="/css/tailwind-compiled.css">
+
   <!-- NON-BLOCKING ASYNC ICONS & FONTS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
   <!-- FLATICON UICONS CDN -->
@@ -78,36 +80,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'Matter', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            auros: {
-              abyss: '#012624',
-              deep: '#011d1c',
-              kelp: '#003734',
-              mist: '#edfffe',
-              platinum: '#ffffff',
-              silver: '#bbc7c6',
-              ash: '#f2f2f2',
-              slate: '#707777',
-              lavender: '#fde9ff',
-            }
-          },
-          borderRadius: {
-            'card': '16px',
-            'btn': '6px',
-            'small': '6px',
-          }
-        }
-      }
-    }
-  </script>
 
   <style>
     :root {
@@ -356,7 +328,7 @@
         <!-- CARD 1: CHEESY LAVA -->
         <div onclick="openVariantModal('cheesy')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-cheesy-melt.jpg" alt="Kebab Cheesy Lava Melt Bomb Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-cheesy-melt.webp" alt="Kebab Cheesy Lava Melt Bomb Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#fde9ff] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               ★ BEST SELLER
@@ -388,7 +360,7 @@
         <!-- CARD 2: ORIGINAL CLASSIC -->
         <div onclick="openVariantModal('original')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-original-cinematic.jpg" alt="Kebab Original Classic Beef Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-original-cinematic.webp" alt="Kebab Original Classic Beef Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#cbfffc] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               AUTHENTIC FLAVOR
@@ -420,7 +392,7 @@
         <!-- CARD 3: SIGNATURE CURRY -->
         <div onclick="openVariantModal('signature')" class="surface-kelp rounded-[16px] overflow-hidden border border-[rgba(237,255,254,0.1)] group hover:border-[#cbfffc]/50 transition duration-300 flex flex-col justify-between cursor-pointer">
           <div class="relative h-60 w-full overflow-hidden bg-[#011d1c]">
-            <img src="/images/kebab-signature-curry.jpg" alt="Kebab Signature Spiced Curry Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
+            <img src="/images/kebab-signature-curry.webp" alt="Kebab Signature Spiced Curry Kebab AL Bewok" width="683" height="1024" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-[#003734] via-transparent to-black/20"></div>
             <span class="absolute top-3 left-3 bg-[#012624]/85 backdrop-blur-md text-[#fde9ff] border border-[#003734] text-[10px] font-bold px-2.5 py-1 rounded-[4px] uppercase tracking-wider">
               HOUSE SPECIALTY
@@ -495,7 +467,7 @@
 
         <div class="flex items-center space-x-4 pt-2">
           <div class="w-24 h-24 rounded-[8px] bg-white p-1.5 shrink-0 border border-[#003734]">
-            <img id="qrSimulatorImg" src="" alt="Scan QR Kebab" class="w-full h-full object-contain">
+            <img id="qrSimulatorImg" src="/images/qr-customer.png" alt="Scan QR Pemesanan Kebab AL Bewok" width="96" height="96" loading="lazy" class="w-full h-full object-contain">
           </div>
           <div class="text-xs text-[#bbc7c6] space-y-1">
             <span class="inline-block px-2 py-0.5 rounded-[4px] bg-[#003734] text-[#edfffe] text-[10px] uppercase tracking-wider font-mono">
@@ -575,31 +547,26 @@
 
   </div>
 
-  <!-- SCRIPT: DYNAMIC QR & BIOLUMINESCENT ORB CANVAS -->
+  <!-- SCRIPT: BIOLUMINESCENT ORB CANVAS (DESKTOP ACCELERATED, IDLE ON MOBILE) -->
   <script>
-    // 1. Dynamic QR Code pointing to active host
-    (function initDynamicQR() {
-      const currentHost = window.location.origin;
-      const customerUrl = currentHost + '/customer.html';
-      const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(customerUrl);
-      const img = document.getElementById('qrSimulatorImg');
-      if (img) img.src = qrApiUrl;
-    })();
-
-    // 2. Auros Bioluminescent Data Orb Particle Sphere
     (function initBioluminescentCanvas() {
       const canvas = document.getElementById('bioluminescentCanvas');
       if (!canvas) return;
+      if (window.innerWidth < 768) {
+        // Mobile performance optimization: idle canvas to free 100% CPU on mobile
+        canvas.style.display = 'none';
+        return;
+      }
       const ctx = canvas.getContext('2d');
       let width, height;
       let particles = [];
-      const PARTICLE_COUNT = 70;
+      const PARTICLE_COUNT = 45;
 
       function resize() {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
       }
-      window.addEventListener('resize', resize);
+      window.addEventListener('resize', resize, { passive: true });
       resize();
 
       class Particle {
@@ -609,10 +576,10 @@
         reset() {
           this.x = Math.random() * width;
           this.y = Math.random() * height;
-          this.radius = Math.random() * 2.2 + 0.6;
-          this.vx = (Math.random() - 0.5) * 0.4;
-          this.vy = (Math.random() - 0.5) * 0.4;
-          this.alpha = Math.random() * 0.5 + 0.2;
+          this.radius = Math.random() * 2 + 0.6;
+          this.vx = (Math.random() - 0.5) * 0.3;
+          this.vy = (Math.random() - 0.5) * 0.3;
+          this.alpha = Math.random() * 0.4 + 0.2;
           this.color = Math.random() > 0.35 ? 'rgb(0, 130, 124)' : 'rgb(203, 255, 252)';
         }
         update() {
@@ -787,7 +754,7 @@
         kicker: 'VARIAN SUPER CHEESY',
         badge: '★ BEST SELLER VIRAL',
         priceRange: 'Rp 13.000 — 23.000',
-        image: '/images/kebab-cheesy-melt.jpg',
+        image: '/images/kebab-cheesy-melt.webp',
         desc: 'Daging sapi panggang gurih berpadu dengan limpahan saus keju cheddar dan lelehan mozzarella yang meleleh lumer. Visualnya sangat Instagrammable dan selalu viral di media sosial.',
         rows: [
           { meat: 'Beef Klasik', small: 'Rp 13.000', reguler: 'Rp 17.000', jumbo: 'Rp 19.000' },
@@ -800,7 +767,7 @@
         kicker: 'VARIAN KLASIK JUARA',
         badge: '🍢 RESEP LEGENDARIS',
         priceRange: 'Rp 12.000 — 22.000',
-        image: '/images/kebab-original-cinematic.jpg',
+        image: '/images/kebab-original-cinematic.webp',
         desc: 'Tortila panggang renyah beraroma gurih membungkus irisan daging sapi empuk, selada hijau segar, irisan mentimun renyah, dan nanas bakar manis. Rasa seimbang yang tidak pernah membosankan.',
         rows: [
           { meat: 'Beef Klasik', small: 'Rp 12.000', reguler: 'Rp 16.000', jumbo: 'Rp 18.000' },
@@ -813,7 +780,7 @@
         kicker: 'VARIAN EKSKLUSIF',
         badge: '🔥 BUMBU RAHASIA PUSAT',
         priceRange: 'Rp 13.000 — 23.000',
-        image: '/images/kebab-signature-curry.jpg',
+        image: '/images/kebab-signature-curry.webp',
         desc: 'Inovasi saus kari rempah karamel yang gurih pekat beraroma khas. Merupakan resep rahasia yang tidak dapat ditiru pedagang kebab lain dan menjadi magnet pelanggan setia.',
         rows: [
           { meat: 'Beef Klasik', small: 'Rp 13.000', reguler: 'Rp 17.000', jumbo: 'Rp 19.000' },
