@@ -22,11 +22,26 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
+    :root {
+      --color-liquid-abyss: #012624;
+      --color-liquid-deep: #011d1c;
+      --color-liquid-kelp: #003734;
+      --color-liquid-mist: #edfffe;
+      --color-platinum: #ffffff;
+      --color-silver-mist: #bbc7c6;
+      --color-ash: #f2f2f2;
+      --color-slate-deep: #707777;
+      --color-lavender-phosphor: #fde9ff;
+      --gradient-aurora: linear-gradient(90deg, rgb(203, 255, 252) 0%, rgb(237, 255, 254) 26.25%, rgb(255, 253, 250) 47.57%, rgb(250, 209, 255) 88.96%);
+      --gradient-bioluminescent: linear-gradient(90deg, rgb(0, 130, 124) 0%, rgb(203, 255, 252) 100%);
+    }
+
     body {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-      background-color: #08080a !important;
-      background-image: radial-gradient(circle at 50% -10%, #300c10 0%, #0d080a 35%, #08080a 100%) !important;
+      background-color: #012624 !important;
+      background-image: radial-gradient(circle at 50% -10%, #004d49 0%, #012624 45%, #011d1c 100%) !important;
       background-attachment: fixed !important;
+      color: #bbc7c6 !important;
     }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -45,23 +60,23 @@
       z-index: 2 !important;
     }
     #courierRadarMap.leaflet-container {
-      background: #08080c;
+      background: #011d1c;
       font-family: inherit;
     }
     .atc-popup .leaflet-popup-content-wrapper {
-      background: #14141c;
-      color: #f1f5f9;
-      border: 1px solid rgba(245, 158, 11, 0.25);
+      background: #003734;
+      color: #ffffff;
+      border: 1px solid rgba(203, 255, 252, 0.25);
       border-radius: 12px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75);
+      box-shadow: none;
     }
     .atc-popup .leaflet-popup-tip {
-      background: #14141c;
-      border-right: 1px solid rgba(245, 158, 11, 0.25);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+      background: #003734;
+      border-right: 1px solid rgba(203, 255, 252, 0.25);
+      border-bottom: 1px solid rgba(203, 255, 252, 0.25);
     }
     .atc-popup .leaflet-popup-close-button {
-      color: #f59e0b;
+      color: #cbfffc;
     }
     @keyframes atcPulse {
       0% { transform: scale(0.85); opacity: 0.8; }
@@ -84,27 +99,30 @@
       display: none !important;
     }
 
-    /* Kebab AL Bewok Signature Palette Overrides */
+    /* Auros Abyssal Terminal Palette Overrides */
     .bg-slate-950 {
-      background-color: #09090c !important;
+      background-color: #011d1c !important;
     }
     .bg-slate-900 {
-      background-color: #121218 !important;
+      background-color: #003734 !important;
     }
     .bg-slate-900\/95, .bg-slate-900\/90, .bg-slate-900\/80, .bg-slate-900\/75, .bg-slate-900\/70, .bg-slate-900\/60 {
-      background-color: rgba(18, 18, 24, 0.88) !important;
+      background-color: rgba(0, 55, 52, 0.94) !important;
     }
     .bg-slate-800 {
-      background-color: #1a1a24 !important;
+      background-color: #012624 !important;
     }
     .border-slate-800, .border-slate-800\/80, .border-slate-800\/60 {
-      border-color: rgba(245, 158, 11, 0.16) !important;
+      border-color: rgba(203, 255, 252, 0.12) !important;
     }
     .border-slate-700 {
-      border-color: rgba(245, 158, 11, 0.25) !important;
+      border-color: rgba(0, 130, 124, 0.35) !important;
+    }
+    .text-amber-400 {
+      color: #fde9ff !important; /* Lavender Phosphor for statistics */
     }
     .gold-gradient-text {
-      background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
+      background: var(--gradient-aurora);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -158,8 +176,8 @@
           </div>
         </div>
 
-        <button type="submit" id="btnPortalLoginSubmit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-zinc-950 font-black text-xs transition active:scale-98 flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/50 border border-amber-300/40">
-          <i class="fa-solid fa-right-to-bracket"></i>
+        <button type="submit" id="btnPortalLoginSubmit" class="w-full py-2.5 rounded-[6px] text-zinc-950 font-medium text-xs transition active:scale-98 flex items-center justify-center gap-1.5 uppercase tracking-wider" style="background: var(--gradient-aurora); border: none;">
+          <i class="fa-solid fa-right-to-bracket text-xs"></i>
           <span>Masuk ke Dashboard</span>
         </button>
       </form>

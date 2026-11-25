@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulasi 3 Aplikasi - Kebab AL Bewok</title>
+  <title>Kebab AL Bewok — Abyssal Terminal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- FLATICON UICONS CDN -->
@@ -11,254 +11,554 @@
   <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'Matter', 'system-ui', 'sans-serif'],
           },
           colors: {
-            albewok: {
-              red: '#C81E1E',
-              redDark: '#881337',
-              gold: '#F59E0B',
-              goldDark: '#B45309',
-              goldLight: '#FDE68A',
-              base: '#0A0A0E',
-              surface: '#14141A',
-              card: '#1A1A22',
-              border: 'rgba(245, 158, 11, 0.18)'
+            auros: {
+              abyss: '#012624',
+              deep: '#011d1c',
+              kelp: '#003734',
+              mist: '#edfffe',
+              platinum: '#ffffff',
+              silver: '#bbc7c6',
+              ash: '#f2f2f2',
+              slate: '#707777',
+              lavender: '#fde9ff',
             }
+          },
+          borderRadius: {
+            'card': '16px',
+            'btn': '6px',
+            'small': '6px',
           }
         }
       }
     }
   </script>
+
   <style>
+    :root {
+      --color-liquid-abyss: #012624;
+      --color-liquid-deep: #011d1c;
+      --color-liquid-kelp: #003734;
+      --color-liquid-mist: #edfffe;
+      --color-platinum: #ffffff;
+      --color-silver-mist: #bbc7c6;
+      --color-ash: #f2f2f2;
+      --color-slate-deep: #707777;
+      --color-lavender-phosphor: #fde9ff;
+      --gradient-bioluminescent: linear-gradient(90deg, rgb(0, 130, 124) 0%, rgb(203, 255, 252) 100%);
+      --gradient-aurora: linear-gradient(90deg, rgb(203, 255, 252) 0%, rgb(237, 255, 254) 26.25%, rgb(255, 253, 250) 47.57%, rgb(250, 209, 255) 88.96%);
+    }
+
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-      background: radial-gradient(circle at 50% -20%, #3a0d11 0%, #12090b 45%, #08080a 100%);
+      background-color: var(--color-liquid-abyss);
+      color: var(--color-silver-mist);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
-    .device-frame {
-      border: 10px solid #1e1e28;
-      border-radius: 36px;
+
+    /* Auros Typographic System */
+    .heading-auros {
+      font-weight: 500 !important;
+      letter-spacing: -0.04em !important;
+      line-height: 1.0 !important;
+      color: var(--color-platinum);
+    }
+
+    .kicker-auros {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-silver-mist);
+    }
+
+    .stat-number-auros {
+      font-weight: 500;
+      color: var(--color-lavender-phosphor);
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+    }
+
+    /* Auros Surface Stack (No shadows - depth by water tint) */
+    .surface-abyss {
+      background-color: var(--color-liquid-abyss);
+    }
+
+    .surface-deep {
+      background-color: var(--color-liquid-deep);
+      border-radius: 16px;
+    }
+
+    .surface-kelp {
+      background-color: var(--color-liquid-kelp);
+      border-radius: 16px;
+    }
+
+    /* Auros Gradient Pill Button (6px radius) */
+    .btn-aurora {
+      background: var(--gradient-aurora);
+      color: #1a1a1a;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 6px;
+      padding: 10px 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s ease, transform 0.15s ease;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-aurora:hover {
+      opacity: 0.94;
+      transform: translateY(-1px);
+    }
+
+    /* Auros Kelp Secondary Button (6px radius) */
+    .btn-kelp {
+      background-color: var(--color-liquid-kelp);
+      color: var(--color-platinum);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 6px;
+      padding: 9px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      text-decoration: none;
+      border: 1px solid rgba(237, 255, 254, 0.12);
+    }
+    .btn-kelp:hover {
+      background-color: #024b47;
+      color: var(--color-liquid-mist);
+    }
+
+    /* Auros Arrow Icon Trigger (32x32, 6px radius) */
+    .btn-arrow-trigger {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(3, 81, 75, 0.6);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .btn-arrow-trigger:hover {
+      background: rgba(0, 130, 124, 0.85);
+      transform: translate(2px, -2px);
+    }
+
+    /* Auros Ghost Nav Link */
+    .nav-ghost-link {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--color-silver-mist);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    .nav-ghost-link:hover, .nav-ghost-link.active {
+      color: var(--color-platinum);
+    }
+
+    /* Device frame styled to Auros depth */
+    .device-frame-auros {
+      background: #001211;
+      border: 1px solid rgba(0, 130, 124, 0.35);
+      border-radius: 16px;
       overflow: hidden;
-      background: #000;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(245, 158, 11, 0.2);
-      transition: all 0.3s ease;
+      transition: border-color 0.3s ease;
     }
-    .device-frame:hover {
-      box-shadow: 0 30px 70px -12px rgba(200, 30, 30, 0.25), 0 0 0 2px rgba(245, 158, 11, 0.4);
-      border-color: #262636;
+    .device-frame-auros:hover {
+      border-color: rgba(203, 255, 252, 0.5);
     }
-    .gold-gradient-text {
-      background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 50%, #D97706 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .crimson-gradient-text {
-      background: linear-gradient(135deg, #FECDD3 0%, #F43F5E 50%, #BE123C 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+
+    /* Interactive bioluminescent canvas */
+    #bioluminescentCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.45;
     }
   </style>
 </head>
-<body class="min-h-screen text-slate-100 p-3 md:p-6 antialiased">
+<body class="min-h-screen text-slate-100 antialiased relative selection:bg-[#00827c] selection:text-white">
 
-  <!-- HEADER BRANDING RESMI KEBAB AL BEWOK -->
-  <header class="max-w-7xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-amber-500/20 pb-4 backdrop-blur-md bg-zinc-950/40 p-4 rounded-3xl">
-    <div class="flex items-center space-x-3.5">
-      <!-- LOGO MONOGRAM AL BEWOK -->
-      <div class="relative group">
-        <div class="w-13 h-13 w-12 h-12 bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 rounded-2xl p-[2px] shadow-xl shadow-red-950/60">
-          <div class="w-full h-full bg-zinc-950 rounded-[14px] flex items-center justify-center relative overflow-hidden">
-            <img src="/icons/kebab-albewok.svg" alt="Kebab AL Bewok" class="w-9 h-9 object-contain filter drop-shadow">
-            <div class="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 to-amber-500"></div>
+  <!-- BIOLUMINESCENT DATA ORB CANVAS BACKGROUND -->
+  <canvas id="bioluminescentCanvas"></canvas>
+
+  <div class="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-12">
+
+    <!-- AUROS NAVIGATION BAR -->
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-[#003734] pb-6">
+      
+      <!-- BRAND & MARK -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-[6px] bg-[#003734] p-1.5 flex items-center justify-center border border-[rgba(203,255,252,0.2)]">
+          <img src="/icons/kebab-albewok.svg" alt="Kebab AL Bewok" class="w-full h-full object-contain">
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="kicker-auros text-[10px] text-[#edfffe]">KEBAB AL BEWOK</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-[4px] bg-[#003734] text-[#edfffe] font-mono uppercase tracking-widest border border-[rgba(203,255,252,0.15)]">
+              TERMINAL V2.6
+            </span>
+          </div>
+          <h1 class="text-base font-medium tracking-tight text-white m-0 p-0 leading-tight">
+            Abyssal Operations &amp; Franchise Network
+          </h1>
+        </div>
+      </div>
+
+      <!-- GHOST NAV LINKS -->
+      <nav class="hidden md:flex items-center space-x-6 text-xs">
+        <a href="#stats" class="nav-ghost-link">Metrics</a>
+        <a href="#simulation" class="nav-ghost-link">Multi-Role</a>
+        <a href="/owner.html" class="nav-ghost-link">Portal Owner</a>
+        <a href="/admin.html" class="nav-ghost-link">Kasir Lapak</a>
+        <a href="/driver.html" class="nav-ghost-link">Kurir Driver</a>
+      </nav>
+
+      <!-- PRIMARY ACTION BUTTONS -->
+      <div class="flex items-center gap-2.5">
+        <a href="/customer.html" target="_blank" class="btn-aurora">
+          <span>Pesan Online</span>
+          <i class="fa-solid fa-arrow-up-right text-[11px]"></i>
+        </a>
+        <a href="/owner.html" target="_blank" class="btn-kelp">
+          <img src="/icons/flaticon-owner.svg" class="w-3.5 h-3.5 object-contain">
+          <span>Portal Owner</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- HERO SECTION: KINETIC HEADLINE & INSTRUMENT OVERVIEW -->
+    <section class="py-4 lg:py-8 space-y-6 max-w-4xl">
+      <div class="space-y-3">
+        <span class="kicker-auros block text-[#edfffe]">LIQUID OPERATIONS • REAL-TIME DISPATCH</span>
+        <h2 class="heading-auros text-4xl sm:text-5xl lg:text-6xl text-white">
+          Bioluminescent Order Flow &amp; Distributed Kitchen POS.
+        </h2>
+        <p class="text-base text-[#bbc7c6] max-w-2xl leading-relaxed font-normal">
+          Ekosistem terdistribusi Kebab AL Bewok yang terhubung tanpa latensi. Sinkronisasi multi-peran antara pelanggan, dapur lapak, dan kurir dalam satu kanvas operasional presisi.
+        </p>
+      </div>
+
+      <!-- DIRECT QUICK ACCESS PILLS -->
+      <div class="flex flex-wrap items-center gap-3 pt-2">
+        <a href="/customer.html" target="_blank" class="btn-kelp group">
+          <img src="/icons/kebab-albewok.svg" class="w-4 h-4 object-contain">
+          <span>Aplikasi Pelanggan</span>
+          <span class="btn-arrow-trigger group-hover:bg-[#00827c] ml-1"><i class="fa-solid fa-arrow-up-right"></i></span>
+        </a>
+
+        <a href="/admin.html" target="_blank" class="btn-kelp group">
+          <img src="/icons/flaticon-pos.svg" class="w-4 h-4 object-contain">
+          <span>Dapur &amp; Kasir POS</span>
+          <span class="btn-arrow-trigger group-hover:bg-[#00827c] ml-1"><i class="fa-solid fa-arrow-up-right"></i></span>
+        </a>
+
+        <a href="/driver.html" target="_blank" class="btn-kelp group">
+          <img src="/icons/flaticon-courier.svg" class="w-4 h-4 object-contain">
+          <span>Kurir Driver</span>
+          <span class="btn-arrow-trigger group-hover:bg-[#00827c] ml-1"><i class="fa-solid fa-arrow-up-right"></i></span>
+        </a>
+
+        <a href="/owner.html" target="_blank" class="btn-kelp group">
+          <img src="/icons/flaticon-owner.svg" class="w-4 h-4 object-contain">
+          <span>Portal Owner Pusat</span>
+          <span class="btn-arrow-trigger group-hover:bg-[#00827c] ml-1"><i class="fa-solid fa-arrow-up-right"></i></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- STATISTIC COUNTER (AUROS SIGNATURE LAVENDER-PHOSPHOR BLOCK) -->
+    <section id="stats" class="surface-deep p-6 sm:p-8 grid grid-cols-1 md:grid-cols-4 gap-6 border border-[#003734]">
+      <div class="space-y-1">
+        <div class="stat-number-auros text-3xl lg:text-4xl">2 OUTLETS</div>
+        <div class="kicker-auros text-[10px] text-[#edfffe]">Cabang Kalisari &amp; Alun-Alun</div>
+        <p class="text-xs text-[#bbc7c6] mt-1">Armada dapur &amp; stok real-time aktif.</p>
+      </div>
+
+      <div class="space-y-1">
+        <div class="stat-number-auros text-3xl lg:text-4xl">&lt; 15 DETIK</div>
+        <div class="kicker-auros text-[10px] text-[#edfffe]">Kitchen Order Dispatch</div>
+        <p class="text-xs text-[#bbc7c6] mt-1">Notifikasi instan dari checkout ke kasir.</p>
+      </div>
+
+      <div class="space-y-1">
+        <div class="stat-number-auros text-3xl lg:text-4xl">100% BEBAS</div>
+        <div class="kicker-auros text-[10px] text-[#edfffe]">Tanpa Komisi Pihak Ketiga</div>
+        <p class="text-xs text-[#bbc7c6] mt-1">Margin utuh untuk mitra lapak &amp; owner.</p>
+      </div>
+
+      <div class="space-y-1">
+        <div class="stat-number-auros text-3xl lg:text-4xl">99.98%</div>
+        <div class="kicker-auros text-[10px] text-[#edfffe]">Network Terminal Uptime</div>
+        <p class="text-xs text-[#bbc7c6] mt-1">SumoPod Cloud 24 Jam nonstop.</p>
+      </div>
+    </section>
+
+    <!-- EXPLORE & SCAN QR CODE SECTION -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      
+      <!-- SCAN QR MOBILE PANEL (SURFACE RECESSED DEEP) -->
+      <div class="surface-deep p-6 border border-[#003734] flex flex-col justify-between space-y-4">
+        <div class="space-y-2">
+          <span class="kicker-auros block text-[#edfffe]">MOBILE ENTRY • QR PROTOCOL</span>
+          <h3 class="text-xl font-medium text-white tracking-tight leading-tight">
+            Uji Langsung di Smartphone Anda
+          </h3>
+          <p class="text-xs text-[#bbc7c6] leading-relaxed">
+            Arahkan kamera smartphone ke QR Code ini untuk membuka antarmuka pemesanan webapp mandiri.
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-4 pt-2">
+          <div class="w-24 h-24 rounded-[8px] bg-white p-1.5 shrink-0 border border-[#003734]">
+            <img id="qrSimulatorImg" src="" alt="Scan QR Kebab" class="w-full h-full object-contain">
+          </div>
+          <div class="text-xs text-[#bbc7c6] space-y-1">
+            <span class="inline-block px-2 py-0.5 rounded-[4px] bg-[#003734] text-[#edfffe] text-[10px] uppercase tracking-wider font-mono">
+              DYNAMIC HOST
+            </span>
+            <p class="text-[11px] text-[#bbc7c6]">
+              Terhubung langsung ke host aktif: <br>
+              <b class="text-[#edfffe] font-mono">albewok.my.id</b>
+            </p>
           </div>
         </div>
-        <span class="absolute -top-1 -right-1 flex h-3 w-3">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500 border border-zinc-950"></span>
+      </div>
+
+      <!-- 3-TIER OPERATIONAL PIPELINE (SURFACE KELP RAISED) -->
+      <div class="lg:col-span-2 surface-kelp p-6 sm:p-8 space-y-5 border border-[rgba(237,255,254,0.08)]">
+        <div class="flex items-center justify-between border-b border-[rgba(237,255,254,0.1)] pb-3">
+          <span class="kicker-auros text-[#edfffe]">DISTRIBUTED ARCHITECTURE</span>
+          <span class="text-[11px] text-[#bbc7c6] font-mono uppercase tracking-widest flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#00827c] animate-pulse"></span>
+            SYNCHRONIZED
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- STAGE 1 -->
+          <div class="p-4 rounded-[8px] bg-[#012624] border border-[#003734] space-y-1.5">
+            <span class="kicker-auros text-[10px] text-[#edfffe]">01 / CUSTOMER</span>
+            <h4 class="text-sm font-medium text-white tracking-tight">Katalog &amp; Checkout</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Pilihan varian, racik daging, saus spesial, dan verifikasi QRIS otomatis.
+            </p>
+          </div>
+
+          <!-- STAGE 2 -->
+          <div class="p-4 rounded-[8px] bg-[#012624] border border-[#003734] space-y-1.5">
+            <span class="kicker-auros text-[10px] text-[#edfffe]">02 / KASIR LAPAK</span>
+            <h4 class="text-sm font-medium text-white tracking-tight">Dapur &amp; Masak</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Verifikasi bayar, cetak struk thermal, peracikan kebab, dan panggil kurir.
+            </p>
+          </div>
+
+          <!-- STAGE 3 -->
+          <div class="p-4 rounded-[8px] bg-[#012624] border border-[#003734] space-y-1.5">
+            <span class="kicker-auros text-[10px] text-[#edfffe]">03 / DRIVER KURIR</span>
+            <h4 class="text-sm font-medium text-white tracking-tight">Radar &amp; Antar</h4>
+            <p class="text-xs text-[#bbc7c6] leading-relaxed">
+              Ambil pesanan di lapak, live tracking GPS ke pintu pembeli, ongkir instan.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- LIVE 3-DEVICE SIMULATION WORKSPACE -->
+    <section id="simulation" class="space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <div>
+          <span class="kicker-auros text-[#edfffe]">LIVE WORKSPACE</span>
+          <h3 class="text-xl font-medium text-white tracking-tight">Simulasi Interaktif 3 Peran</h3>
+        </div>
+        <span class="text-xs text-[#bbc7c6] hidden sm:inline">
+          PWA Compatible • Multi-Device Preview
         </span>
       </div>
 
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-1.5">
-            <span>KEBAB</span>
-            <span class="gold-gradient-text font-black">AL BEWOK</span>
-          </h1>
-          <span class="bg-red-950/80 border border-red-500/40 text-red-300 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-            Live Simulator
-          </span>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <!-- DEVICE 1: CUSTOMER -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
+              <img src="/icons/kebab-albewok.svg" class="w-3.5 h-3.5 object-contain">
+              <span>1. CUSTOMER APP</span>
+            </span>
+            <a href="/customer.html" target="_blank" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
+              <span>Fullscreen</span>
+              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
+            </a>
+          </div>
+          <div class="device-frame-auros h-[720px]">
+            <iframe src="/customer.html" class="w-full h-full border-0"></iframe>
+          </div>
         </div>
-        <p class="text-xs text-amber-200/70 font-medium">
-          “Rasa Nikmat, Harga Bersahabat!” • Ekosistem Digital Restoran &amp; Waralaba Kebab
+
+        <!-- DEVICE 2: DAPUR & KASIR -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
+              <img src="/icons/flaticon-pos.svg" class="w-3.5 h-3.5 object-contain">
+              <span>2. KASIR &amp; DAPUR POS</span>
+            </span>
+            <a href="/admin.html" target="_blank" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
+              <span>Fullscreen</span>
+              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
+            </a>
+          </div>
+          <div class="device-frame-auros h-[720px]">
+            <iframe src="/admin.html" class="w-full h-full border-0"></iframe>
+          </div>
+        </div>
+
+        <!-- DEVICE 3: DRIVER KURIR -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs px-1">
+            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
+              <img src="/icons/flaticon-courier.svg" class="w-3.5 h-3.5 object-contain">
+              <span>3. DRIVER KURIR</span>
+            </span>
+            <a href="/driver.html" target="_blank" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
+              <span>Fullscreen</span>
+              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
+            </a>
+          </div>
+          <div class="device-frame-auros h-[720px]">
+            <iframe src="/driver.html" class="w-full h-full border-0"></iframe>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- AUROS RECESSED FOOTER -->
+    <footer class="surface-deep p-8 lg:p-12 border border-[#003734] rounded-2xl flex flex-wrap items-center justify-between gap-6">
+      <div class="space-y-1.5">
+        <div class="flex items-center space-x-2">
+          <span class="kicker-auros text-[#edfffe]">KEBAB AL BEWOK</span>
+          <span class="text-[#707777]">•</span>
+          <span class="kicker-auros text-[#bbc7c6]">STYLE SYSTEM: AUROS ABYSSAL TERMINAL</span>
+        </div>
+        <p class="text-xs text-[#bbc7c6] max-w-md leading-relaxed">
+          Dirancang untuk performa tinggi, kejelasan instrumen data, dan kedalaman atmosfer bioluminescent tanpa distraksi.
         </p>
       </div>
-    </div>
 
-    <!-- QUICK OPEN ACTION BUTTONS (PROFESSIONAL PALETTE WITH FLATICONS) -->
-    <div class="flex flex-wrap items-center gap-2 text-xs">
-      <a href="/customer.html" target="_blank" class="bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow-lg shadow-red-950/50 transition active:scale-95 border border-red-400/30">
-        <img src="/icons/kebab-albewok.svg" class="w-4 h-4 object-contain">
-        <span>App Pelanggan</span>
-      </a>
-
-      <a href="/admin.html" target="_blank" class="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-zinc-950 font-black px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow-lg shadow-amber-950/50 transition active:scale-95 border border-amber-300/40">
-        <img src="/icons/flaticon-pos.svg" class="w-4 h-4 object-contain">
-        <span>Kasir &amp; Dapur</span>
-      </a>
-
-      <a href="/driver.html" target="_blank" class="bg-zinc-900 hover:bg-zinc-800 text-emerald-400 hover:text-emerald-300 font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95 border border-emerald-500/30">
-        <img src="/icons/flaticon-courier.svg" class="w-4 h-4 object-contain">
-        <span>App Kurir</span>
-      </a>
-
-      <a href="/owner.html" target="_blank" class="bg-gradient-to-r from-zinc-900 to-zinc-950 hover:bg-zinc-850 text-amber-300 hover:text-amber-200 font-extrabold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95 border border-amber-500/40 hover:border-amber-400">
-        <img src="/icons/flaticon-owner.svg" class="w-4 h-4 object-contain">
-        <span>Portal Owner</span>
-      </a>
-    </div>
-  </header>
-
-  <!-- PANDUAN SIMULASI & DYNAMIC SCAN QR KE HP -->
-  <div class="max-w-7xl mx-auto mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-    
-    <!-- KOTAK SCAN QR CODE LANGSUNG KE HP (DYNAMIC HOST) -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-red-950/90 via-zinc-900 to-amber-950/80 text-slate-100 p-4 rounded-3xl shadow-xl flex items-center space-x-4 border border-amber-500/30">
-      <div class="absolute -right-8 -top-8 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl"></div>
-      
-      <div class="relative shrink-0">
-        <img id="qrSimulatorImg" src="" alt="Scan QR Kebab" class="w-24 h-24 rounded-2xl border-2 border-amber-400/50 shadow-md bg-white p-1">
-        <span class="absolute -bottom-2 inset-x-0 text-center bg-zinc-900 border border-amber-500/40 text-amber-400 text-[8px] font-black rounded-full px-1 py-0.2">
-          SCAN HP
-        </span>
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="/owner.html" target="_blank" class="btn-aurora">
+          <span>Buka Portal Owner</span>
+          <i class="fa-solid fa-arrow-up-right text-[11px]"></i>
+        </a>
       </div>
-
-      <div class="relative min-w-0 flex-1">
-        <div class="flex items-center gap-1.5 mb-1">
-          <span class="bg-amber-500 text-zinc-950 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-            Tes di Smartphone
-          </span>
-        </div>
-        <h3 class="font-extrabold text-xs md:text-sm text-white leading-tight">
-          Buka di Kamera HP Anda
-        </h3>
-        <p class="text-[11px] text-amber-100/70 font-normal mt-0.5 leading-snug">
-          Scan QR untuk langsung mencoba menu &amp; checkout pelanggan dari layar HP.
-        </p>
-      </div>
-    </div>
-
-    <!-- PANDUAN ALUR 3 APLIKASI (WARNA BRAND HARMONIS) -->
-    <div class="md:col-span-2 bg-zinc-950/70 border border-amber-500/20 rounded-3xl p-4 text-xs flex flex-col justify-center backdrop-blur-sm">
-      <div class="flex items-center justify-between mb-2.5">
-        <div class="flex items-center space-x-2 text-amber-400 font-bold">
-          <i class="fa-solid fa-circle-nodes text-xs"></i>
-          <span class="text-xs uppercase tracking-wider font-extrabold">Alur Sinkronisasi Real-Time:</span>
-        </div>
-        <span class="text-[10px] text-zinc-400 flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          Multi-Role Live Sync
-        </span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
-        <div class="bg-zinc-900/80 p-3 rounded-2xl border border-red-500/25 relative overflow-hidden group hover:border-red-500/50 transition">
-          <div class="w-1 h-full bg-red-600 absolute left-0 top-0"></div>
-          <span class="font-extrabold text-red-400 block mb-0.5 flex items-center justify-between">
-            <span>1. Customer</span>
-            <i class="fa-solid fa-mobile-screen text-red-500/60 text-[10px]"></i>
-          </span>
-          <p class="text-zinc-300 leading-relaxed text-[10px]">
-            Pilih varian, daging, saus, ekstra topping &rarr; Bayar via QRIS otomatis.
-          </p>
-        </div>
-
-        <div class="bg-zinc-900/80 p-3 rounded-2xl border border-amber-500/25 relative overflow-hidden group hover:border-amber-500/50 transition">
-          <div class="w-1 h-full bg-amber-500 absolute left-0 top-0"></div>
-          <span class="font-extrabold text-amber-400 block mb-0.5 flex items-center justify-between">
-            <span>2. Kasir &amp; Dapur</span>
-            <i class="fa-solid fa-utensils text-amber-500/60 text-[10px]"></i>
-          </span>
-          <p class="text-zinc-300 leading-relaxed text-[10px]">
-            Verifikasi lunas &rarr; Cetak struk &rarr; Masak kebab &rarr; Panggil kurir.
-          </p>
-        </div>
-
-        <div class="bg-zinc-900/80 p-3 rounded-2xl border border-emerald-500/25 relative overflow-hidden group hover:border-emerald-500/50 transition">
-          <div class="w-1 h-full bg-emerald-500 absolute left-0 top-0"></div>
-          <span class="font-extrabold text-emerald-400 block mb-0.5 flex items-center justify-between">
-            <span>3. Driver Kurir</span>
-            <i class="fa-solid fa-motorcycle text-emerald-500/60 text-[10px]"></i>
-          </span>
-          <p class="text-zinc-300 leading-relaxed text-[10px]">
-            Ambil pesanan &rarr; Live GPS tracking ke rumah pembeli &rarr; Saldo masuk.
-          </p>
-        </div>
-      </div>
-    </div>
+    </footer>
 
   </div>
 
-  <!-- CONTAINER 3 DEVICE SCREENS (FRAMES MODERN) -->
-  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-
-    <!-- 1. DEVICE CUSTOMER -->
-    <div class="space-y-2">
-      <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-2">
-          <img src="/icons/kebab-albewok.svg" class="w-5 h-5 object-contain">
-          <span class="tracking-wide">1. APLIKASI CUSTOMER</span>
-        </span>
-        <span class="text-amber-200/60 text-[10px] font-mono">PWA iPhone / Android</span>
-      </div>
-      <div class="device-frame h-[700px]">
-        <iframe src="/customer.html" class="w-full h-full border-0"></iframe>
-      </div>
-    </div>
-
-    <!-- 2. DEVICE ADMIN LAPAK -->
-    <div class="space-y-2">
-      <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-2">
-          <img src="/icons/flaticon-pos.svg" class="w-5 h-5 object-contain">
-          <span class="tracking-wide">2. DAPUR &amp; KASIR LAPAK</span>
-        </span>
-        <span class="text-amber-200/60 text-[10px] font-mono">Tablet / PC Kasir</span>
-      </div>
-      <div class="device-frame h-[700px]">
-        <iframe src="/admin.html" class="w-full h-full border-0"></iframe>
-      </div>
-    </div>
-
-    <!-- 3. DEVICE DRIVER -->
-    <div class="space-y-2">
-      <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-2">
-          <img src="/icons/flaticon-courier.svg" class="w-5 h-5 object-contain">
-          <span class="tracking-wide">3. DRIVER KURIR</span>
-        </span>
-        <span class="text-amber-200/60 text-[10px] font-mono">Aplikasi Smartphone</span>
-      </div>
-      <div class="device-frame h-[700px]">
-        <iframe src="/driver.html" class="w-full h-full border-0"></iframe>
-      </div>
-    </div>
-
-  </main>
-
+  <!-- SCRIPT: DYNAMIC QR & BIOLUMINESCENT ORB CANVAS -->
   <script>
-    // Set dynamic QR Code destination so it always points to the active host (localhost, LAN IP, or tunnel)
+    // 1. Dynamic QR Code pointing to active host
     (function initDynamicQR() {
       const currentHost = window.location.origin;
       const customerUrl = currentHost + '/customer.html';
       const qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent(customerUrl);
       const img = document.getElementById('qrSimulatorImg');
       if (img) img.src = qrApiUrl;
+    })();
+
+    // 2. Auros Bioluminescent Data Orb Particle Sphere
+    (function initBioluminescentCanvas() {
+      const canvas = document.getElementById('bioluminescentCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      let particles = [];
+      const PARTICLE_COUNT = 70;
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.x = Math.random() * width;
+          this.y = Math.random() * height;
+          this.radius = Math.random() * 2.2 + 0.6;
+          this.vx = (Math.random() - 0.5) * 0.4;
+          this.vy = (Math.random() - 0.5) * 0.4;
+          this.alpha = Math.random() * 0.5 + 0.2;
+          this.color = Math.random() > 0.35 ? 'rgb(0, 130, 124)' : 'rgb(203, 255, 252)';
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
+            this.reset();
+          }
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.globalAlpha = this.alpha;
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = this.color;
+          ctx.fill();
+        }
+      }
+
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new Particle());
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.update();
+          p.draw();
+        });
+        requestAnimationFrame(animate);
+      }
+      animate();
     })();
   </script>
 
