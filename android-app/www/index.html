@@ -65,10 +65,16 @@
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- NON-BLOCKING ASYNC ICONS & FONTS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
   <!-- FLATICON UICONS CDN -->
-  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
-  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css' media="print" onload="this.media='all'">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css' media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
+  </noscript>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -298,8 +304,8 @@
       <!-- GHOST NAV LINKS -->
       <nav class="hidden md:flex items-center space-x-6 text-xs">
         <a href="/franchise.html" class="nav-ghost-link text-[#cbfffc] font-semibold">★ Kemitraan Franchise</a>
+        <a href="#menu" class="nav-ghost-link">Menu Signature</a>
         <a href="#stats" class="nav-ghost-link">Metrics</a>
-        <a href="#simulation" class="nav-ghost-link">Multi-Role</a>
       </nav>
 
       <!-- PRIMARY ACTION BUTTONS -->
@@ -365,7 +371,7 @@
     <!-- ========================================================================= -->
     <!-- CINEMATIC TASTE & SIGNATURE ROAST (AUROS ATMOSPHERIC SHOWCASE)            -->
     <!-- ========================================================================= -->
-    <section class="space-y-4">
+    <section id="menu" class="space-y-4">
       <div class="flex flex-wrap items-end justify-between gap-4 border-b border-[#003734] pb-4">
         <div>
           <span class="kicker-auros text-[#edfffe]">VISUAL MASTERPIECE • REAL PRODUCT SHOTS</span>
@@ -578,74 +584,6 @@
 
     </section>
 
-    <!-- LIVE 3-DEVICE SIMULATION WORKSPACE -->
-    <section id="simulation" class="space-y-4">
-      <div class="flex items-center justify-between px-1">
-        <div>
-          <span class="kicker-auros text-[#edfffe]">LIVE WORKSPACE</span>
-          <h3 class="text-xl font-medium text-white tracking-tight">Simulasi Interaktif 3 Peran</h3>
-        </div>
-        <span class="text-xs text-[#bbc7c6] hidden sm:inline">
-          PWA Compatible • Multi-Device Preview
-        </span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
-        <!-- DEVICE 1: CUSTOMER -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs px-1">
-            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
-              <img src="/icons/kebab-albewok.svg" alt="Logo Kebab AL Bewok" width="14" height="14" class="w-3.5 h-3.5 object-contain">
-              <span>1. CUSTOMER APP</span>
-            </span>
-            <a href="/customer.html" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
-              <span>Fullscreen</span>
-              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
-            </a>
-          </div>
-          <div class="device-frame-auros h-[720px]">
-            <iframe src="/customer.html" title="Simulator Aplikasi Pemesanan Pelanggan Kebab AL Bewok" loading="lazy" class="w-full h-full border-0"></iframe>
-          </div>
-        </div>
-
-        <!-- DEVICE 2: DAPUR & KASIR -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs px-1">
-            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
-              <img src="/icons/flaticon-pos.svg" alt="Ikon POS Kasir Lapak" width="14" height="14" class="w-3.5 h-3.5 object-contain">
-              <span>2. KASIR &amp; DAPUR POS</span>
-            </span>
-            <a href="/admin.html" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
-              <span>Fullscreen</span>
-              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
-            </a>
-          </div>
-          <div class="device-frame-auros h-[720px]">
-            <iframe src="/admin.html" title="Simulator Dapur dan Kasir POS Kebab AL Bewok" loading="lazy" class="w-full h-full border-0"></iframe>
-          </div>
-        </div>
-
-        <!-- DEVICE 3: DRIVER KURIR -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs px-1">
-            <span class="kicker-auros text-[#edfffe] flex items-center gap-1.5">
-              <img src="/icons/flaticon-courier.svg" alt="Ikon Kurir Driver Kebab" width="14" height="14" class="w-3.5 h-3.5 object-contain">
-              <span>3. DRIVER KURIR</span>
-            </span>
-            <a href="/driver.html" target="_blank" rel="noopener noreferrer" class="text-[11px] text-[#bbc7c6] hover:text-[#edfffe] flex items-center gap-1">
-              <span>Fullscreen</span>
-              <i class="fa-solid fa-arrow-up-right text-[9px]"></i>
-            </a>
-          </div>
-          <div class="device-frame-auros h-[720px]">
-            <iframe src="/driver.html" title="Simulator Radar Kurir Pengantaran Kebab AL Bewok" loading="lazy" class="w-full h-full border-0"></iframe>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
     <!-- AUROS RECESSED FOOTER -->
     <footer class="surface-deep p-8 lg:p-12 border border-[#003734] rounded-2xl flex flex-wrap items-center justify-between gap-6">
       <div class="space-y-1.5">
@@ -721,8 +659,6 @@
           ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
           ctx.fillStyle = this.color;
           ctx.globalAlpha = this.alpha;
-          ctx.shadowBlur = 12;
-          ctx.shadowColor = this.color;
           ctx.fill();
         }
       }
