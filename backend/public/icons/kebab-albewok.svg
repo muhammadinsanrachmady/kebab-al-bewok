@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="kbTortilla" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A"/>
+      <stop offset="60%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <linearGradient id="kbBeef" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#991B1B"/>
+      <stop offset="100%" stop-color="#450A0A"/>
+    </linearGradient>
+    <linearGradient id="kbCheese" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="100%" stop-color="#EAB308"/>
+    </linearGradient>
+    <filter id="kbGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#DC2626" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Glow and Shadow Backdrop -->
+  <circle cx="64" cy="64" r="58" fill="#18181B" stroke="#F59E0B" stroke-width="2.5" stroke-opacity="0.5"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="#DC2626" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="4 3"/>
+
+  <!-- Kebab Wrap Body (Angled Shawarma) -->
+  <g filter="url(#kbGlow)" transform="translate(18, 14)">
+    <!-- Back Leaf Lettuce -->
+    <path d="M 32 18 C 22 10 12 18 18 28 C 14 36 24 44 32 38 Z" fill="#22C55E"/>
+    <path d="M 40 14 C 48 6 60 12 56 22 C 64 26 58 38 48 34 Z" fill="#16A34A"/>
+
+    <!-- Juicy Beef Slices Overflowing -->
+    <rect x="24" y="16" width="22" height="14" rx="4" fill="url(#kbBeef)" transform="rotate(-15 35 23)"/>
+    <rect x="42" y="18" width="24" height="13" rx="4" fill="url(#kbBeef)" transform="rotate(12 54 24)"/>
+    
+    <!-- Tomato Slice -->
+    <circle cx="36" cy="28" r="8" fill="#EF4444"/>
+    <circle cx="36" cy="28" r="4.5" fill="#DC2626"/>
+
+    <!-- Melted Cheese Sauce Overflow -->
+    <path d="M 28 32 C 34 38 38 46 42 42 C 46 38 52 44 56 36 C 60 30 64 34 68 38 C 72 44 66 48 62 48 C 50 48 42 44 30 40 Z" fill="url(#kbCheese)"/>
+
+    <!-- Main Tortilla Wrap -->
+    <path d="M 20 38 Q 48 48 72 38 L 56 94 Q 46 98 36 94 Z" fill="url(#kbTortilla)" stroke="#D97706" stroke-width="2"/>
+    
+    <!-- Grilled Strip Marks -->
+    <line x1="30" y1="52" x2="62" y2="58" stroke="#B45309" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+    <line x1="32" y1="64" x2="58" y2="70" stroke="#B45309" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+    <line x1="36" y1="76" x2="52" y2="81" stroke="#B45309" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+
+    <!-- Tortilla Fold Detail -->
+    <path d="M 22 40 Q 38 52 46 42" stroke="#B45309" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- Little Spark / Flame Accent -->
+    <path d="M 72 20 Q 76 12 78 18 Q 84 14 80 26 Q 74 24 72 20 Z" fill="#F59E0B"/>
+    <path d="M 74 19 Q 76 14 77 18 Q 80 16 78 23 Q 75 22 74 19 Z" fill="#EF4444"/>
+  </g>
+</svg>

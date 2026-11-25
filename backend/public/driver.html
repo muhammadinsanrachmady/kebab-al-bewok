@@ -13,6 +13,9 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FLATICON UICONS CDN -->
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -74,8 +77,8 @@
     
     <!-- BRANDING COVER -->
     <div class="pt-4">
-      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 via-orange-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl shadow-red-950/70 mb-3 border-2 border-amber-300/40 animate-bounce-short">
-        🛵
+      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 via-orange-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center shadow-2xl shadow-red-950/70 mb-3 border-2 border-amber-300/40 p-2.5 animate-bounce-short">
+        <img src="/icons/flaticon-courier.svg" alt="Mitra Kurir" class="w-full h-full object-contain filter drop-shadow">
       </div>
       <span class="bg-amber-400/20 text-amber-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-400/30">
         Mitra Kurir Resmi
@@ -202,7 +205,7 @@
           <div class="flex justify-between items-start">
             <div>
               <div class="flex items-center space-x-1.5 text-emerald-200 text-xs font-semibold">
-                <i class="fa-solid fa-wallet"></i>
+                <i class="fi fi-sr-wallet text-xs"></i>
                 <span>Saldo Dompet Kurir</span>
               </div>
               <div id="driverBalance" class="text-3xl font-black mt-1 tracking-tight text-white drop-shadow-sm">Rp 0</div>
@@ -219,7 +222,7 @@
           <div class="pt-3 border-t border-white/15 flex justify-between items-center text-xs">
             <div class="flex items-center space-x-2">
               <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center text-emerald-300 font-bold">
-                <i class="fa-solid fa-motorcycle text-xs"></i>
+                <i class="fi fi-sr-motorcycle text-xs"></i>
               </div>
               <div>
                 <span class="block text-[10px] text-emerald-200 font-medium">Trip Selesai</span>
@@ -2366,8 +2369,8 @@
           <div class="flex justify-between items-start border-b pb-3">
             <div>
               <div class="flex items-center space-x-1.5">
-                <span class="bg-amber-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse">
-                  🛵 FASE 1: MENUJU LAPAK
+                <span class="bg-amber-400 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1">
+                  <i class="fi fi-sr-motorcycle"></i> FASE 1: MENUJU LAPAK
                 </span>
                 <span class="text-xs font-mono font-bold text-slate-500">#${activeDelivery.order_code}</span>
               </div>
@@ -2427,8 +2430,8 @@
           <div class="flex justify-between items-start border-b pb-3">
             <div>
               <div class="flex items-center space-x-1.5">
-                <span class="bg-emerald-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse">
-                  🛵 FASE 2: MENGANTAR KE PEMESAN
+                <span class="bg-emerald-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1">
+                  <i class="fi fi-sr-motorcycle"></i> FASE 2: MENGANTAR KE PEMESAN
                 </span>
                 <span class="text-xs font-mono font-bold text-slate-500">#${activeDelivery.order_code}</span>
               </div>

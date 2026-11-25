@@ -16,7 +16,7 @@
       "current_stock": 500,
       "safety_stock": 200,
       "unit_cost": 350,
-      "updated_at": null
+      "updated_at": "2026-11-11T06:18:42.414Z"
     },
     {
       "no": 2,
@@ -130,6 +130,17 @@
     },
     {
       "no": 12,
+      "id": "lidah_kebab",
+      "category": "Daging & Protein",
+      "name": "Lidah Kebab",
+      "unit": "gram",
+      "current_stock": 5000,
+      "safety_stock": 2000,
+      "unit_cost": 95,
+      "updated_at": null
+    },
+    {
+      "no": 13,
       "id": "lettuce_head",
       "category": "Sayuran & Buah",
       "name": "Lettuce Head",
@@ -140,7 +151,7 @@
       "updated_at": null
     },
     {
-      "no": 13,
+      "no": 14,
       "id": "bawang_bombay",
       "category": "Sayuran & Buah",
       "name": "Bawang Bombay",
@@ -151,7 +162,7 @@
       "updated_at": null
     },
     {
-      "no": 14,
+      "no": 15,
       "id": "nanas",
       "category": "Sayuran & Buah",
       "name": "Nanas",
@@ -162,7 +173,7 @@
       "updated_at": null
     },
     {
-      "no": 15,
+      "no": 16,
       "id": "saus_sambal",
       "category": "Saus & Condiment",
       "name": "Saus Sambal",
@@ -173,7 +184,7 @@
       "updated_at": null
     },
     {
-      "no": 16,
+      "no": 17,
       "id": "saus_tomat",
       "category": "Saus & Condiment",
       "name": "Saus Tomat",
@@ -184,7 +195,7 @@
       "updated_at": null
     },
     {
-      "no": 17,
+      "no": 18,
       "id": "saus_mayonaise",
       "category": "Saus & Condiment",
       "name": "Saus Mayonaise",
@@ -195,7 +206,7 @@
       "updated_at": null
     },
     {
-      "no": 18,
+      "no": 19,
       "id": "saus_keju",
       "category": "Saus & Condiment",
       "name": "Saus Keju",
@@ -206,7 +217,7 @@
       "updated_at": null
     },
     {
-      "no": 19,
+      "no": 20,
       "id": "saus_signature",
       "category": "Saus & Condiment",
       "name": "Saus Signature",
@@ -217,7 +228,7 @@
       "updated_at": null
     },
     {
-      "no": 20,
+      "no": 21,
       "id": "keju_slice",
       "category": "Topping Tambahan",
       "name": "Keju Slice",
@@ -228,7 +239,7 @@
       "updated_at": null
     },
     {
-      "no": 21,
+      "no": 22,
       "id": "telur",
       "category": "Topping Tambahan",
       "name": "Telur",
@@ -236,6 +247,39 @@
       "current_stock": 120,
       "safety_stock": 80,
       "unit_cost": 2000,
+      "updated_at": null
+    },
+    {
+      "no": 23,
+      "id": "gas_lpg",
+      "category": "Operasional & Masak",
+      "name": "Gas LPG",
+      "unit": "tabung",
+      "current_stock": 10,
+      "safety_stock": 4,
+      "unit_cost": 22000,
+      "updated_at": null
+    },
+    {
+      "no": 24,
+      "id": "margarin",
+      "category": "Operasional & Masak",
+      "name": "Margarin",
+      "unit": "gram",
+      "current_stock": 5000,
+      "safety_stock": 2000,
+      "unit_cost": 25,
+      "updated_at": null
+    },
+    {
+      "no": 25,
+      "id": "sabun_cuci",
+      "category": "Operasional & Masak",
+      "name": "Sabun Cuci",
+      "unit": "pcs",
+      "current_stock": 24,
+      "safety_stock": 10,
+      "unit_cost": 12000,
       "updated_at": null
     }
   ],

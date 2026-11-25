@@ -1,0 +1,12 @@
+[
+  {
+    "id": "sec-1794802373073-7898",
+    "event": "PORTAL_LOGIN_OK",
+    "severity": "INFO",
+    "ip": "::1",
+    "actor": "AlbewokOwner (owner)",
+    "path": "/api/portal/login",
+    "detail": "Login portal terautentikasi sukses",
+    "at": "2026-11-16T04:12:53.074Z"
+  }
+]

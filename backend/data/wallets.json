@@ -12,7 +12,19 @@
       "trips": 5,
       "is_online": true,
       "biometric_verified": false,
-      "face_verified": false
+      "face_verified": false,
+      "last_latitude": -6.346409018508329,
+      "last_longitude": 106.85531749884565,
+      "encrypted_telemetry": {
+        "alg": "aes-256-gcm",
+        "iv": "4WhWUrz4iNX3kMew",
+        "tag": "cnEWCZrizVMz9nTc6xXZjw",
+        "ct": "9byRyQA8OJbmezE_Z-FZadkqhrw2xI_zp7mF-PBnxqfK7V-WIFI3D95L_RzYDxGysi0BVUWZ5A0CXpstffPGMSYtHPtnZcoQHMAdZx84F0RGgQJZrmzSAA",
+        "at": "2026-11-16T06:03:51.624Z"
+      },
+      "last_heading": 0,
+      "last_speed_kmh": 0,
+      "last_seen_at": "2026-11-16T06:03:51.625Z"
     },
     "driver-02": {
       "id": "driver-02",

@@ -19,6 +19,9 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FLATICON UICONS CDN -->
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -58,8 +61,8 @@
     
     <!-- BRANDING & HERO -->
     <div class="pt-2">
-      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl shadow-red-500/30 mb-3 border-2 border-amber-300/40">
-        🍢
+      <div class="w-20 h-20 bg-gradient-to-tr from-amber-500 to-red-600 rounded-3xl mx-auto flex items-center justify-center shadow-2xl shadow-red-500/30 mb-3 border-2 border-amber-300/40 p-2.5">
+        <img src="/icons/kebab-albewok.svg" alt="Kebab AL Bewok" class="w-full h-full object-contain filter drop-shadow">
       </div>
       <span class="bg-amber-400/20 text-amber-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-amber-400/30">
         Pemesanan Resmi Online
@@ -217,8 +220,9 @@
 
     <!-- FOOTER INFO -->
     <div class="pt-4 pb-2">
-      <p class="text-[10px] text-slate-400">
-        🍢 Kebab AL Bewok • 100% Halal, Segar & Higienis
+      <p class="text-[10px] text-slate-400 flex items-center justify-center gap-1.5">
+        <img src="/icons/kebab-albewok.svg" alt="Kebab" class="w-3.5 h-3.5 object-contain">
+        <span>Kebab AL Bewok • 100% Halal, Segar &amp; Higienis</span>
       </p>
     </div>
   </div>
@@ -227,8 +231,8 @@
   <header class="bg-gradient-to-r from-red-800 via-red-700 to-amber-600 text-white p-3.5 sticky top-0 z-20 shadow-lg border-b border-amber-400/30">
     <div class="flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
-        <div class="w-10 h-10 rounded-2xl bg-zinc-950/80 border border-amber-300/40 flex items-center justify-center text-xl shadow-md">
-          🍢
+        <div class="w-10 h-10 rounded-2xl bg-zinc-950/80 border border-amber-300/40 flex items-center justify-center shadow-md p-1.5">
+          <img src="/icons/kebab-albewok.svg" alt="Kebab" class="w-full h-full object-contain">
         </div>
         <div>
           <h1 class="font-black text-white text-base leading-tight tracking-wide flex items-center gap-1.5">
@@ -318,7 +322,7 @@
         <h2 class="text-lg font-black mt-1">Beli Kebab Langsung di Lapak</h2>
         <p class="text-xs text-yellow-100 mt-0.5">Ongkir murah, daging melimpah dengan nanas & bombay segar!</p>
       </div>
-      <div class="absolute -right-3 -bottom-4 text-6xl opacity-30">🍢</div>
+      <img src="/icons/kebab-albewok.svg" alt="Kebab" class="absolute -right-3 -bottom-4 w-24 h-24 opacity-25 filter drop-shadow pointer-events-none">
     </div>
   </div>
 
@@ -343,8 +347,8 @@
     <div class="max-w-md mx-auto flex items-center justify-between gap-2">
       <!-- BAGIAN KIRI: BUKA KERANJANG BELANJA -->
       <div onclick="openCartModal()" class="flex-1 flex items-center space-x-3 cursor-pointer group py-0.5 select-none">
-        <div class="relative w-11 h-11 bg-red-100 group-hover:bg-red-200 text-red-600 rounded-2xl flex items-center justify-center text-xl shadow-sm transition">
-          🛒
+        <div class="relative w-11 h-11 bg-red-100 group-hover:bg-red-200 text-red-600 rounded-2xl flex items-center justify-center text-lg shadow-sm transition">
+          <i class="fi fi-sr-shopping-cart text-red-600 text-lg"></i>
           <span id="cartCountBadge" class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">1</span>
         </div>
         <div class="truncate">
@@ -377,8 +381,8 @@
       <!-- HEADER KERANJANG -->
       <div class="p-4 border-b flex items-center justify-between bg-gradient-to-r from-red-600 via-amber-500 to-amber-600 text-white shadow-sm">
         <div class="flex items-center space-x-2.5">
-          <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-lg shadow-inner">
-            🛒
+          <div class="w-9 h-9 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-base shadow-inner">
+            <i class="fi fi-sr-shopping-cart text-white text-base"></i>
           </div>
           <div>
             <div class="flex items-center space-x-2">
@@ -2323,7 +2327,7 @@
             if (branch.latitude && branch.longitude) {
               const branchIcon = L.divIcon({
                 className: 'custom-branch-marker',
-                html: `<div class="bg-red-700 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-md border-2 border-yellow-400 whitespace-nowrap flex items-center space-x-1"><span>🍢</span><span>${branch.name.replace('Kebab AL Bewok - ', '')}</span></div>`,
+                html: `<div class="bg-red-700 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-md border-2 border-yellow-400 whitespace-nowrap flex items-center space-x-1"><img src="/icons/kebab-albewok.svg" class="w-3.5 h-3.5 object-contain inline-block"><span>${branch.name.replace('Kebab AL Bewok - ', '')}</span></div>`,
                 iconSize: [120, 30],
                 iconAnchor: [60, 15]
               });

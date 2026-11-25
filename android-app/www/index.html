@@ -6,6 +6,9 @@
   <title>Simulasi 3 Aplikasi - Kebab AL Bewok</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FLATICON UICONS CDN -->
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -71,7 +74,7 @@
       <div class="relative group">
         <div class="w-13 h-13 w-12 h-12 bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 rounded-2xl p-[2px] shadow-xl shadow-red-950/60">
           <div class="w-full h-full bg-zinc-950 rounded-[14px] flex items-center justify-center relative overflow-hidden">
-            <span class="text-2xl filter drop-shadow">🍢</span>
+            <img src="/icons/kebab-albewok.svg" alt="Kebab AL Bewok" class="w-9 h-9 object-contain filter drop-shadow">
             <div class="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 to-amber-500"></div>
           </div>
         </div>
@@ -97,25 +100,25 @@
       </div>
     </div>
 
-    <!-- QUICK OPEN ACTION BUTTONS (PROFESSIONAL PALETTE) -->
+    <!-- QUICK OPEN ACTION BUTTONS (PROFESSIONAL PALETTE WITH FLATICONS) -->
     <div class="flex flex-wrap items-center gap-2 text-xs">
       <a href="/customer.html" target="_blank" class="bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow-lg shadow-red-950/50 transition active:scale-95 border border-red-400/30">
-        <i class="fa-solid fa-mobile-screen text-xs"></i>
+        <img src="/icons/kebab-albewok.svg" class="w-4 h-4 object-contain">
         <span>App Pelanggan</span>
       </a>
 
       <a href="/admin.html" target="_blank" class="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-zinc-950 font-black px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow-lg shadow-amber-950/50 transition active:scale-95 border border-amber-300/40">
-        <i class="fa-solid fa-cash-register text-xs"></i>
+        <img src="/icons/flaticon-pos.svg" class="w-4 h-4 object-contain">
         <span>Kasir &amp; Dapur</span>
       </a>
 
       <a href="/driver.html" target="_blank" class="bg-zinc-900 hover:bg-zinc-800 text-emerald-400 hover:text-emerald-300 font-bold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95 border border-emerald-500/30">
-        <i class="fa-solid fa-motorcycle text-xs"></i>
+        <img src="/icons/flaticon-courier.svg" class="w-4 h-4 object-contain">
         <span>App Kurir</span>
       </a>
 
       <a href="/owner.html" target="_blank" class="bg-gradient-to-r from-zinc-900 to-zinc-950 hover:bg-zinc-850 text-amber-300 hover:text-amber-200 font-extrabold px-3.5 py-2 rounded-xl flex items-center space-x-1.5 shadow transition active:scale-95 border border-amber-500/40 hover:border-amber-400">
-        <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+        <img src="/icons/flaticon-owner.svg" class="w-4 h-4 object-contain">
         <span>Portal Owner</span>
       </a>
     </div>
@@ -207,10 +210,8 @@
     <!-- 1. DEVICE CUSTOMER -->
     <div class="space-y-2">
       <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-1.5">
-          <span class="w-5 h-5 rounded-lg bg-red-600/20 text-red-400 border border-red-500/40 flex items-center justify-center text-[10px]">
-            <i class="fa-solid fa-user"></i>
-          </span>
+        <span class="font-extrabold text-white flex items-center space-x-2">
+          <img src="/icons/kebab-albewok.svg" class="w-5 h-5 object-contain">
           <span class="tracking-wide">1. APLIKASI CUSTOMER</span>
         </span>
         <span class="text-amber-200/60 text-[10px] font-mono">PWA iPhone / Android</span>
@@ -223,10 +224,8 @@
     <!-- 2. DEVICE ADMIN LAPAK -->
     <div class="space-y-2">
       <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-1.5">
-          <span class="w-5 h-5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-[10px]">
-            <i class="fa-solid fa-cash-register"></i>
-          </span>
+        <span class="font-extrabold text-white flex items-center space-x-2">
+          <img src="/icons/flaticon-pos.svg" class="w-5 h-5 object-contain">
           <span class="tracking-wide">2. DAPUR &amp; KASIR LAPAK</span>
         </span>
         <span class="text-amber-200/60 text-[10px] font-mono">Tablet / PC Kasir</span>
@@ -239,10 +238,8 @@
     <!-- 3. DEVICE DRIVER -->
     <div class="space-y-2">
       <div class="flex justify-between items-center px-2 text-xs">
-        <span class="font-extrabold text-white flex items-center space-x-1.5">
-          <span class="w-5 h-5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-[10px]">
-            <i class="fa-solid fa-motorcycle"></i>
-          </span>
+        <span class="font-extrabold text-white flex items-center space-x-2">
+          <img src="/icons/flaticon-courier.svg" class="w-5 h-5 object-contain">
           <span class="tracking-wide">3. DRIVER KURIR</span>
         </span>
         <span class="text-amber-200/60 text-[10px] font-mono">Aplikasi Smartphone</span>

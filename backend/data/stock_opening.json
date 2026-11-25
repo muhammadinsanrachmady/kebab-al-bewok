@@ -1,1 +1,121 @@
-[]
+[
+  {
+    "id": "opening-1794377922404",
+    "branch_id": "cabang-01",
+    "branch_name": "Kebab AL Bewok - Kalisari 3",
+    "staff_name": "Owner",
+    "opening_date": "Opening 11 November 2026",
+    "business_date": "2026-11-11",
+    "cash_opening": 100000,
+    "stock_items": {
+      "bungkus_kebab_jumbo": {
+        "name": "Bungkus Kebab Jumbo",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "bungkus_kebab_reguler": {
+        "name": "Bungkus Kebab Reguler",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "bungkus_kebab_small": {
+        "name": "Bungkus Kebab Small",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "tortilla_jumbo_25cm": {
+        "name": "Tortilla Jumbo 25 cm",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "tortilla_reguler_22cm": {
+        "name": "Tortilla Reguler 22 cm",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "tortilla_kecil_19cm": {
+        "name": "Tortilla Kecil 19 cm",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "beef_kebab_jumbo": {
+        "name": "Beef Kebab Premium Jumbo",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "beef_kebab_reguler": {
+        "name": "Beef Kebab Premium Reguler",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "beef_kebab_small": {
+        "name": "Beef Kebab Premium Small",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "daging_kebab_central": {
+        "name": "Daging Kebab Central",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "kebab_ayam_homemade": {
+        "name": "Kebab Ayam Homemade",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "lettuce_head": {
+        "name": "Lettuce Head",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "bawang_bombay": {
+        "name": "Bawang Bombay",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "nanas": {
+        "name": "Nanas",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "saus_sambal": {
+        "name": "Saus Sambal",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "saus_tomat": {
+        "name": "Saus Tomat",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "saus_mayonaise": {
+        "name": "Saus Mayonaise",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "saus_keju": {
+        "name": "Saus Keju",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "saus_signature": {
+        "name": "Saus Signature",
+        "unit": "gram",
+        "opening_count": 0
+      },
+      "keju_slice": {
+        "name": "Keju Slice",
+        "unit": "pcs",
+        "opening_count": 0
+      },
+      "telur": {
+        "name": "Telur",
+        "unit": "pcs",
+        "opening_count": 0
+      }
+    },
+    "notes": "",
+    "created_at": "2026-11-11T06:18:42.404Z",
+    "updated_at": "2026-11-11T06:33:24.831Z"
+  }
+]

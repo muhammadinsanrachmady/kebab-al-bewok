@@ -1,0 +1,34 @@
+{
+  "session_secret": "ca09fc8e3b95d70cb34f429ec2b21d34f0b18af05c3405081680427575669af0",
+  "accounts": [
+    {
+      "id": "owner-utama",
+      "username": "AlbewokOwner",
+      "full_name": "Owner Utama - Kebab AL Bewok",
+      "role": "owner",
+      "password_salt": "876e05d5ce4ca8add3211c2cc7274960",
+      "password_hash": "fadd55cb1b0e1502ae9cfe9002fc43b356e30e7d21910c7a1660d1e068daf5e1",
+      "is_active": true,
+      "branch_scope": "all",
+      "allowed_branches": [],
+      "permissions": {
+        "tabs": [
+          "omzet",
+          "lapak",
+          "kurir",
+          "costumer",
+          "gudang",
+          "statistik",
+          "profile"
+        ],
+        "can_edit": true,
+        "can_view_finance": true,
+        "can_manage_accounts": true
+      },
+      "notes": "Super Admin & Pemilik Utama",
+      "created_at": "2026-11-12T06:07:17.685Z",
+      "updated_at": "2026-11-12T06:07:17.685Z",
+      "last_login_at": "2026-11-16T04:12:53.071Z"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "master_secret": "f633fefc4df19e0c496c7c1cc3c8c74d8867417794f1cc561b234e211c0b0f45",
+  "telemetry_aes_key": "ec03c8f30bd2037ee9d893fe7e922a05071f436b53710ef6a5c40d06fa81d78f",
+  "session_epoch": 1,
+  "rotated_at": "2026-11-16T04:06:51.337Z"
+}

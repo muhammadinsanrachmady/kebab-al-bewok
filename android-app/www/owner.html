@@ -13,6 +13,9 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- FLATICON UICONS CDN -->
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -118,8 +121,8 @@
       <div class="text-center space-y-2 relative">
         <!-- AL BEWOK BRAND LOGO -->
         <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 p-[2px] shadow-xl shadow-red-950/70">
-          <div class="w-full h-full bg-zinc-950 rounded-[14px] flex items-center justify-center relative overflow-hidden">
-            <span class="text-2xl filter drop-shadow">🍢</span>
+          <div class="w-full h-full bg-zinc-950 rounded-[14px] flex items-center justify-center relative overflow-hidden p-2">
+            <img src="/icons/flaticon-owner.svg" alt="Portal Owner" class="w-full h-full object-contain filter drop-shadow">
             <div class="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-red-600 to-amber-500"></div>
           </div>
         </div>
@@ -173,8 +176,8 @@
     <header class="flex items-center justify-between gap-3 pb-3 border-b border-amber-500/20 backdrop-blur-md bg-zinc-950/40 p-3 rounded-2xl">
       <div class="flex items-center space-x-3 min-w-0">
         <div id="headerRoleIcon" class="w-10 h-10 bg-gradient-to-br from-red-600 via-amber-500 to-amber-600 p-[2px] rounded-xl shadow-lg shadow-red-950/60 shrink-0">
-          <div class="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center text-base">
-            🍢
+          <div class="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center p-1.5">
+            <img src="/icons/flaticon-owner.svg" alt="Owner" class="w-full h-full object-contain">
           </div>
         </div>
         <div class="min-w-0">
@@ -208,45 +211,45 @@
       <button type="button" onclick="switchOwnerTab('profile')" class="text-[10px] font-bold text-amber-400 hover:underline shrink-0">Lihat Izin Saya</button>
     </div>
 
-    <!-- NAVIGASI 7 TAB MINIMALIS -->
+    <!-- NAVIGASI 7 TAB MINIMALIS (FLATICON UICONS) -->
     <nav aria-label="Navigasi Dashboard Owner" class="sticky top-2 z-30 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-1 shadow-lg">
       <div id="ownerTabBar" class="flex md:grid md:grid-cols-7 gap-1 overflow-x-auto no-scrollbar">
         <button type="button" data-owner-tab="omzet" onclick="switchOwnerTab('omzet')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-bold bg-amber-500 text-slate-950 relative">
-          <i class="fa-solid fa-sack-dollar text-[11px]"></i>
+          <i class="fi fi-sr-sack-dollar text-[13px]"></i>
           <span>Omzet</span>
         </button>
 
         <button type="button" data-owner-tab="lapak" onclick="switchOwnerTab('lapak')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-store text-[11px]"></i>
+          <i class="fi fi-sr-shop text-[13px]"></i>
           <span>Lapak</span>
         </button>
 
         <button type="button" data-owner-tab="kurir" onclick="switchOwnerTab('kurir')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-motorcycle text-[11px]"></i>
+          <i class="fi fi-sr-motorcycle text-[13px]"></i>
           <span>Kurir</span>
           <span id="badgeKurirPending" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
         </button>
 
         <button type="button" data-owner-tab="costumer" onclick="switchOwnerTab('costumer')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-users text-[11px]"></i>
+          <i class="fi fi-sr-users-alt text-[13px]"></i>
           <span>Costumer</span>
           <span id="badgeCostumerPending" class="hidden bg-red-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
         </button>
 
         <button type="button" data-owner-tab="gudang" onclick="switchOwnerTab('gudang')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-boxes-stacked text-[11px]"></i>
+          <i class="fi fi-sr-boxes text-[13px]"></i>
           <span>Gudang</span>
           <span id="badgeGudangAlert" class="hidden bg-rose-500 text-white text-[9px] font-extrabold px-1.5 rounded-full leading-tight">0</span>
           <span id="badgeGudangMitraInbox" class="portal-no-mitra hidden bg-sky-500 text-slate-950 text-[9px] font-extrabold px-1.5 rounded-full leading-tight" title="Pesanan PO Mitra menunggu ACC Pusat">0</span>
         </button>
 
         <button type="button" data-owner-tab="statistik" onclick="switchOwnerTab('statistik')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-chart-line text-[11px]"></i>
+          <i class="fi fi-sr-chart-histogram text-[13px]"></i>
           <span>Statistik</span>
         </button>
 
         <button type="button" data-owner-tab="profile" onclick="switchOwnerTab('profile')" class="shrink-0 min-w-[78px] md:min-w-0 py-1.5 px-2.5 rounded-lg transition flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 relative">
-          <i class="fa-solid fa-user-shield text-[11px]"></i>
+          <i class="fi fi-sr-shield-check text-[13px]"></i>
           <span>Profile</span>
         </button>
       </div>
@@ -1332,8 +1335,8 @@
       <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div id="profileAccountAvatar" class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center text-lg shrink-0">
-              👑
+            <div id="profileAccountAvatar" class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/35 flex items-center justify-center p-1.5 shrink-0">
+              <img src="/icons/flaticon-owner.svg" alt="Profile" class="w-full h-full object-contain">
             </div>
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">

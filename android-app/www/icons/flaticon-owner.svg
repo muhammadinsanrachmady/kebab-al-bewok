@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="crownGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FDE047"/>
+      <stop offset="50%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#D97706"/>
+    </linearGradient>
+    <linearGradient id="gemRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F87171"/>
+      <stop offset="100%" stop-color="#DC2626"/>
+    </linearGradient>
+    <linearGradient id="gemGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Ring Base -->
+  <circle cx="64" cy="64" r="58" fill="#18181B" stroke="#F59E0B" stroke-width="2.5" stroke-opacity="0.5"/>
+
+  <!-- Analytics Chart Bars in Background -->
+  <rect x="30" y="80" width="12" height="20" rx="3" fill="#3B82F6" opacity="0.3"/>
+  <rect x="48" y="70" width="12" height="30" rx="3" fill="#10B981" opacity="0.4"/>
+  <rect x="66" y="60" width="12" height="40" rx="3" fill="#F59E0B" opacity="0.4"/>
+  <rect x="84" y="50" width="12" height="50" rx="3" fill="#EF4444" opacity="0.3"/>
+
+  <!-- Growth Arrow -->
+  <path d="M 28 82 Q 56 64 96 46" stroke="#10B981" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <polygon points="98,42 98,52 90,48" fill="#10B981"/>
+
+  <!-- Imperial Golden Crown -->
+  <!-- Crown Base Band -->
+  <path d="M 30 76 L 98 76 L 94 88 L 34 88 Z" fill="url(#crownGrad)" stroke="#B45309" stroke-width="2"/>
+  <circle cx="44" cy="82" r="3.5" fill="url(#gemRed)"/>
+  <circle cx="64" cy="82" r="4.5" fill="url(#gemGreen)"/>
+  <circle cx="84" cy="82" r="3.5" fill="url(#gemRed)"/>
+
+  <!-- Crown Peaks -->
+  <path d="M 30 76 L 24 44 L 46 58 L 64 34 L 82 58 L 104 44 L 98 76 Z" fill="url(#crownGrad)" stroke="#B45309" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- Jewels on Peak Tips -->
+  <circle cx="24" cy="44" r="5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
+  <circle cx="64" cy="34" r="7" fill="url(#gemRed)" stroke="#B45309" stroke-width="1.5"/>
+  <circle cx="104" cy="44" r="5" fill="#FFFFFF" stroke="#D97706" stroke-width="1.5"/>
+  <circle cx="46" cy="58" r="3" fill="url(#gemGreen)"/>
+  <circle cx="82" cy="58" r="3" fill="url(#gemGreen)"/>
+</svg>
