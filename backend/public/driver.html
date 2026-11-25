@@ -2237,11 +2237,10 @@
           attributionControl: true
         }).setView([driverCurrentLat, driverCurrentLng], 15);
 
-        // Tile layer CartoDB Voyager murni berbasis data OpenStreetMap (Cepat, Stabil, HD, 100% Bebas Blokir)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          maxZoom: 20,
-          subdomains: 'abcd',
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        // Tile layer resmi Esri World Street Map (Cepat, Stabil, HD, 100% Bebas API Key & Tanpa Watermark)
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: '&copy; Esri &mdash; OpenStreetMap contributors'
         }).addTo(driverMapInstance);
 
         // Marker Kurir (Motor Berkedip)
