@@ -384,11 +384,15 @@ app.use(express.static(PUBLIC_DIR, {
   }
 }));
 
-// Rute jalan pintas untuk masing-masing aplikasi
-app.get('/customer', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'customer.html')));
-app.get('/driver', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'driver.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'admin.html')));
-app.get('/owner', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'owner.html')));
+// Rute jalan pintas untuk masing-masing aplikasi (dengan header no-cache agar pembaruan instan terbaca)
+const sendNoCacheHtml = (res, file) => {
+  res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  res.sendFile(path.join(PUBLIC_DIR, file));
+};
+app.get('/customer', (req, res) => sendNoCacheHtml(res, 'customer.html'));
+app.get('/driver', (req, res) => sendNoCacheHtml(res, 'driver.html'));
+app.get('/admin', (req, res) => sendNoCacheHtml(res, 'admin.html'));
+app.get('/owner', (req, res) => sendNoCacheHtml(res, 'owner.html'));
 
 // Path file data
 const DATA_DIR = path.join(__dirname, '../data');
