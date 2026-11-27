@@ -3841,6 +3841,44 @@
     let trackTraversedLine = null; // Garis Abu-abu (Jalur yang sudah ditempuh kurir)
     let trackFutureLine = null;    // Garis Panduan Samar untuk leg berikutnya
     let currentTrackingOrder = null;
+    let trackRouteCoords = null;       // Cache koordinat jalan OSRM aktif [lat, lng]
+    let trackRouteKey = '';
+    let trackRouteFetching = false;
+    let trackFutureRouteCoords = null; // Cache koordinat jalan OSRM Lapak -> Customer (Fase 1)
+    let trackFutureRouteKey = '';
+
+    async function fetchTrackOsrmRoute(startLat, startLng, endLat, endLng) {
+      try {
+        const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+        const res = await fetch(url).then(r => r.json());
+        if (res.code === 'Ok' && res.routes && res.routes[0] && res.routes[0].geometry) {
+          return res.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        }
+      } catch (e) {
+        console.warn('OSRM tracking route fallback:', e);
+      }
+      return null;
+    }
+
+    function splitRouteByDriverPos(routeCoords, driverLat, driverLng) {
+      if (!routeCoords || routeCoords.length < 2) return null;
+      let closestIdx = 0;
+      let minDistSq = Infinity;
+      for (let i = 0; i < routeCoords.length; i++) {
+        const dLat = routeCoords[i][0] - driverLat;
+        const dLng = routeCoords[i][1] - driverLng;
+        const distSq = dLat * dLat + dLng * dLng;
+        if (distSq < minDistSq) {
+          minDistSq = distSq;
+          closestIdx = i;
+        }
+      }
+      const traversed = routeCoords.slice(0, closestIdx + 1);
+      traversed.push([driverLat, driverLng]);
+      const remaining = [[driverLat, driverLng], ...routeCoords.slice(closestIdx + 1)];
+      if (remaining.length < 2) remaining.push(routeCoords[routeCoords.length - 1]);
+      return { traversed, remaining };
+    }
 
     function openTrackingModal(orderCode, orderId) {
       if (orderId) activeOrderId = orderId;
@@ -3980,51 +4018,39 @@
         solidColor = '#10b981';
       }
 
-      // 1. GARIS SOLID TEBAL (SISA RUTE: BERKURANG & MENYUSUT SAAT MOTOR MELAJU)
-      const remainingCoords = [[driverLat, driverLng], [targetLat, targetLng]];
-      if (!trackRemainingLine) {
-        trackRemainingLine = L.polyline(remainingCoords, {
-          color: solidColor,
-          weight: 6,
-          opacity: 0.95,
-          lineCap: 'round',
-          lineJoin: 'round'
-        }).addTo(trackMap);
-      } else {
-        trackRemainingLine.setLatLngs(remainingCoords);
-        trackRemainingLine.setStyle({ color: solidColor });
+      // Rute jalan nyata OSRM (agar garis rute Customer sama persis mengikuti alur jalan seperti Driver)
+      const routeKey = `${phaseStartLat.toFixed(4)},${phaseStartLng.toFixed(4)}->${targetLat.toFixed(4)},${targetLng.toFixed(4)}`;
+      if (Array.isArray(order.route_coords) && order.route_coords.length >= 2) {
+        trackRouteCoords = order.route_coords;
+        trackRouteKey = routeKey;
+      } else if (trackRouteKey !== routeKey && !trackRouteFetching) {
+        trackRouteKey = routeKey;
+        trackRouteCoords = null;
+        trackRouteFetching = true;
+        fetchTrackOsrmRoute(phaseStartLat, phaseStartLng, targetLat, targetLng).then((coords) => {
+          trackRouteFetching = false;
+          if (coords && coords.length >= 2 && trackRouteKey === routeKey) {
+            trackRouteCoords = coords;
+            if (currentTrackingOrder) applyTrackPolylines(currentTrackingOrder);
+          }
+        });
       }
 
-      // 2. GARIS ABU-ABU TIPIS (JALUR YANG SUDAH DITEMPUH / DILEWATI MOTOR)
-      const traversedCoords = [[phaseStartLat, phaseStartLng], [driverLat, driverLng]];
-      if (!trackTraversedLine) {
-        trackTraversedLine = L.polyline(traversedCoords, {
-          color: '#94a3b8',
-          weight: 3.5,
-          opacity: 0.45,
-          lineCap: 'round'
-        }).addTo(trackMap);
-      } else {
-        trackTraversedLine.setLatLngs(traversedCoords);
-      }
-
-      // 3. JIKA FASE 1, BERIKAN PANDUAN SAMAR DARI LAPAK KE RUMAH CUSTOMER
       if (isHeadingToBranch) {
-        const futureCoords = [[branchLat, branchLng], [custLat, custLng]];
-        if (!trackFutureLine) {
-          trackFutureLine = L.polyline(futureCoords, {
-            color: '#cbd5e1',
-            weight: 2,
-            opacity: 0.5,
-            dashArray: '4, 6'
-          }).addTo(trackMap);
-        } else {
-          trackFutureLine.setLatLngs(futureCoords);
-          trackFutureLine.setStyle({ opacity: 0.5 });
+        const fKey = `${branchLat.toFixed(4)},${branchLng.toFixed(4)}->${custLat.toFixed(4)},${custLng.toFixed(4)}`;
+        if (trackFutureRouteKey !== fKey) {
+          trackFutureRouteKey = fKey;
+          trackFutureRouteCoords = null;
+          fetchTrackOsrmRoute(branchLat, branchLng, custLat, custLng).then((coords) => {
+            if (coords && coords.length >= 2 && trackFutureRouteKey === fKey) {
+              trackFutureRouteCoords = coords;
+              if (currentTrackingOrder) applyTrackPolylines(currentTrackingOrder);
+            }
+          });
         }
-      } else if (trackFutureLine) {
-        trackFutureLine.setStyle({ opacity: 0 });
       }
+
+      applyTrackPolylines(order);
 
       // Hitung Jarak sisa dan ETA sesuai fase aktif
       const distRemaining = calculateDistance(driverLat, driverLng, targetLat, targetLng);
@@ -4052,6 +4078,74 @@
           trackMap.fitBounds([[branchLat, branchLng], [custLat, custLng]], { padding: [50, 50] });
         }
         trackMap._initialFitted = true;
+      }
+    }
+
+    function applyTrackPolylines(order) {
+      if (!trackMap || !order) return;
+      const branchLat = parseFloat(order.branch_latitude) || (currentBranch ? currentBranch.latitude : -6.2088);
+      const branchLng = parseFloat(order.branch_longitude) || (currentBranch ? currentBranch.longitude : 106.8456);
+      const custLat = parseFloat(order.customer_latitude) || userCurrentLat || -6.2150;
+      const custLng = parseFloat(order.customer_longitude) || userCurrentLng || 106.8520;
+      const driverLat = parseFloat(order.driver_latitude) || branchLat;
+      const driverLng = parseFloat(order.driver_longitude) || branchLng;
+
+      const isHeadingToBranch = (order.driver_phase === 'to_branch' || order.status === 'driver_heading_to_branch');
+      const phaseStartLat = isHeadingToBranch ? (order.driver_start_latitude || (branchLat + 0.0065)) : branchLat;
+      const phaseStartLng = isHeadingToBranch ? (order.driver_start_longitude || (branchLng - 0.0055)) : branchLng;
+      const targetLat = isHeadingToBranch ? branchLat : custLat;
+      const targetLng = isHeadingToBranch ? branchLng : custLng;
+      const solidColor = isHeadingToBranch ? '#f97316' : '#10b981';
+
+      const split = splitRouteByDriverPos(trackRouteCoords, driverLat, driverLng);
+      const remainingCoords = split ? split.remaining : [[driverLat, driverLng], [targetLat, targetLng]];
+      const traversedCoords = split ? split.traversed : [[phaseStartLat, phaseStartLng], [driverLat, driverLng]];
+
+      // 1. GARIS SOLID TEBAL (SISA RUTE MENGIKUTI JALAN OSRM: BERKURANG SAAT MOTOR MELAJU)
+      if (!trackRemainingLine) {
+        trackRemainingLine = L.polyline(remainingCoords, {
+          color: solidColor,
+          weight: 6,
+          opacity: 0.95,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(trackMap);
+      } else {
+        trackRemainingLine.setLatLngs(remainingCoords);
+        trackRemainingLine.setStyle({ color: solidColor });
+      }
+
+      // 2. GARIS ABU-ABU TIPIS (JALUR JALAN YANG SUDAH DITEMPUH MOTOR)
+      if (!trackTraversedLine) {
+        trackTraversedLine = L.polyline(traversedCoords, {
+          color: '#94a3b8',
+          weight: 4,
+          opacity: 0.55,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }).addTo(trackMap);
+      } else {
+        trackTraversedLine.setLatLngs(traversedCoords);
+      }
+
+      // 3. JIKA FASE 1, BERIKAN PANDUAN SAMAR DARI LAPAK KE RUMAH CUSTOMER
+      if (isHeadingToBranch) {
+        const futureCoords = (trackFutureRouteCoords && trackFutureRouteCoords.length >= 2)
+          ? trackFutureRouteCoords
+          : [[branchLat, branchLng], [custLat, custLng]];
+        if (!trackFutureLine) {
+          trackFutureLine = L.polyline(futureCoords, {
+            color: '#cbd5e1',
+            weight: 3,
+            opacity: 0.65,
+            dashArray: '4, 6'
+          }).addTo(trackMap);
+        } else {
+          trackFutureLine.setLatLngs(futureCoords);
+          trackFutureLine.setStyle({ opacity: 0.65 });
+        }
+      } else if (trackFutureLine) {
+        trackFutureLine.setStyle({ opacity: 0 });
       }
     }
 
